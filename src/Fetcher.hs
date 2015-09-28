@@ -7,6 +7,8 @@ import Control.Monad.IO.Class
 import Control.Monad.State
 import Control.Monad.Trans.Reader
 
+import Data.Either
+
 import Network.FTP.Client
 import Network.URI
 
@@ -47,6 +49,6 @@ fetchTestContent = liftIO $ readFile "src/IDYGP007.txt"
 fetch :: AppT IO ()
 fetch = do
     content <- fetchLines address
-    let (Right forecasts) = mapM parseForecast $ lines content
+    let forecasts = rights $ map parseForecast $ lines content
     stateM $ modify $
         \store -> store { forecasts = forecasts }

@@ -13,10 +13,21 @@ import GHC.Generics
 import Servant
 
 
-stringPart start len = trim . take len . drop start
+trim :: String -> String
+trim = trimStart . trimEnd
     where trimStart = dropWhile (== ' ')
           trimEnd = reverse . trimStart . reverse
-          trim = trimStart . trimEnd
+
+stringPart :: Int -> Int -> String -> String
+stringPart start len = take len . drop start
+
+stringPartT :: Int -> Int -> String -> String
+stringPartT start len = trim . stringPart start len
+
+readEither :: Read a => e -> String -> Either e a
+readEither err str = case reads str of
+    [(res, "")] -> Right res
+    _ -> Left err
 
 -- Supplementary types
 -- TODO: change them to something nicer
@@ -40,9 +51,9 @@ instance ToJSON Date
 
 parseDate :: String -> Either String Date
 parseDate str = do
-    let day = read $ stringPart 0 2 str
-    let month = read $ stringPart 3 2 str
-    let year = read $ stringPart 6 4 str
+    day <- readEither "day" $ stringPartT 0 2 str
+    month <- readEither "month" $ stringPartT 3 2 str
+    year <- readEither "year" $ stringPartT 6 4 str
     return $ Date year month day
 
 data Time = Time { hour :: Int
@@ -54,8 +65,8 @@ instance ToJSON Time
 
 parseTime :: String -> Either String Time
 parseTime str = do
-    let hour = read $ stringPart 0 2 str
-    let minute = read $ stringPart 3 2 str
+    hour <- readEither "hour" $ stringPartT 0 2 str
+    minute <- readEither "minute" $ stringPartT 3 2 str
     return $ Time hour minute
 
 data UVLevel = UVLevel Int
@@ -82,11 +93,11 @@ instance ToJSON Forecast
 -- TODO: Parsec
 parseForecast :: String -> Either String Forecast
 parseForecast str = do
-    let location = Location $ stringPart 18 20 str
+    let location = Location $ stringPartT 18 20 str
     date <- parseDate $ stringPart 38 10 str
     tStart <- parseTime $ stringPart 64 5 str
     tEnd <- parseTime $ stringPart 73 5 str
-    let max = UVLevel $ read $ stringPart 84 3 str
+    max <- liftM UVLevel $ readEither "UV level" $ stringPartT 84 3 str
     return $ Forecast location date tStart tEnd max
 
 data AppKey = AppKey { key :: String }
