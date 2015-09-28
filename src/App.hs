@@ -1,6 +1,9 @@
 {-# Language TypeOperators #-}
 module App where
 
+import Control.Concurrent.MVar
+
+import Control.Monad
 import Control.Monad.Trans.Either
 import Control.Monad.Trans.Reader
 
@@ -15,8 +18,11 @@ import Server
 readerToEither :: Config -> AppM :~> EitherT ServantErr IO
 readerToEither cfg = Nat $ \x -> runReaderT x cfg
 
-readerServer :: Config -> Server API
-readerServer cfg = enter (readerToEither cfg) server
+readerServer :: IO (Server API)
+readerServer = do
+    store <- newMVar emptyStore
+    let cfg = Config store
+    return $ enter (readerToEither cfg) server
 
-app :: Config -> Application
-app cfg = serve api (readerServer cfg)
+app :: IO Application
+app = liftM (serve api) readerServer

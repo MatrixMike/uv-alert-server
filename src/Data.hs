@@ -55,9 +55,9 @@ data Forecast = Forecast { location :: Location
 
 instance ToJSON Forecast
 
-data APIKey = APIKey { key :: String }
+data AppKey = AppKey { key :: String }
 
-instance FromFormUrlEncoded APIKey where
-    fromFormUrlEncoded = liftM (APIKey . T.unpack) . maybeToEither "key not found" . M.lookup "key" . M.fromList
+instance FromFormUrlEncoded AppKey where
+    fromFormUrlEncoded = liftM (AppKey . T.unpack) . maybeToEither "key not found" . M.lookup "key" . M.fromList
         where maybeToEither _ (Just x) = Right x
               maybeToEither err Nothing = Left err

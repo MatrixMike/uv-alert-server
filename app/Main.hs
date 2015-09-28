@@ -1,6 +1,10 @@
 module Main where
 
-import Data
+import Network.Wai.Handler.Warp
+
+import App
 
 main :: IO ()
-main = someFunc
+main = do
+    app <- app
+    run 8000 app
