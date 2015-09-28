@@ -18,11 +18,13 @@ import Server
 readerToEither :: Config -> AppM :~> EitherT ServantErr IO
 readerToEither cfg = Nat $ \x -> runReaderT x cfg
 
-readerServer :: IO (Server API)
-readerServer = do
+initConfig :: IO Config
+initConfig = do
     store <- newMVar emptyStore
-    let cfg = Config store
-    return $ enter (readerToEither cfg) server
+    return $ Config store
 
-app :: IO Application
-app = liftM (serve api) readerServer
+readerServer :: Config -> Server API
+readerServer cfg = enter (readerToEither cfg) server
+
+app :: Config -> Application
+app cfg = serve api (readerServer cfg)

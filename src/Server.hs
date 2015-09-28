@@ -1,3 +1,4 @@
+{-# Language OverloadedStrings #-}
 module Server where
 
 import Control.Concurrent.MVar
@@ -23,21 +24,28 @@ emptyStore = Store [] []
 
 data Config = Config { coStore :: MVar Store }
 
-withStore :: (State Store a) -> AppM a
-withStore fn = do
-        storeM <- asks coStore
-        liftIO $ modifyMVar storeM $ return . runState' fn
-    where runState' fn s = let (a, s') = runState fn s in (s', a)
+type AppT m = ReaderT Config m
 
-type AppM = ReaderT Config (EitherT ServantErr IO)
+type AppM = AppT (EitherT ServantErr IO)
+
+stateM :: MonadIO m => State Store a -> AppT m a
+stateM fn = do
+        store <- asks coStore
+        liftIO $ modifyMVar store $ return . fn'
+    where fn' s = let (a, s') = runState fn s in (s', a)
 
 server :: ServerT API AppM
 server = registerApp :<|> getForecast
 
 registerApp :: AppKey -> AppM ()
 registerApp key = do
-    withStore $ modify $
+    stateM $ modify $
         \store -> store { appKeys = appKeys store ++ [key] }
 
 getForecast :: Location -> AppM Forecast
-getForecast = undefined
+getForecast loc = do
+    forecasts <- stateM $ gets forecasts
+    let locForecasts = filter ((== loc) . location) forecasts
+    case locForecasts of
+        [] -> lift $ left $ err404 { errBody = "Location not found" }
+        fc:_ -> return fc
