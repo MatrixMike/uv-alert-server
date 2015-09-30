@@ -19,6 +19,7 @@ library
                      , App
                      , Data
                      , Fetcher
+                     , Pebble.Types
                      , Server
   build-depends:       base >= 4.7 && < 5
                      , aeson
@@ -30,7 +31,9 @@ library
                      , parsec
                      , servant-server
                      , text
+                     , time
                      , transformers
+                     , vector
                      , wai
   default-language:    Haskell2010
 
