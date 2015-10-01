@@ -19,6 +19,7 @@ library
                      , App
                      , Data
                      , Fetcher
+                     , Pebble.Client
                      , Pebble.Types
                      , Server
   build-depends:       base >= 4.7 && < 5
@@ -29,6 +30,8 @@ library
                      , mtl
                      , network-uri
                      , parsec
+                     , servant
+                     , servant-client
                      , servant-server
                      , text
                      , time
