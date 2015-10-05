@@ -104,7 +104,15 @@ instance ToJSON PinType where
 data Color = Color Int  -- Hex
 
 instance ToJSON Color where
-    toJSON = undefined
+    toJSON = toJSON . hexColor
+
+-- TODO: this must be already defined somewhere
+hexColor :: Color -> String
+hexColor (Color c) = '#':hexStr c
+    where hexStr c | c < 16 = [hexChr c]
+                   | otherwise = hexStr (c `div` 16) ++ [hexChr (c `mod` 16)]
+          hexChr :: Int -> Char
+          hexChr c = "0123456789abcdef" !! c
 
 data Paragraph = Paragraph { paragraphHeading :: String
                            , paragraphText :: String
