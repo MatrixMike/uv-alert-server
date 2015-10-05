@@ -1,5 +1,6 @@
 {-# Language DeriveGeneric #-}
 {-# Language OverloadedStrings #-}
+{-# Language RecordWildCards #-}
 module Data where
 
 import Control.Monad
@@ -7,10 +8,16 @@ import Control.Monad
 import Data.Aeson
 import qualified Data.Map as M
 import qualified Data.Text as T
+import Data.Time.Calendar
+import Data.Time.Clock
+import Data.Time.LocalTime
+import Data.Time.LocalTime.TimeZone.Series
 
 import GHC.Generics
 
 import Servant
+
+import TZ
 
 
 trim :: String -> String
@@ -41,33 +48,24 @@ instance FromText Location where
 
 instance ToJSON Location
 
-data Date = Date { year :: Int
-                 , month :: Int
-                 , day :: Int
-                 }
-    deriving (Eq, Show, Generic)
-
-instance ToJSON Date
-
-parseDate :: String -> Either String Date
+parseDate :: String -> Either String Day
 parseDate str = do
     day <- readEither "day" $ stringPartT 0 2 str
     month <- readEither "month" $ stringPartT 3 2 str
     year <- readEither "year" $ stringPartT 6 4 str
-    return $ Date year month day
+    let maybeDate = fromGregorianValid year month day
+    case maybeDate of
+        Just date -> return date
+        Nothing -> error "Invalid date"
 
-data Time = Time { hour :: Int
-                 , minute :: Int
-                 }
-    deriving (Eq, Show, Generic)
+instance ToJSON Day where
+    toJSON = toJSON . showGregorian
 
-instance ToJSON Time
-
-parseTime :: String -> Either String Time
+parseTime :: String -> Either String TimeOfDay
 parseTime str = do
     hour <- readEither "hour" $ stringPartT 0 2 str
     minute <- readEither "minute" $ stringPartT 3 2 str
-    return $ Time hour minute
+    return $ TimeOfDay hour minute 0
 
 data UVLevel = UVLevel Int
     deriving (Eq, Show, Generic)
@@ -81,14 +79,33 @@ Index BoM    WMO  Location            DayMonYear  UV Alert period (local time)  
 0009 070014 94926 Canberra            26 09 2015  UV Alert from  8.50 to 15.00  Max:  7
 -}
 data Forecast = Forecast { location :: Location
-                         , date :: Date
-                         , alertStart :: Time
-                         , alertEnd :: Time
+                         , date :: Day
+                         , alertStart :: TimeOfDay
+                         , alertEnd :: TimeOfDay
                          , maxLevel :: UVLevel
                          }
     deriving (Eq, Show, Generic)
 
-instance ToJSON Forecast
+fcTZ :: Forecast -> TimeZoneSeries
+fcTZ = cityTZ . city . location
+
+fcStartTimeUtc :: Forecast -> UTCTime
+fcStartTimeUtc fc = localTimeToUTC' (fcTZ fc) $ LocalTime (date fc) (alertStart fc)
+
+fcEndTimeUtc :: Forecast -> UTCTime
+fcEndTimeUtc fc = localTimeToUTC' (fcTZ fc) $ LocalTime (date fc) (alertEnd fc)
+
+fcDuration :: Forecast -> Int -- minutes
+fcDuration fc = round (seconds / 60)
+    where seconds = diffUTCTime (fcEndTimeUtc fc) (fcStartTimeUtc fc)
+
+instance ToJSON Forecast where
+    toJSON Forecast{..} = object $ [ "location" .= city location
+                                   , "date" .= date
+                                   , "alertStart" .= show alertStart
+                                   , "alertEnd" .= show alertEnd
+                                   , "maxLevel" .= maxLevel
+                                   ]
 
 -- TODO: Parsec
 parseForecast :: String -> Either String Forecast

@@ -6,6 +6,7 @@ import Network.Wai.Handler.Warp
 
 import App
 import Fetcher
+import Server
 
 main :: IO ()
 main = do

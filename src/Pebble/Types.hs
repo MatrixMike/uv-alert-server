@@ -17,7 +17,7 @@ import Servant
 
 data Pin = Pin { pinId :: String
                , pinTime :: UTCTime
-               , pinDuration :: Maybe Int
+               , pinDuration :: Maybe Int  -- minutes
                , pinCreateNotification :: Maybe Notification
                , pinUpdateNotification :: Maybe Notification
                , pinLayout :: Layout

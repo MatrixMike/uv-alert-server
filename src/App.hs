@@ -1,30 +1,47 @@
-{-# Language TypeOperators #-}
 module App where
 
 import Control.Concurrent.MVar
 
 import Control.Monad
+import Control.Monad.IO.Class
+import Control.Monad.State
 import Control.Monad.Trans.Either
 import Control.Monad.Trans.Reader
 
-import Network.Wai
-
 import Servant
 
+import System.Environment
+
 import API
-import Server
+import Data
+
+import Pebble.Types
 
 
-readerToEither :: Config -> AppM :~> EitherT ServantErr IO
-readerToEither cfg = Nat $ \x -> runReaderT x cfg
+-- TODO: Probably needs a database
+data Store = Store { appKeys :: [AppKey]
+                   , forecasts :: [Forecast]
+                   }
+
+emptyStore :: Store
+emptyStore = Store [] []
+
+data Config = Config { coStore :: MVar Store
+                     , coApiKey :: APIKey
+                     }
+
+type AppT m = ReaderT Config m
+
+type AppM = AppT IO
+
+stateM :: MonadIO m => State Store a -> AppT m a
+stateM fn = do
+        store <- asks coStore
+        liftIO $ modifyMVar store $ return . fn'
+    where fn' s = let (a, s') = runState fn s in (s', a)
 
 initConfig :: IO Config
 initConfig = do
     store <- newMVar emptyStore
-    return $ Config store
-
-readerServer :: Config -> Server API
-readerServer cfg = enter (readerToEither cfg) server
-
-app :: Config -> Application
-app cfg = serve api (readerServer cfg)
+    apiKey <- liftM APIKey $ getEnv "PEBBLE_API_KEY"
+    return $ Config store apiKey

@@ -21,7 +21,9 @@ library
                      , Fetcher
                      , Pebble.Client
                      , Pebble.Types
+                     , Pusher
                      , Server
+                     , TZ
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , containers
@@ -35,6 +37,9 @@ library
                      , servant-server
                      , text
                      , time
+                     , timezone-olson
+                     , timezone-olson-th
+                     , timezone-series
                      , transformers
                      , vector
                      , wai

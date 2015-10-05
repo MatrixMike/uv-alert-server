@@ -12,8 +12,9 @@ import Data.Either
 import Network.FTP.Client
 import Network.URI
 
+import App
 import Data
-import Server  -- TODO: Move common definitions to App?
+import Pusher
 
 
 updateInterval :: Int
@@ -30,10 +31,18 @@ Just address2 = parseURI "ftp://ftp2.bom.gov.au/anon/gen/fwo/IDYGP026.txt"
 runFetcher :: Config -> IO ()
 runFetcher cfg = runReaderT fetcher cfg
 
-fetcher :: AppT IO ()
+fetcher :: AppM ()
 fetcher = forever $ do
     fetch
     liftIO $ threadDelay updateInterval
+
+fetch :: AppM ()
+fetch = do
+    content <- fetchLines address
+    let forecasts = rights $ map parseForecast $ lines content
+    stateM $ modify $
+        \store -> store { forecasts = forecasts }
+    push
 
 fetchLines :: MonadIO m => URI -> m String
 fetchLines uri = liftIO $ do
@@ -45,10 +54,3 @@ fetchLines uri = liftIO $ do
 
 fetchTestContent :: MonadIO m => m String
 fetchTestContent = liftIO $ readFile "src/IDYGP007.txt"
-
-fetch :: AppT IO ()
-fetch = do
-    content <- fetchLines address
-    let forecasts = rights $ map parseForecast $ lines content
-    stateM $ modify $
-        \store -> store { forecasts = forecasts }
