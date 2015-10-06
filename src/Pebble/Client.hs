@@ -7,6 +7,8 @@ module Pebble.Client where
 
 import Control.Monad.Trans.Either
 
+import Data.Text
+
 import Pebble.Types
 
 import Servant
@@ -23,8 +25,8 @@ type PebbleAPI = "v1" :>
     )
 
 type PinAPI = "pins" :> Capture "pin-id" String :>
-                  (    ReqBody '[JSON] Pin :> Put '[JSON] ()
-                  :<|> Delete '[JSON] ()
+                  (    ReqBody '[JSON] Pin :> Put '[PlainText] Text
+                  :<|> Delete '[PlainText] Text
                   )
 
 api :: Proxy PebbleAPI
@@ -35,12 +37,12 @@ baseUrl = BaseUrl Https "timeline-api.getpebble.com" 443
 
 userClient :<|> sharedClient = client api baseUrl
 
-putUserPin :: Maybe UserToken -> String -> Pin -> EitherT ServantError IO ()
+putUserPin :: Maybe UserToken -> String -> Pin -> EitherT ServantError IO Text
 putUserPin token pinId pin = putPin pin
     where userPinClient :<|> _ = userClient token
           putPin :<|> _ = userPinClient pinId
 
-deleteUserPin :: Maybe UserToken -> String -> EitherT ServantError IO ()
+deleteUserPin :: Maybe UserToken -> String -> EitherT ServantError IO Text
 deleteUserPin token pinId = deletePin
     where userPinClient :<|> _ = userClient token
           _ :<|> deletePin = userPinClient pinId
@@ -49,10 +51,10 @@ getUserSubscriptions :: Maybe UserToken -> EitherT ServantError IO Topics
 getUserSubscriptions token = getSubscriptions
     where _ :<|> getSubscriptions = userClient token
 
-putSharedPin :: Maybe APIKey -> Maybe Topics -> String -> Pin -> EitherT ServantError IO ()
+putSharedPin :: Maybe APIKey -> Maybe Topics -> String -> Pin -> EitherT ServantError IO Text
 putSharedPin key topics pinId pin = putPin pin
     where putPin :<|> _ = sharedClient key topics pinId
 
-deleteSharedPin :: Maybe APIKey -> Maybe Topics -> String -> EitherT ServantError IO ()
+deleteSharedPin :: Maybe APIKey -> Maybe Topics -> String -> EitherT ServantError IO Text
 deleteSharedPin key topics pinId = deletePin
     where _ :<|> deletePin = sharedClient key topics pinId

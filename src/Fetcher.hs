@@ -18,7 +18,7 @@ import Pusher
 
 
 updateInterval :: Int
-updateInterval = 3600000 -- milliseconds
+updateInterval = 3600000000 -- milliseconds
 
 -- One of these is for today, another one for tomorrow
 address :: URI
@@ -38,6 +38,7 @@ fetcher = forever $ do
 
 fetch :: AppM ()
 fetch = do
+    liftIO $ putStrLn "Fetching"
     content <- fetchLines address
     let forecasts = rights $ map parseForecast $ lines content
     stateM $ modify $

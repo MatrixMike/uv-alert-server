@@ -29,6 +29,7 @@ library
                      , containers
                      , either
                      , ftphs
+                     , MissingH
                      , mtl
                      , network-uri
                      , parsec
