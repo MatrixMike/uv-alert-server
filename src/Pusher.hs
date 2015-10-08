@@ -53,6 +53,22 @@ forecastPin forecast@Forecast{..} = Pin { pinId = pinId
                           , layoutParagraphs = []
                           , layoutLastUpdated = Nothing
                           }
+          notification = Notification { notificationLayout = notifLayout
+                                      , notificationTime = Just $ fcStartTimeUtc forecast
+                                      }
+          notifLayout = Layout { layoutType = GenericNotification
+                               , layoutTitle = "UV Alert"
+                               , layoutSubtitle = Nothing
+                               , layoutBody = Nothing
+                               , layoutTinyIcon = Nothing
+                               , layoutSmallIcon = Nothing
+                               , layoutLargeIcon = Nothing
+                               , layoutPrimaryColor = Nothing
+                               , layoutSecondaryColor = Nothing
+                               , layoutBackgroundColor = Nothing
+                               , layoutParagraphs = []
+                               , layoutLastUpdated = Nothing
+                               }
           pinId = replaceSpace $ city location ++ show date
 
 forecastTopics :: Forecast -> Topics
