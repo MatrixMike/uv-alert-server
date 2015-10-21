@@ -117,6 +117,9 @@ parseForecast str = do
     max <- liftM UVLevel $ readEither "UV level" $ stringPartT 84 3 str
     return $ Forecast location date tStart tEnd max
 
+isRecent :: UTCTime -> Forecast -> Bool
+isRecent now fc = diffUTCTime now (fcStartTimeUtc fc) > 86400
+
 data AppKey = AppKey { key :: String }
 
 instance FromFormUrlEncoded AppKey where

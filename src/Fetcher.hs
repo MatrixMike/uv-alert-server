@@ -8,6 +8,7 @@ import Control.Monad.State
 import Control.Monad.Trans.Reader
 
 import Data.Either
+import Data.Time.Clock
 
 import Network.FTP.Client
 import Network.URI
@@ -34,15 +35,16 @@ runFetcher cfg = runReaderT fetcher cfg
 fetcher :: AppM ()
 fetcher = forever $ do
     fetch
+    removeOld
     liftIO $ threadDelay updateInterval
 
 fetch :: AppM ()
 fetch = do
     logStr "Fetching"
     content <- fetchLines address
-    let forecasts = rights $ map parseForecast $ lines content
+    let newForecasts = rights $ map parseForecast $ lines content
     stateM $ modify $
-        \store -> store { forecasts = forecasts }
+        \store -> store { forecasts = newForecasts ++ forecasts store }
     push
 
 fetchLines :: MonadIO m => URI -> m String
@@ -55,3 +57,9 @@ fetchLines uri = liftIO $ do
 
 fetchTestContent :: MonadIO m => m String
 fetchTestContent = liftIO $ readFile "src/IDYGP007.txt"
+
+removeOld :: AppM ()
+removeOld = do
+    now <- liftIO $ getCurrentTime
+    stateM $ modify $
+        \store -> store { forecasts = filter (isRecent now) $ forecasts store }

@@ -8,6 +8,9 @@ import Control.Monad.State
 import Control.Monad.Trans.Either
 import Control.Monad.Trans.Reader
 
+import Data.Function
+import Data.List
+
 import Network.Wai
 
 import Servant
@@ -39,7 +42,7 @@ registerApp key = do
 getForecast :: Location -> AppSM Forecast
 getForecast loc = do
     forecasts <- stateM $ gets forecasts
-    let locForecasts = filter ((== loc) . location) forecasts
+    let locForecasts = sortBy (compare `on` fcStartTimeUtc) $ filter ((== loc) . location) forecasts
     case locForecasts of
         [] -> lift $ left $ err404 { errBody = "Location not found" }
         fc:_ -> return fc
