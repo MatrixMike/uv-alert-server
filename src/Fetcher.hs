@@ -38,7 +38,7 @@ fetcher = forever $ do
 
 fetch :: AppM ()
 fetch = do
-    liftIO $ putStrLn "Fetching"
+    logStr "Fetching"
     content <- fetchLines address
     let forecasts = rights $ map parseForecast $ lines content
     stateM $ modify $

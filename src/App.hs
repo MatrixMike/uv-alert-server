@@ -45,3 +45,6 @@ initConfig = do
     store <- newMVar emptyStore
     apiKey <- liftM APIKey $ getEnv "PEBBLE_API_KEY"
     return $ Config store apiKey
+
+logStr :: String -> AppM ()
+logStr = liftIO . putStrLn

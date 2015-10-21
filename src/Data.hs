@@ -67,7 +67,7 @@ parseTime str = do
     minute <- readEither "minute" $ stringPartT 3 2 str
     return $ TimeOfDay hour minute 0
 
-data UVLevel = UVLevel Int
+data UVLevel = UVLevel { uvValue :: Int }
     deriving (Eq, Show, Generic)
 
 instance ToJSON UVLevel
