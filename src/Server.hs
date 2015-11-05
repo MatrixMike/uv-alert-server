@@ -23,7 +23,7 @@ import Data
 type AppSM = AppT (EitherT ServantErr IO)
 
 server :: ServerT API AppSM
-server = registerApp :<|> getForecast
+server = registerApp :<|> getForecast :<|> getLocations
 
 readerToEither :: Config -> AppSM :~> EitherT ServantErr IO
 readerToEither cfg = Nat $ \x -> runReaderT x cfg
@@ -46,3 +46,8 @@ getForecast loc = do
     case locForecasts of
         [] -> lift $ left $ err404 { errBody = "Location not found" }
         fc:_ -> return fc
+
+getLocations :: AppSM [Location]
+getLocations = do
+    forecasts <- stateM $ gets forecasts
+    return $ map location forecasts
