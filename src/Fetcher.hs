@@ -30,7 +30,7 @@ Just address2 = parseURI "ftp://ftp2.bom.gov.au/anon/gen/fwo/IDYGP026.txt"
 
 
 runFetcher :: Config -> IO ()
-runFetcher cfg = runReaderT fetcher cfg
+runFetcher = runReaderT fetcher
 
 fetcher :: AppM ()
 fetcher = forever $ do
@@ -60,6 +60,6 @@ fetchTestContent = liftIO $ readFile "src/IDYGP007.txt"
 
 removeOld :: AppM ()
 removeOld = do
-    now <- liftIO $ getCurrentTime
+    now <- liftIO getCurrentTime
     stateM $ modify $
         \store -> store { forecasts = filter (isRecent now) $ forecasts store }

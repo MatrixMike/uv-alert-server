@@ -100,12 +100,12 @@ fcDuration fc = round (seconds / 60)
     where seconds = diffUTCTime (fcEndTimeUtc fc) (fcStartTimeUtc fc)
 
 instance ToJSON Forecast where
-    toJSON Forecast{..} = object $ [ "location" .= city location
-                                   , "date" .= date
-                                   , "alertStart" .= show alertStart
-                                   , "alertEnd" .= show alertEnd
-                                   , "maxLevel" .= maxLevel
-                                   ]
+    toJSON Forecast{..} = object [ "location" .= city location
+                                 , "date" .= date
+                                 , "alertStart" .= show alertStart
+                                 , "alertEnd" .= show alertEnd
+                                 , "maxLevel" .= maxLevel
+                                 ]
 
 -- TODO: Parsec
 parseForecast :: String -> Either String Forecast

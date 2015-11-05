@@ -30,7 +30,7 @@ maybePair _ Nothing = []
 maybePair name (Just value) = [name .= value]
 
 instance ToJSON Pin where
-    toJSON Pin{..} = object $ concat $ [
+    toJSON Pin{..} = object $ concat [
             ["id" .= pinId],
             ["time" .= pinTime],
             maybePair "duration" pinDuration,
@@ -45,7 +45,7 @@ data Notification = Notification { notificationLayout :: Layout
                                  }
 
 instance ToJSON Notification where
-    toJSON Notification{..} = object $ concat $ [
+    toJSON Notification{..} = object $ concat [
             ["layout" .= notificationLayout],
             maybePair "time" notificationTime
         ]
@@ -66,7 +66,7 @@ data Layout = Layout { layoutType :: PinType
                      }
 
 instance ToJSON Layout where
-    toJSON Layout{..} = object $ concat $ [
+    toJSON Layout{..} = object $ concat [
             ["type" .= layoutType],
             ["title" .= layoutTitle],
             maybePair "subtitle" layoutSubtitle,
@@ -152,6 +152,6 @@ instance FromJSON Topics where
         case topicArray of
             Array topics -> do
                 topicStrings <- V.mapM parseJSON topics
-                return $ Topics $ V.toList $ topicStrings
+                return $ Topics $ V.toList topicStrings
             _ -> mzero
     parseJSON _ = mzero

@@ -38,7 +38,7 @@ baseUrl = BaseUrl Https "timeline-api.getpebble.com" 443
 userClient :<|> sharedClient = client api baseUrl
 
 putUserPin :: Maybe UserToken -> String -> Pin -> EitherT ServantError IO Text
-putUserPin token pinId pin = putPin pin
+putUserPin token pinId = putPin
     where userPinClient :<|> _ = userClient token
           putPin :<|> _ = userPinClient pinId
 
@@ -52,7 +52,7 @@ getUserSubscriptions token = getSubscriptions
     where _ :<|> getSubscriptions = userClient token
 
 putSharedPin :: Maybe APIKey -> Maybe Topics -> String -> Pin -> EitherT ServantError IO Text
-putSharedPin key topics pinId pin = putPin pin
+putSharedPin key topics pinId = putPin
     where putPin :<|> _ = sharedClient key topics pinId
 
 deleteSharedPin :: Maybe APIKey -> Maybe Topics -> String -> EitherT ServantError IO Text

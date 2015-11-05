@@ -35,8 +35,7 @@ app :: Config -> Application
 app cfg = serve api (readerServer cfg)
 
 registerApp :: AppKey -> AppSM ()
-registerApp key = do
-    stateM $ modify $
+registerApp key = stateM $ modify $
         \store -> store { appKeys = appKeys store ++ [key] }
 
 getForecast :: Location -> AppSM Forecast
