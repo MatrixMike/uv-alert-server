@@ -43,7 +43,10 @@ stateM fn = do
 initConfig :: IO Config
 initConfig = do
     store <- newMVar emptyStore
-    apiKey <- liftM APIKey $ getEnv "PEBBLE_API_KEY"
+    apiKey <- liftM APIKey $ do
+        key <- getEnv "PEBBLE_API_KEY"
+        when (key == "") $ error "Pebble API key must be provided."
+        return key
     return $ Config store apiKey
 
 logStr :: String -> AppM ()
