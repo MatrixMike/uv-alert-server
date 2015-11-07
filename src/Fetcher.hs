@@ -18,15 +18,16 @@ import Data
 import Pusher
 
 
-updateInterval :: Int
-updateInterval = 3600000000 -- milliseconds
+updateInterval :: Int -- microseconds
+updateInterval = 3600 * 1000000
 
--- One of these is for today, another one for tomorrow
-address :: URI
-Just address = parseURI "ftp://ftp2.bom.gov.au/anon/gen/fwo/IDYGP007.txt"
+-- Data for today
+todayAddress :: URI
+Just todayAddress = parseURI "ftp://ftp2.bom.gov.au/anon/gen/fwo/IDYGP007.txt"
 
-address2 :: URI
-Just address2 = parseURI "ftp://ftp2.bom.gov.au/anon/gen/fwo/IDYGP026.txt"
+-- Data for tomorrow (forecast)
+forecastAddress :: URI
+Just forecastAddress = parseURI "ftp://ftp2.bom.gov.au/anon/gen/fwo/IDYGP026.txt"
 
 
 runFetcher :: Config -> IO ()
@@ -40,11 +41,12 @@ fetcher = forever $ do
 
 fetch :: AppM ()
 fetch = do
-    logStr "Fetching"
-    content <- fetchLines address
-    let newForecasts = rights $ map parseForecast $ lines content
-    stateM $ modify $
-        \store -> store { forecasts = newForecasts ++ forecasts store }
+    forM_ [todayAddress, forecastAddress] $ \address -> do
+        logStr $ "Fetching" ++ show address
+        content <- fetchLines address
+        let newForecasts = rights $ map parseForecast $ lines content
+        stateM $ modify $
+            \store -> store { forecasts = newForecasts ++ forecasts store }
     push
 
 fetchLines :: MonadIO m => URI -> m String
