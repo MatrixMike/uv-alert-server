@@ -29,7 +29,7 @@ before_deploy:
 deploy:
   provider: releases
   api-key:
-    secure: ""
+    secure: rd9y7v5LWGIp8wCd30pW/nOWCsI5i6ukeMU6GQUkZkmbbUzwd9S04i8Eq2xrlaj1RWp/N5X5uiGCkMVSZ5MgZUT7VcfhD3o+1UYVse55AjKIp3UGccGi1W1zbMHbkXS2yY/LZI2dKEW9r7LXHs2++USTumnW3jkaG+eJzjPG6eBZAw99qK+ukzj4PdkCwVQw70JcBVANEexmBanHwNo69mdaHlNYMOpcqo6cFPVP7bbzNDvIrIvvrpD/nu1XO0LkeHfkwNV01hF6Hidm0S48JKfc+jGttTG6LRK63ZIGGKpFvRs2jYKi5BGcQlAEU3DERW4rbUU2Zh3fmDBk8TCGkJvlxf4XZt9ssgavFYYrw7ib14TZ2YNo1Wppp6W0dD/QaUY+pZvr0MwtMc2+YCtl/lypG8Pscbab1OhRZCvOjZqAtEuLMAMhiAioYleAf1rdkWjaTSmksy1T5qskd8kjeSCvntLp9hFedWxsrQEFpzDzId4hUjSBjzQBmbRy+lZ5UL8/jNvAVEkO0P7iK6Ot/prQZLUJZNEnG8Kw4EWEfEi2EluELsvWwhkAHIGQKDBv6eC2NWmkw31l+iduCfjBR3ytzBCvswdqjk9tCiV3NtZe9LeQPE8Fr9oqMu+YuIdGPXK2m+gA7pLTiNN5LeHy6BGlTRm4+VFkb2JWaUFTQQ8=
   file: uv-alert-server
   skip_cleanup: true
   on:
