@@ -67,7 +67,7 @@ data Layout = Layout { layoutType :: PinType
 
 instance ToJSON Layout where
     toJSON Layout{..} = object $ concat [
-            ["type" .= layoutType],
+            pinTypeJSON layoutType,
             ["title" .= layoutTitle],
             maybePair "subtitle" layoutSubtitle,
             maybePair "body" layoutBody,
@@ -87,19 +87,22 @@ instance ToJSON Layout where
                   paragraphs -> Just paragraphs
 
 data PinType = GenericPin
-             | CalendarPin
-             | SportsPin
-             | WeatherPin
+             | CalendarPin  -- TODO: locationName
+             | SportsPin  -- TODO: special fields for sports
+             | WeatherPin { layoutLocationName :: String }
              | GenericReminder
              | GenericNotification
 
-instance ToJSON PinType where
-    toJSON GenericPin = "genericPin"
-    toJSON CalendarPin = "calendarPin"
-    toJSON SportsPin = "sportsPin"
-    toJSON WeatherPin = "weatherPin"
-    toJSON GenericReminder = "genericReminder"
-    toJSON GenericNotification = "genericNotification"
+pinTypeJSON :: PinType -> [Pair]
+pinTypeJSON GenericPin = ["type" .= ("genericPin" :: String)]
+pinTypeJSON CalendarPin = ["type" .= ("calendarPin" :: String)]
+pinTypeJSON SportsPin = ["type" .= ("sportsPin" :: String)]
+pinTypeJSON WeatherPin{..} = [
+        "type" .= ("weatherPin" :: String),
+        "locationName" .= layoutLocationName
+    ]
+pinTypeJSON GenericReminder = ["type" .= ("genericReminder" :: String)]
+pinTypeJSON GenericNotification = ["type" .= ("genericNotification" :: String)]
 
 data Color = Color Int  -- Hex
 
