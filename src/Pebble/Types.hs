@@ -45,10 +45,9 @@ data Notification = Notification { notificationLayout :: Layout
                                  }
 
 instance ToJSON Notification where
-    toJSON Notification{..} = object $ concat [
-            ["layout" .= notificationLayout],
+    toJSON Notification{..} = object $
+            ("layout" .= notificationLayout) :
             maybePair "time" notificationTime
-        ]
 
 data Layout = Layout { layoutType :: PinType
                      , layoutTitle :: String

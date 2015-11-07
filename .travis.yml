@@ -1,0 +1,39 @@
+language: haskell
+
+ghc:
+  - 7.8  # Only used for Cabal
+
+before_install:
+  - wget https://www.stackage.org/stack/linux-x86_64 -O stack.tar.gz
+  - tar xf stack.tar.gz
+  - mkdir -p $HOME/.local/bin
+  - cp stack-*-linux-x86_64/stack $HOME/.local/bin/stack
+  - stack setup
+  - stack install hlint
+
+install:
+  - stack build
+
+script:
+  - hlint src
+  - stack test
+
+cache:
+  directories:
+    - $HOME/.stack
+    - .stack-work
+
+before_deploy:
+  - cp $(stack path --local-install-root)/bin/uv-alert-server .
+
+deploy:
+  provider: releases
+  api-key:
+    secure: ""
+  file: uv-alert-server
+  skip_cleanup: true
+  on:
+    tags: true
+    all_branches: true
+
+sudo: false
