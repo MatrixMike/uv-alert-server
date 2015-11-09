@@ -13,4 +13,4 @@ main = do
     config <- initConfig
     let theApp = app config
     forkIO $ runFetcher config
-    run 8000 theApp
+    run (coListenPort config) theApp

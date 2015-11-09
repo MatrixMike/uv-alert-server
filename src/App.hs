@@ -8,6 +8,8 @@ import Control.Monad.State
 import Control.Monad.Trans.Either
 import Control.Monad.Trans.Reader
 
+import Data.Maybe
+
 import Servant
 
 import System.Environment
@@ -28,6 +30,7 @@ emptyStore = Store [] []
 
 data Config = Config { coStore :: MVar Store
                      , coApiKey :: APIKey
+                     , coListenPort :: Int
                      }
 
 type AppT m = ReaderT Config m
@@ -47,7 +50,8 @@ initConfig = do
         key <- getEnv "PEBBLE_API_KEY"
         when (key == "") $ error "Pebble API key must be provided."
         return key
-    return $ Config store apiKey
+    listenPort <- liftM (read . fromMaybe "8000") $ lookupEnv "LISTEN_PORT"
+    return $ Config store apiKey listenPort
 
 logStr :: String -> AppM ()
 logStr = liftIO . putStrLn
