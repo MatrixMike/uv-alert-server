@@ -17,10 +17,11 @@ import Pebble.Types
 
 push :: AppM ()
 push = do
-    logStr "Pushing"
     forecasts <- stateM $ gets forecasts
+    let fcount = length forecasts
+    logStr $ "Pushing " ++ show fcount ++ " forecasts."
     mapM_ putForecastPin forecasts
-    logStr "All pushed"
+    logStr "All pushed."
 
 putForecastPin :: Forecast -> AppM ()
 putForecastPin forecast = do
@@ -28,7 +29,6 @@ putForecastPin forecast = do
     let topics = forecastTopics forecast
     let pins = forecastPin forecast
     forM_ pins $ \pin -> do
-        logStr $ show $ A.encode pin
         result <- liftIO $ runEitherT $ putSharedPin (Just apiKey) (Just topics) (pinId pin) pin
         case result of
             Left err -> error $ show err

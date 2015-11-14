@@ -42,9 +42,10 @@ fetcher = forever $ do
 fetch :: AppM ()
 fetch = do
     forM_ [todayAddress, forecastAddress] $ \address -> do
-        logStr $ "Fetching " ++ show address
+        logStr $ "Fetching " ++ show address ++ "."
         content <- fetchLines address
         let newForecasts = rights $ map parseForecast $ lines content
+        logStr $ "Added " ++ show (length newForecasts) ++ " forecasts."
         stateM $ modify $
             \store -> store { forecasts = newForecasts ++ forecasts store }
     push
@@ -62,6 +63,10 @@ fetchTestContent = liftIO $ readFile "src/IDYGP007.txt"
 
 removeOld :: AppM ()
 removeOld = do
+    oldCount <- stateM $ gets (length . forecasts)
     now <- liftIO getCurrentTime
     stateM $ modify $
         \store -> store { forecasts = filter (isRecent now) $ forecasts store }
+    newCount <- stateM $ gets (length . forecasts)
+    logStr $ "Removed " ++ show (oldCount - newCount) ++ " forecasts, " ++
+        show newCount ++ " remain."
