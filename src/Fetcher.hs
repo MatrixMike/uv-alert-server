@@ -42,7 +42,7 @@ fetcher = forever $ do
 fetch :: AppM ()
 fetch = do
     forM_ [todayAddress, forecastAddress] $ \address -> do
-        logStr $ "Fetching " ++ show address ++ "."
+        logStr $ "Fetching " ++ show address ++ "..."
         content <- fetchLines address
         let newForecasts = rights $ map parseForecast $ lines content
         logStr $ "Added " ++ show (length newForecasts) ++ " forecasts."

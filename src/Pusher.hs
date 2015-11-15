@@ -19,7 +19,7 @@ push :: AppM ()
 push = do
     forecasts <- stateM $ gets forecasts
     let fcount = length forecasts
-    logStr $ "Pushing " ++ show fcount ++ " forecasts."
+    logStr $ "Pushing " ++ show fcount ++ " forecasts..."
     mapM_ putForecastPin forecasts
     logStr "All pushed."
 
