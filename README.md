@@ -1,4 +1,12 @@
 UV Alert server
+===============
+
+This is a server for the [UV Alert application][uv-alert-client].
+
+License
+-------
+
+UV Alert server
 
 Copyright (C) <2015>  Alexey Kotlyarov <a@koterpillar.com>
 
@@ -14,3 +22,5 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+[uv-alert-client]: https://github.com/koterpillar/uv-alert-client
