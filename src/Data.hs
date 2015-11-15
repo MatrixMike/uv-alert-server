@@ -117,8 +117,12 @@ parseForecast str = do
     max <- liftM UVLevel $ readEither "UV level" $ stringPartT 84 3 str
     return $ Forecast location date tStart tEnd max
 
+-- Forecast age
+fcAge :: UTCTime -> Forecast -> NominalDiffTime
+fcAge now fc = fromRational $ toRational $ diffUTCTime now $ fcStartTimeUtc fc
+
 isRecent :: UTCTime -> Forecast -> Bool
-isRecent now fc = diffUTCTime now (fcStartTimeUtc fc) > 86400
+isRecent now fc = fcAge now fc < (60 * 60 * 24)
 
 data AppKey = AppKey { key :: String }
 
