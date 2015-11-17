@@ -41,7 +41,7 @@ readEither err str = case reads str of
 
 data Location = Location { city :: String
                          }
-    deriving (Eq, Show, Generic)
+    deriving (Eq, Show, Generic, Ord)
 
 instance FromText Location where
     fromText txt = Location <$> fromText txt

@@ -10,6 +10,7 @@ import Control.Monad.Trans.Reader
 
 import Data.Function
 import Data.List
+import qualified Data.Set as S
 
 import Network.Wai
 
@@ -49,4 +50,4 @@ getForecast loc = do
 getLocations :: AppSM [Location]
 getLocations = do
     forecasts <- stateM $ gets forecasts
-    return $ map location forecasts
+    return $ S.toList $ S.fromList $ map location forecasts
