@@ -8,7 +8,6 @@ import Control.Monad.State
 import Control.Monad.Trans.Either
 import Control.Monad.Trans.Reader
 
-import Data.Function
 import Data.List
 import qualified Data.Set as S
 
@@ -39,15 +38,15 @@ registerApp :: AppKey -> AppSM ()
 registerApp key = stateM $ modify $
         \store -> store { appKeys = appKeys store ++ [key] }
 
-getForecast :: Location -> AppSM Forecast
+getForecast :: Location -> AppSM [Forecast]
 getForecast loc = do
     forecasts <- stateM $ gets forecasts
-    let locForecasts = sortBy (compare `on` fcStartTimeUtc) $ filter ((== loc) . location) forecasts
+    let locForecasts = sort $ S.toList $ S.filter ((== loc) . location) forecasts
     case locForecasts of
         [] -> lift $ left $ err404 { errBody = "Location not found" }
-        fc:_ -> return fc
+        _ -> return locForecasts
 
 getLocations :: AppSM [Location]
 getLocations = do
     forecasts <- stateM $ gets forecasts
-    return $ S.toList $ S.fromList $ map location forecasts
+    return $ S.toList $ S.map location forecasts

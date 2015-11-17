@@ -8,6 +8,7 @@ import Control.Monad.State
 import Control.Monad.Trans.Reader
 
 import Data.Either
+import qualified Data.Set as S
 import Data.Time.Clock
 
 import Network.FTP.Client
@@ -47,7 +48,7 @@ fetch = do
         let newForecasts = rights $ map parseForecast $ lines content
         logStr $ "Added " ++ show (length newForecasts) ++ " forecasts."
         stateM $ modify $
-            \store -> store { forecasts = newForecasts ++ forecasts store }
+            \store -> store { forecasts = S.fromList newForecasts `S.union` forecasts store }
     push
 
 fetchLines :: MonadIO m => URI -> m String
@@ -66,7 +67,7 @@ removeOld = do
     oldCount <- stateM $ gets (length . forecasts)
     now <- liftIO getCurrentTime
     stateM $ modify $
-        \store -> store { forecasts = filter (isRecent now) $ forecasts store }
+        \store -> store { forecasts = S.filter (isRecent now) $ forecasts store }
     newCount <- stateM $ gets (length . forecasts)
     logStr $ "Removed " ++ show (oldCount - newCount) ++ " forecasts, " ++
         show newCount ++ " remain."

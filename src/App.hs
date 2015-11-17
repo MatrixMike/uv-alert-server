@@ -9,6 +9,7 @@ import Control.Monad.Trans.Either
 import Control.Monad.Trans.Reader
 
 import Data.Maybe
+import qualified Data.Set as S
 
 import Servant
 
@@ -22,11 +23,11 @@ import Pebble.Types
 
 -- TODO: Probably needs a database
 data Store = Store { appKeys :: [AppKey]
-                   , forecasts :: [Forecast]
+                   , forecasts :: S.Set Forecast
                    }
 
 emptyStore :: Store
-emptyStore = Store [] []
+emptyStore = Store [] S.empty
 
 data Config = Config { coStore :: MVar Store
                      , coApiKey :: APIKey

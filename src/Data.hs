@@ -6,6 +6,7 @@ module Data where
 import Control.Monad
 
 import Data.Aeson
+import Data.Function
 import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Time.Calendar
@@ -85,6 +86,10 @@ data Forecast = Forecast { location :: Location
                          , maxLevel :: UVLevel
                          }
     deriving (Eq, Show, Generic)
+
+instance Ord Forecast where
+    compare = compare `on` key
+        where key fc = (location fc, fcStartTimeUtc fc)
 
 fcTZ :: Forecast -> TimeZoneSeries
 fcTZ = cityTZ . city . location
