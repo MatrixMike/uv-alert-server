@@ -3,7 +3,7 @@ version:             0.1.0.0
 synopsis:            Server for UV Alert application
 description:         Please see README.md
 homepage:            http://github.com/koterpillar/uv-alert-server#readme
-license:             GPL3
+license:             GPL-3
 license-file:        LICENSE
 author:              Alexey Kotlyarov
 maintainer:          a@koterpillar.com
