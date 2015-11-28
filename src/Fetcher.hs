@@ -2,6 +2,8 @@ module Fetcher where
 
 import Control.Concurrent
 
+import Control.Exception.Lifted
+
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.State
@@ -44,12 +46,16 @@ fetch :: AppM ()
 fetch = do
     forM_ [todayAddress, forecastAddress] $ \address -> do
         logStr $ "Fetching " ++ show address ++ "..."
-        content <- fetchLines address
-        let newForecasts = rights $ map parseForecast $ lines content
-        logStr $ "Added " ++ show (length newForecasts) ++ " forecasts."
-        stateM $ modify $
-            \store -> store { forecasts = S.fromList newForecasts `S.union` forecasts store }
+        handle (logError address) $ do
+            content <- fetchLines address
+            let newForecasts = rights $ map parseForecast $ lines content
+            logStr $ "Added " ++ show (length newForecasts) ++ " forecasts."
+            stateM $ modify $
+                \store -> store { forecasts = S.fromList newForecasts `S.union` forecasts store }
     push
+    where
+        logError :: URI -> IOError -> AppM ()
+        logError address err = logStr $ "Error fetching " ++ show address ++ ": " ++ show err
 
 fetchLines :: MonadIO m => URI -> m String
 fetchLines uri = liftIO $ do

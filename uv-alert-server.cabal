@@ -29,6 +29,7 @@ library
                      , containers
                      , either
                      , ftphs
+                     , lifted-base
                      , MissingH
                      , mtl
                      , network-uri
