@@ -31,7 +31,9 @@ putForecastPin forecast = do
     forM_ pins $ \pin -> do
         result <- liftIO $ runEitherT $ putSharedPin (Just apiKey) (Just topics) (pinId pin) pin
         case result of
-            Left err -> error $ show err
+            Left err -> do
+                logStr $ "Error pushing forecast: " ++ show err
+                return ()
             Right result' -> return ()
 
 forecastPin :: Forecast -> [Pin]
