@@ -19,6 +19,8 @@ library
                      , App
                      , Data
                      , Fetcher
+                     , Fetcher.Base
+                     , Fetcher.BOM
                      , Pebble.Client
                      , Pebble.Types
                      , Pusher
