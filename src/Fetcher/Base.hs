@@ -12,7 +12,7 @@ data Fetcher = Fetcher { fName :: String
                        , fFetch :: AppM [Forecast]
                        }
 
-logError :: Monoid a => URI -> IOError -> AppM a
-logError address err = do
-    logStr $ "Error fetching " ++ show address ++ ": " ++ show err
+logError :: (Monoid a, Show c) => c -> IOError -> AppM a
+logError context err = do
+    logStr $ "Error fetching " ++ show context ++ ": " ++ show err
     return mempty

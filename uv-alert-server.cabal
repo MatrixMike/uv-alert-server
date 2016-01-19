@@ -19,6 +19,7 @@ library
                      , App
                      , Data
                      , Fetcher
+                     , Fetcher.Arpansa
                      , Fetcher.Base
                      , Fetcher.BOM
                      , Pebble.Client
@@ -28,9 +29,12 @@ library
                      , TZ
   build-depends:       base >= 4.7 && < 5
                      , aeson
+                     , bytestring
                      , containers
                      , either
                      , ftphs
+                     , JuicyPixels
+                     , http-client
                      , lifted-base
                      , MissingH
                      , mtl
