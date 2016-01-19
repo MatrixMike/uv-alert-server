@@ -1,2 +1,7 @@
-main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+{-# OPTIONS_GHC -F -pgmF htfpp #-}
+
+import Test.Framework
+
+import {-@ HTF_TESTS @-} TestFetcherArpansa
+
+main = htfMain htf_importedTests
