@@ -14,6 +14,7 @@ import Data.Maybe
 import Data.String
 import Data.Time.Calendar
 import Data.Time.Clock
+import Data.Time.LocalTime
 
 import Network.HTTP.Client
 import Network.URI
@@ -76,3 +77,27 @@ selectPixels color (ImageRGB8 image) = filter colorMatches indices
           indices = [(x, y) | x <- [0..imageWidth image - 1]
                             , y <- [0..imageHeight image - 1]]
 selectPixels _ _ = []  -- TODO: Support image types generically?
+
+selectForecastGraph :: DynamicImage -> [(Int, Int)]
+selectForecastGraph = filter (not . isLegend) . selectPixels forecastLineColor
+    where isLegend (x, y) = x > 740 || y > 460
+
+extrapolate :: Fractional a => (a, a) -> (a, a) -> a -> a
+extrapolate (a1, b1) (a2, b2) a = b1 + (b2 - b1) * (a - a1) / (a2 - a1)
+
+graphLevel :: (Int, Int) -> UVLevel
+graphLevel = UVLevel . round . extrapolate (438, 0) (106, 16) . realToFrac . snd
+
+graphTimeOfDay :: (Int, Int) -> TimeOfDay
+graphTimeOfDay = extrapolateTime . fst
+    -- TODO: use picosecondsToDiffTime and diffTimeToPicoseconds from time 1.6
+    where t6 :: Float
+          t6 = todToFloat $ TimeOfDay 6 0 0
+          t20 :: Float
+          t20 = todToFloat $ TimeOfDay 20 0 0
+          todToFloat :: TimeOfDay -> Float
+          todToFloat = realToFrac . timeOfDayToTime
+          floatToTod :: Float -> TimeOfDay
+          floatToTod = timeToTimeOfDay . realToFrac
+          extrapolateTime :: Int -> TimeOfDay
+          extrapolateTime = floatToTod . extrapolate (83, t6) (723, t20) . realToFrac
