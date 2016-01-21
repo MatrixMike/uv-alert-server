@@ -13,14 +13,17 @@ import Fetcher.Arpansa
 import Test.Framework
 
 
-testImage :: IO DynamicImage
-testImage = do
-    bytes <- BS.readFile "test/mel_rt.gif"
+loadImage :: String -> IO DynamicImage
+loadImage imageName = do
+    bytes <- BS.readFile $ "test/" ++ imageName
     let (Right image) = decodeImage bytes
     return image
 
+morningImage = "mel_rt_morning.gif"
+eveningImage = "mel_rt_evening.gif"
+
 test_selectForecastLine = do
-    img <- testImage
+    img <- loadImage morningImage
     let graphLine = selectForecastLine img
     assertBool $ (274, 337) `elem` graphLine
     assertBool $ not $ (272, 336) `elem` graphLine
@@ -43,7 +46,7 @@ test_graphTimeOfDay = do
     where roundTime (TimeOfDay h m _) = TimeOfDay h m 0
 
 test_parseGraph = do
-        img <- testImage
+        img <- loadImage morningImage
         let fc = parseGraph "Melbourne" day img
         assertEqual "Melbourne" (city $ location fc)
         assertEqual day (date fc)
@@ -53,3 +56,18 @@ test_parseGraph = do
         assertBool (fcStart > (TimeOfDay 9 0 0) && fcStart < (TimeOfDay 9 30 0))
         assertBool (fcEnd > (TimeOfDay 17 40 0) && fcEnd < (TimeOfDay 18 0 0))
     where Just day = fromGregorianValid 2016 1 19
+
+test_parseEveningGraph = do
+        -- This image has the real data overlaid on the forecast
+        -- The real UV index was low in the morning, so the alert should be
+        -- adjusted
+        img <- loadImage eveningImage
+        let fc = parseGraph "Melbourne" day img
+        assertEqual "Melbourne" (city $ location fc)
+        assertEqual day (date fc)
+        assertEqual (UVLevel 12) (maxLevel fc)
+        let fcStart = alertStart fc
+        let fcEnd = alertEnd fc
+        assertBool (fcStart > (TimeOfDay 11 0 0) && fcStart < (TimeOfDay 11 20 0))
+        assertBool (fcEnd > (TimeOfDay 17 30 0) && fcEnd < (TimeOfDay 17 50 0))
+    where Just day = fromGregorianValid 2016 1 20
