@@ -29,7 +29,17 @@ arpansaFetcher = Fetcher "ARPANSA" fetchArpansa
 
 -- TODO: find other abbreviations on http://www.arpansa.gov.au/uvindex/realtime/
 addresses :: [(String, String)]
-addresses = map (second cityAddress) [ ("Melbourne", "mel")
+addresses = map (second cityAddress) [ ("Adelaide", "adl")
+                                     , ("Alice Springs", "ali")
+                                     , ("Brisbane", "bri")
+                                     , ("Canberra", "can")
+                                     , ("Darwin", "dar")
+                                     , ("Kingston", "kin")
+                                     , ("Melbourne", "mel")
+                                     , ("Newcastle", "new")
+                                     , ("Perth", "per")
+                                     , ("Sydney", "syd")
+                                     , ("Townsville", "tow")
                                      ]
     where cityAddress abbr = "http://www.arpansa.gov.au/uvindex/realtime/images/" ++ abbr ++ "_rt.gif"
 
