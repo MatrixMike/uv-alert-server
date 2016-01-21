@@ -63,10 +63,13 @@ parseGraph city day image = Forecast { location = Location { city = city }
                                      , alertEnd = aend
                                      , maxLevel = mlevel
                                      }
-    where uvLine = selectPixels forecastLineColor image
-          astart = undefined
-          aend = undefined
-          mlevel = undefined
+    where uvLine = selectForecastLine image
+          graph = graphCoordinates uvLine
+          alertTimes = map fst $ filter ((>= alertLevel) . snd) graph
+          astart = foldr1 min alertTimes
+          aend = foldr1 max alertTimes
+          -- TODO: no alert if mlevel is low all the time
+          mlevel = foldr1 max $ map snd graph
 
 forecastLineColor :: PixelRGB8
 forecastLineColor = PixelRGB8 248 135 0
@@ -78,18 +81,18 @@ selectPixels color (ImageRGB8 image) = filter colorMatches indices
                             , y <- [0..imageHeight image - 1]]
 selectPixels _ _ = []  -- TODO: Support image types generically?
 
-selectForecastGraph :: DynamicImage -> [(Int, Int)]
-selectForecastGraph = filter (not . isLegend) . selectPixels forecastLineColor
+selectForecastLine :: DynamicImage -> [(Int, Int)]
+selectForecastLine = filter (not . isLegend) . selectPixels forecastLineColor
     where isLegend (x, y) = x > 740 || y > 460
 
 extrapolate :: Fractional a => (a, a) -> (a, a) -> a -> a
 extrapolate (a1, b1) (a2, b2) a = b1 + (b2 - b1) * (a - a1) / (a2 - a1)
 
-graphLevel :: (Int, Int) -> UVLevel
-graphLevel = UVLevel . round . extrapolate (438, 0) (106, 16) . realToFrac . snd
+graphLevel :: Int -> UVLevel
+graphLevel = UVLevel . round . extrapolate (438, 0) (106, 16) . realToFrac
 
-graphTimeOfDay :: (Int, Int) -> TimeOfDay
-graphTimeOfDay = extrapolateTime . fst
+graphTimeOfDay :: Int -> TimeOfDay
+graphTimeOfDay = floatToTod . extrapolate (83, t6) (723, t20) . realToFrac
     -- TODO: use picosecondsToDiffTime and diffTimeToPicoseconds from time 1.6
     where t6 :: Float
           t6 = todToFloat $ TimeOfDay 6 0 0
@@ -99,5 +102,6 @@ graphTimeOfDay = extrapolateTime . fst
           todToFloat = realToFrac . timeOfDayToTime
           floatToTod :: Float -> TimeOfDay
           floatToTod = timeToTimeOfDay . realToFrac
-          extrapolateTime :: Int -> TimeOfDay
-          extrapolateTime = floatToTod . extrapolate (83, t6) (723, t20) . realToFrac
+
+graphCoordinates :: [(Int, Int)] -> [(TimeOfDay, UVLevel)]
+graphCoordinates = map (first graphTimeOfDay . second graphLevel)

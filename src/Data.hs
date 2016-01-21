@@ -69,7 +69,10 @@ parseTime str = do
     return $ TimeOfDay hour minute 0
 
 data UVLevel = UVLevel { uvValue :: Int }
-    deriving (Eq, Show, Generic)
+    deriving (Eq, Ord, Show, Generic)
+
+alertLevel :: UVLevel
+alertLevel = UVLevel 3
 
 instance ToJSON UVLevel
 
