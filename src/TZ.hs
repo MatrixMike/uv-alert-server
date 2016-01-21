@@ -19,7 +19,7 @@ cityTZ city = case city of
     "Canberra" -> tzCanberra
     "Mildura" -> tzVictoria
     -- "Broome"
-    -- "Townsville"
+    "Townsville" -> tzQueensland
     -- "Mt Isa"
     -- "Albany"
     -- "Armidale"
@@ -46,7 +46,7 @@ cityTZ city = case city of
     -- "Maitland NSW"
     -- "Moree"
     -- "Mudgee"
-    -- "Newcastle"
+    "Newcastle" -> tzNSW
     -- "Nowra"
     -- "Orange"
     -- "Parkes"
@@ -231,7 +231,7 @@ cityTZ city = case city of
     -- "Liawenee"
     -- "King Island"
     -- "Flinders Island"
-    -- "Kingston"
+    "Kingston" -> tzTasmania
     -- "Mt Baw Baw"
     -- "Falls Creek"
     -- "Charlotte Pass"
