@@ -63,27 +63,43 @@ parseGraph city day image = Forecast { location = Location { city = city }
                                      , alertEnd = aend
                                      , maxLevel = mlevel
                                      }
-    where uvLine = selectForecastLine image
-          graph = graphCoordinates uvLine
+    where uvLine = selectBestLine image
+          graph = map graphCoordinates uvLine
           alertTimes = map fst $ filter ((>= alertLevel) . snd) graph
-          astart = foldr1 min alertTimes
-          aend = foldr1 max alertTimes
           -- TODO: no alert if mlevel is low all the time
-          mlevel = foldr1 max $ map snd graph
+          astart = minimum alertTimes
+          aend = maximum alertTimes
+          mlevel = maximum $ map snd graph
 
 forecastLineColor :: PixelRGB8
 forecastLineColor = PixelRGB8 248 135 0
 
-selectPixels :: PixelRGB8 -> DynamicImage -> [(Int, Int)]
+actualLineColor :: PixelRGB8
+actualLineColor = PixelRGB8 153 255 255
+
+type ImageCoord = (Int, Int)
+
+selectPixels :: PixelRGB8 -> DynamicImage -> [ImageCoord]
 selectPixels color (ImageRGB8 image) = filter colorMatches indices
     where colorMatches (x, y) = pixelAt image x y == color
           indices = [(x, y) | x <- [0..imageWidth image - 1]
                             , y <- [0..imageHeight image - 1]]
 selectPixels _ _ = []  -- TODO: Support image types generically?
 
-selectForecastLine :: DynamicImage -> [(Int, Int)]
+isLegend :: ImageCoord -> Bool
+isLegend (x, y) = x > 740 || y > 460
+
+selectForecastLine :: DynamicImage -> [ImageCoord]
 selectForecastLine = filter (not . isLegend) . selectPixels forecastLineColor
-    where isLegend (x, y) = x > 740 || y > 460
+
+selectActualLine :: DynamicImage -> [ImageCoord]
+selectActualLine = filter (not . isLegend) . selectPixels actualLineColor
+
+selectBestLine :: DynamicImage -> [ImageCoord]
+selectBestLine img = filter (\(x, _) -> x > actualEnd) forecastLine ++ actualLine
+    where forecastLine = selectForecastLine img
+          actualLine = selectActualLine img
+          actualEnd = maximum $ map fst actualLine
 
 extrapolate :: Fractional a => (a, a) -> (a, a) -> a -> a
 extrapolate (a1, b1) (a2, b2) a = b1 + (b2 - b1) * (a - a1) / (a2 - a1)
@@ -103,5 +119,7 @@ graphTimeOfDay = floatToTod . extrapolate (83, t6) (723, t20) . realToFrac
           floatToTod :: Float -> TimeOfDay
           floatToTod = timeToTimeOfDay . realToFrac
 
-graphCoordinates :: [(Int, Int)] -> [(TimeOfDay, UVLevel)]
-graphCoordinates = map (first graphTimeOfDay . second graphLevel)
+type GraphCoord = (TimeOfDay, UVLevel)
+
+graphCoordinates :: ImageCoord -> GraphCoord
+graphCoordinates = first graphTimeOfDay . second graphLevel

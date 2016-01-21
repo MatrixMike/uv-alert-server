@@ -27,8 +27,17 @@ test_selectForecastLine = do
     let graphLine = selectForecastLine img
     assertBool $ (274, 337) `elem` graphLine
     assertBool $ not $ (272, 336) `elem` graphLine
+    -- This point belongs to the legend
     assertBool $ not $ (755, 308) `elem` graphLine
+    -- This point belongs to the "Forecast UV Level" text
     assertBool $ not $ (215, 541) `elem` graphLine
+
+test_selectBestLine = do
+    img <- loadImage eveningImage
+    let graphLine = selectBestLine img
+    assertBool $ (197, 431) `elem` graphLine
+    -- This point belongs to the forecast line where the actual data exists
+    assertBool $ not $ (197, 411) `elem` graphLine
 
 test_extrapolate = do
     let extrapolateExample = extrapolate (0, 10) (1, 20)
