@@ -18,8 +18,8 @@ import Network.URI
 
 import App
 import Data
+import Fetcher.Arpansa
 import Fetcher.Base
-import Fetcher.BOM
 import Pusher
 
 
@@ -27,7 +27,7 @@ updateInterval :: Int -- microseconds
 updateInterval = 3600 * 1000000
 
 fetchers :: [Fetcher]
-fetchers = bomFetchers
+fetchers = [arpansaFetcher]
 
 runFetcher :: Config -> IO ()
 runFetcher = runReaderT fetcher
