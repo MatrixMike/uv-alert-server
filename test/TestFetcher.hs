@@ -17,8 +17,12 @@ test_removeOld = do
                         , dummyFc "Melbourne" day2 (evening day1)
                         , dummyFc "Melbourne" day2 (morning day2)
                         ]
+
         assertEqual (S.fromList [ forecasts !! 1, forecasts !! 3 ]) $
             removeOld (evening day1) $ S.fromList forecasts
+        assertEqual (S.fromList [ forecasts !! 3 ]) $
+            removeOld (evening day2) $ S.fromList forecasts
+
     where dummyFc loc day updated = Forecast { location = Location loc
                                              , date = day
                                              , alertStart = TimeOfDay 8 0 0
