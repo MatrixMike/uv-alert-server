@@ -113,6 +113,7 @@ instance ToJSON Forecast where
                                  , "alertStart" .= show alertStart
                                  , "alertEnd" .= show alertEnd
                                  , "maxLevel" .= maxLevel
+                                 , "updated" .= fcUpdated
                                  ]
 
 -- TODO: Parsec
