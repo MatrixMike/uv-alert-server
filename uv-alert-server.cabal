@@ -69,6 +69,7 @@ test-suite uv-alert-server-test
   build-depends:       base
                      , uv-alert-server
                      , bytestring
+                     , containers
                      , JuicyPixels
                      , HTF
                      , time

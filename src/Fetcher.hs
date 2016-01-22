@@ -35,7 +35,7 @@ runFetcher = runReaderT fetcher
 fetcher :: AppM ()
 fetcher = forever $ do
     fetchAll fetchers
-    removeOld
+    removeOldM
     liftIO $ threadDelay updateInterval
 
 fetchAll :: [Fetcher] -> AppM ()
@@ -48,12 +48,15 @@ fetchAll fs = do
             \store -> store { forecasts = S.fromList newForecasts `S.union` forecasts store }
     push
 
-removeOld :: AppM ()
-removeOld = do
+removeOldM :: AppM ()
+removeOldM = do
     oldCount <- stateM $ gets (length . forecasts)
     now <- liftIO getCurrentTime
     stateM $ modify $
-        \store -> store { forecasts = S.filter (isRecent now) $ forecasts store }
+        \store -> store { forecasts = removeOld now (forecasts store) }
     newCount <- stateM $ gets (length . forecasts)
     logStr $ "Removed " ++ show (oldCount - newCount) ++ " forecasts, " ++
         show newCount ++ " remain."
+
+removeOld :: UTCTime -> S.Set Forecast -> S.Set Forecast
+removeOld now = S.filter (isRecent now)
