@@ -2,6 +2,7 @@
 
 import Test.Framework
 
+import {-@ HTF_TESTS @-} TestFetcher
 import {-@ HTF_TESTS @-} TestFetcherArpansa
 
 main = htfMain htf_importedTests

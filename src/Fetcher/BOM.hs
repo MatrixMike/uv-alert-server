@@ -40,7 +40,8 @@ fetchBOM address = do
     logStr $ "Fetching " ++ show address ++ "..."
     handle (logError address) $ do
         content <- fetchLines address
-        return $ rights $ map parseForecast $ lines content
+        time <- liftIO getCurrentTime
+        return $ rights $ map (parseForecast time) $ lines content
 
 fetchLines :: MonadIO m => URI -> m String
 fetchLines uri = liftIO $ do

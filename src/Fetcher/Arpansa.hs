@@ -56,7 +56,8 @@ fetchArpansa = do
                     logStr err
                     return []
                 Right graphImage -> do
-                    let forecast = parseGraph city today graphImage
+                    time <- liftIO getCurrentTime
+                    let forecast = parseGraph city today graphImage time
                     return [forecast]
 
 fetchGraph :: Manager -> String -> AppM BS.ByteString
@@ -65,14 +66,15 @@ fetchGraph manager address = do
     chunks <- liftIO $ withResponse request manager (brConsume . responseBody)
     return $ BS.concat chunks
 
-parseGraph :: String -> Day -> DynamicImage -> Forecast
-parseGraph city day image = Forecast { location = Location { city = city }
-                                     -- TODO Can read this from the image
-                                     , date = day
-                                     , alertStart = astart
-                                     , alertEnd = aend
-                                     , maxLevel = mlevel
-                                     }
+parseGraph :: String -> Day -> DynamicImage -> UTCTime -> Forecast
+parseGraph city day image updated = Forecast { location = Location { city = city }
+                                             -- TODO Can read this from the image
+                                             , date = day
+                                             , alertStart = astart
+                                             , alertEnd = aend
+                                             , maxLevel = mlevel
+                                             , fcUpdated = updated
+                                             }
     where uvLine = selectBestLine image
           graph = map graphCoordinates uvLine
           alertTimes = map fst $ filter ((>= alertLevel) . snd) graph

@@ -5,6 +5,7 @@ import Codec.Picture
 
 import qualified Data.ByteString as BS
 import Data.Time.Calendar
+import Data.Time.Clock
 import Data.Time.LocalTime
 
 import Data
@@ -54,9 +55,13 @@ test_graphTimeOfDay = do
         assertEqual (TimeOfDay 17 0 0) $ roundTime $ graphTimeOfDay 586
     where roundTime (TimeOfDay h m _) = TimeOfDay h m 0
 
+testTime = UTCTime test_date test_time
+    where Just test_date = fromGregorianValid 2016 01 01
+          test_time = secondsToDiffTime 0
+
 test_parseGraph = do
         img <- loadImage morningImage
-        let fc = parseGraph "Melbourne" day img
+        let fc = parseGraph "Melbourne" day img testTime
         assertEqual "Melbourne" (city $ location fc)
         assertEqual day (date fc)
         assertEqual (UVLevel 10) (maxLevel fc)
@@ -64,6 +69,7 @@ test_parseGraph = do
         let fcEnd = alertEnd fc
         assertBool (fcStart > (TimeOfDay 9 0 0) && fcStart < (TimeOfDay 9 30 0))
         assertBool (fcEnd > (TimeOfDay 17 40 0) && fcEnd < (TimeOfDay 18 0 0))
+        assertEqual testTime (fcUpdated fc)
     where Just day = fromGregorianValid 2016 1 19
 
 test_parseEveningGraph = do
@@ -71,7 +77,7 @@ test_parseEveningGraph = do
         -- The real UV index was low in the morning, so the alert should be
         -- adjusted
         img <- loadImage eveningImage
-        let fc = parseGraph "Melbourne" day img
+        let fc = parseGraph "Melbourne" day img testTime
         assertEqual "Melbourne" (city $ location fc)
         assertEqual day (date fc)
         assertEqual (UVLevel 12) (maxLevel fc)
@@ -79,4 +85,5 @@ test_parseEveningGraph = do
         let fcEnd = alertEnd fc
         assertBool (fcStart > (TimeOfDay 11 0 0) && fcStart < (TimeOfDay 11 20 0))
         assertBool (fcEnd > (TimeOfDay 17 30 0) && fcEnd < (TimeOfDay 17 50 0))
+        assertEqual testTime (fcUpdated fc)
     where Just day = fromGregorianValid 2016 1 20

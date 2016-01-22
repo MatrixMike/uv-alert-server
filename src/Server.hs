@@ -41,7 +41,7 @@ registerApp key = stateM $ modify $
 getForecast :: Location -> AppSM [Forecast]
 getForecast loc = do
     forecasts <- stateM $ gets forecasts
-    let locForecasts = sort $ S.toList $ S.filter ((== loc) . location) forecasts
+    let locForecasts = sortBy compareUpdated $ S.toList $ S.filter ((== loc) . location) forecasts
     case locForecasts of
         [] -> lift $ left $ err404 { errBody = "Location not found" }
         _ -> return locForecasts

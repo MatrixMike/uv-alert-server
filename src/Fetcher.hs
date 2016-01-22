@@ -10,8 +10,11 @@ import Control.Monad.State
 import Control.Monad.Trans.Reader
 
 import Data.Either
+import Data.List
 import qualified Data.Set as S
 import Data.Time.Clock
+
+import GHC.Exts (groupWith)
 
 import Network.FTP.Client
 import Network.URI
@@ -35,7 +38,7 @@ runFetcher = runReaderT fetcher
 fetcher :: AppM ()
 fetcher = forever $ do
     fetchAll fetchers
-    removeOld
+    removeOldM
     liftIO $ threadDelay updateInterval
 
 fetchAll :: [Fetcher] -> AppM ()
@@ -48,12 +51,19 @@ fetchAll fs = do
             \store -> store { forecasts = S.fromList newForecasts `S.union` forecasts store }
     push
 
-removeOld :: AppM ()
-removeOld = do
+removeOldM :: AppM ()
+removeOldM = do
     oldCount <- stateM $ gets (length . forecasts)
     now <- liftIO getCurrentTime
     stateM $ modify $
-        \store -> store { forecasts = S.filter (isRecent now) $ forecasts store }
+        \store -> store { forecasts = removeOld now (forecasts store) }
     newCount <- stateM $ gets (length . forecasts)
     logStr $ "Removed " ++ show (oldCount - newCount) ++ " forecasts, " ++
         show newCount ++ " remain."
+
+removeOld :: UTCTime -> S.Set Forecast -> S.Set Forecast
+removeOld now = S.fromList . filterBestEachDay . filter (isRecent now) . S.toList
+
+-- Leave only the latest forecast for each day
+filterBestEachDay :: [Forecast] -> [Forecast]
+filterBestEachDay = map (maximumBy compareUpdated) . groupWith (\fc -> (location fc, date fc))

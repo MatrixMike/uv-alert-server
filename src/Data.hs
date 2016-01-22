@@ -87,12 +87,12 @@ data Forecast = Forecast { location :: Location
                          , alertStart :: TimeOfDay
                          , alertEnd :: TimeOfDay
                          , maxLevel :: UVLevel
+                         , fcUpdated :: UTCTime
                          }
-    deriving (Eq, Show, Generic)
+    deriving (Eq, Ord, Show, Generic)
 
-instance Ord Forecast where
-    compare = compare `on` key
-        where key fc = (location fc, fcStartTimeUtc fc)
+compareUpdated :: Forecast -> Forecast -> Ordering
+compareUpdated = compare `on` fcUpdated
 
 fcTZ :: Forecast -> TimeZoneSeries
 fcTZ = cityTZ . city . location
@@ -113,17 +113,18 @@ instance ToJSON Forecast where
                                  , "alertStart" .= show alertStart
                                  , "alertEnd" .= show alertEnd
                                  , "maxLevel" .= maxLevel
+                                 , "updated" .= fcUpdated
                                  ]
 
 -- TODO: Parsec
-parseForecast :: String -> Either String Forecast
-parseForecast str = do
+parseForecast :: UTCTime -> String -> Either String Forecast
+parseForecast updated str = do
     let location = Location $ stringPartT 18 20 str
     date <- parseDate $ stringPart 38 10 str
     tStart <- parseTime $ stringPart 64 5 str
     tEnd <- parseTime $ stringPart 73 5 str
     max <- liftM UVLevel $ readEither "UV level" $ stringPartT 84 3 str
-    return $ Forecast location date tStart tEnd max
+    return $ Forecast location date tStart tEnd max updated
 
 -- Forecast age
 fcAge :: UTCTime -> Forecast -> NominalDiffTime
