@@ -89,11 +89,10 @@ data Forecast = Forecast { location :: Location
                          , maxLevel :: UVLevel
                          , fcUpdated :: UTCTime
                          }
-    deriving (Eq, Show, Generic)
+    deriving (Eq, Ord, Show, Generic)
 
-instance Ord Forecast where
-    compare = compare `on` key
-        where key fc = (location fc, fcUpdated fc)
+compareUpdated :: Forecast -> Forecast -> Ordering
+compareUpdated = compare `on` fcUpdated
 
 fcTZ :: Forecast -> TimeZoneSeries
 fcTZ = cityTZ . city . location

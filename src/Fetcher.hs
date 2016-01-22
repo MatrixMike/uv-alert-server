@@ -10,8 +10,11 @@ import Control.Monad.State
 import Control.Monad.Trans.Reader
 
 import Data.Either
+import Data.List
 import qualified Data.Set as S
 import Data.Time.Clock
+
+import GHC.Exts (groupWith)
 
 import Network.FTP.Client
 import Network.URI
@@ -59,4 +62,8 @@ removeOldM = do
         show newCount ++ " remain."
 
 removeOld :: UTCTime -> S.Set Forecast -> S.Set Forecast
-removeOld now = S.filter (isRecent now)
+removeOld now = S.fromList . filterBestEachDay . filter (isRecent now) . S.toList
+
+-- Leave only the latest forecast for each day
+filterBestEachDay :: [Forecast] -> [Forecast]
+filterBestEachDay = map (maximumBy compareUpdated) . groupWith (\fc -> (location fc, date fc))
