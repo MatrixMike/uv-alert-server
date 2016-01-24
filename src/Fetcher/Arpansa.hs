@@ -111,7 +111,8 @@ selectBestLine :: DynamicImage -> [ImageCoord]
 selectBestLine img = filter (\(x, _) -> x > actualEnd) forecastLine ++ actualLine
     where forecastLine = selectForecastLine img
           actualLine = selectActualLine img
-          actualEnd = maximum $ map fst actualLine
+          -- take a low value in case no actual line is drawn yet
+          actualEnd = maximum $ map fst actualLine ++ [0]
 
 extrapolate :: Fractional a => (a, a) -> (a, a) -> a -> a
 extrapolate (a1, b1) (a2, b2) a = b1 + (b2 - b1) * (a - a1) / (a2 - a1)
