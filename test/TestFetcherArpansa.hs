@@ -22,6 +22,7 @@ loadImage imageName = do
 
 morningImage = "mel_rt_morning.gif"
 eveningImage = "mel_rt_evening.gif"
+noActualImage = "mel_rt_no_actual.gif"
 
 test_selectForecastLine = do
     img <- loadImage morningImage
@@ -39,6 +40,11 @@ test_selectBestLine = do
     assertBool $ (197, 431) `elem` graphLine
     -- This point belongs to the forecast line where the actual data exists
     assertBool $ not $ (197, 411) `elem` graphLine
+
+test_selectBestLine_no_actual = do
+    img <- loadImage noActualImage
+    let graphLine = selectBestLine img
+    assertBool $ (124, 435) `elem` graphLine
 
 test_extrapolate = do
     let extrapolateExample = extrapolate (0, 10) (1, 20)
