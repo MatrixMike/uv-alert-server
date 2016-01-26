@@ -15,6 +15,7 @@ import Data.String
 import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.LocalTime
+import Data.Time.LocalTime.TimeZone.Series
 
 import Network.HTTP.Client
 import Network.URI
@@ -22,6 +23,7 @@ import Network.URI
 import App
 import Data
 import Fetcher.Base
+import TZ
 
 
 arpansaFetcher :: Fetcher
@@ -43,12 +45,19 @@ addresses = map (second cityAddress) [ ("Adelaide", "adl")
                                      ]
     where cityAddress abbr = "http://www.arpansa.gov.au/uvindex/realtime/images/" ++ abbr ++ "_rt.gif"
 
+dateInCity :: String -> IO Day
+dateInCity city = do
+    utcTime <- getCurrentTime
+    let tz = cityTZ city
+    let cityTime = utcToLocalTime (timeZoneFromSeries tz utcTime) utcTime
+    return $ localDay cityTime
+
 fetchArpansa :: AppM [Forecast]
 fetchArpansa = do
     manager <- liftIO $ newManager defaultManagerSettings
-    today <- liftM utctDay $ liftIO getCurrentTime
     liftM concat $ forM addresses $ \(city, address) -> do
         logStr $ "Fetching graph for " ++ city ++ "..."
+        today <- liftIO $ dateInCity city
         handle (logError address) $ do
             graphBytes <- fetchGraph manager address
             case decodeImage graphBytes of
