@@ -76,13 +76,13 @@ fetchGraph manager address = do
     return $ BS.concat chunks
 
 parseGraph :: String -> Day -> DynamicImage -> UTCTime -> Forecast
-parseGraph city day image updated = Forecast { location = Location { city = city }
+parseGraph city day image updated = Forecast { _fcLocation = Location { _locCity = city }
                                              -- TODO Can read this from the image
-                                             , date = day
-                                             , alertStart = astart
-                                             , alertEnd = aend
-                                             , maxLevel = mlevel
-                                             , fcUpdated = updated
+                                             , _fcDate = day
+                                             , _fcAlertStart = astart
+                                             , _fcAlertEnd = aend
+                                             , _fcMaxLevel = mlevel
+                                             , _fcUpdated = updated
                                              }
     where uvLine = selectBestLine image
           graph = map graphCoordinates uvLine

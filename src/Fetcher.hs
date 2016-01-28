@@ -4,6 +4,8 @@ import Control.Concurrent
 
 import Control.Exception.Lifted
 
+import Control.Lens
+
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.State
@@ -66,4 +68,5 @@ removeOld now = S.fromList . filterBestEachDay . filter (isRecent now) . S.toLis
 
 -- Leave only the latest forecast for each day
 filterBestEachDay :: [Forecast] -> [Forecast]
-filterBestEachDay = map (maximumBy compareUpdated) . groupWith (\fc -> (location fc, date fc))
+filterBestEachDay = map (maximumBy compareUpdated) . groupWith forecastKey
+    where forecastKey fc = (fc ^. fcLocation, fc ^. fcDate)

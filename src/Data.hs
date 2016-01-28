@@ -1,7 +1,11 @@
 {-# Language DeriveGeneric #-}
 {-# Language OverloadedStrings #-}
 {-# Language RecordWildCards #-}
+{-# Language TemplateHaskell #-}
 module Data where
+
+import Control.Lens hiding ((.=))
+import Control.Lens.TH
 
 import Control.Monad
 
@@ -24,9 +28,10 @@ import TZ
 -- Supplementary types
 -- TODO: change them to something nicer
 
-data Location = Location { city :: String
+data Location = Location { _locCity :: String
                          }
     deriving (Eq, Show, Generic, Ord)
+makeLenses ''Location
 
 instance FromText Location where
     fromText txt = Location <$> fromText txt
@@ -36,8 +41,9 @@ instance ToJSON Location
 instance ToJSON Day where
     toJSON = toJSON . showGregorian
 
-data UVLevel = UVLevel { uvValue :: Int }
+data UVLevel = UVLevel { _uvValue :: Int }
     deriving (Eq, Ord, Show, Generic)
+makeLenses ''UVLevel
 
 alertLevel :: UVLevel
 alertLevel = UVLevel 3
@@ -50,39 +56,40 @@ instance ToJSON UVLevel
 Index BoM    WMO  Location            DayMonYear  UV Alert period (local time)  UVI max
 0009 070014 94926 Canberra            26 09 2015  UV Alert from  8.50 to 15.00  Max:  7
 -}
-data Forecast = Forecast { location :: Location
-                         , date :: Day
-                         , alertStart :: TimeOfDay
-                         , alertEnd :: TimeOfDay
-                         , maxLevel :: UVLevel
-                         , fcUpdated :: UTCTime
+data Forecast = Forecast { _fcLocation :: Location
+                         , _fcDate :: Day
+                         , _fcAlertStart :: TimeOfDay
+                         , _fcAlertEnd :: TimeOfDay
+                         , _fcMaxLevel :: UVLevel
+                         , _fcUpdated :: UTCTime
                          }
     deriving (Eq, Ord, Show, Generic)
+makeLenses ''Forecast
 
 compareUpdated :: Forecast -> Forecast -> Ordering
-compareUpdated = compare `on` fcUpdated
+compareUpdated = compare `on` (view fcUpdated)
 
 fcTZ :: Forecast -> TimeZoneSeries
-fcTZ = cityTZ . city . location
+fcTZ = cityTZ . view (fcLocation . locCity)
 
 fcStartTimeUtc :: Forecast -> UTCTime
-fcStartTimeUtc fc = localTimeToUTC' (fcTZ fc) $ LocalTime (date fc) (alertStart fc)
+fcStartTimeUtc fc = localTimeToUTC' (fcTZ fc) $ LocalTime (fc ^. fcDate) (fc ^. fcAlertStart)
 
 fcEndTimeUtc :: Forecast -> UTCTime
-fcEndTimeUtc fc = localTimeToUTC' (fcTZ fc) $ LocalTime (date fc) (alertEnd fc)
+fcEndTimeUtc fc = localTimeToUTC' (fcTZ fc) $ LocalTime (fc ^. fcDate) (fc ^. fcAlertEnd)
 
 fcDuration :: Forecast -> Int -- minutes
 fcDuration fc = round (seconds / 60)
     where seconds = diffUTCTime (fcEndTimeUtc fc) (fcStartTimeUtc fc)
 
 instance ToJSON Forecast where
-    toJSON Forecast{..} = object [ "location" .= city location
-                                 , "date" .= date
-                                 , "alertStart" .= show alertStart
-                                 , "alertEnd" .= show alertEnd
-                                 , "maxLevel" .= maxLevel
-                                 , "updated" .= fcUpdated
-                                 ]
+    toJSON fc = object [ "location" .= (fc ^. fcLocation . locCity)
+                       , "date" .= (fc ^. fcDate)
+                       , "alertStart" .= show (fc ^. fcAlertStart)
+                       , "alertEnd" .= show (fc ^. fcAlertEnd)
+                       , "maxLevel" .= (fc ^. fcMaxLevel)
+                       , "updated" .= (fc ^. fcUpdated)
+                       ]
 
 -- Forecast age
 fcAge :: UTCTime -> Forecast -> NominalDiffTime

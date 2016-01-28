@@ -4,6 +4,8 @@ module Server where
 
 import Control.Concurrent.MVar
 
+import Control.Lens
+
 import Control.Monad.State
 import Control.Monad.Trans.Either
 import Control.Monad.Trans.Reader
@@ -41,7 +43,7 @@ registerApp key = stateM $ modify $
 getForecast :: Location -> AppSM [Forecast]
 getForecast loc = do
     forecasts <- stateM $ gets forecasts
-    let locForecasts = sortBy compareUpdated $ S.toList $ S.filter ((== loc) . location) forecasts
+    let locForecasts = sortBy compareUpdated $ S.toList $ S.filter ((== loc) . view fcLocation) forecasts
     case locForecasts of
         [] -> lift $ left $ err404 { errBody = "Location not found" }
         _ -> return locForecasts
@@ -49,4 +51,4 @@ getForecast loc = do
 getLocations :: AppSM [Location]
 getLocations = do
     forecasts <- stateM $ gets forecasts
-    return $ S.toList $ S.map location forecasts
+    return $ S.toList $ S.map (view fcLocation) forecasts

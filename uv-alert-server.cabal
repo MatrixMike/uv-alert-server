@@ -35,6 +35,7 @@ library
                      , ftphs
                      , JuicyPixels
                      , http-client
+                     , lens
                      , lifted-base
                      , MissingH
                      , mtl
@@ -72,6 +73,7 @@ test-suite uv-alert-server-test
                      , containers
                      , JuicyPixels
                      , HTF
+                     , lens
                      , time
   other-modules:       TestFetcher
                      , TestFetcherArpansa
