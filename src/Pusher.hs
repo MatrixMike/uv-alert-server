@@ -19,7 +19,7 @@ import Pebble.Types
 
 push :: AppM ()
 push = do
-    forecasts <- stateM $ gets forecasts
+    forecasts <- stateM $ use stForecasts
     let fcount = length forecasts
     logStr $ "Pushing " ++ show fcount ++ " forecasts..."
     mapM_ putForecastPin forecasts
