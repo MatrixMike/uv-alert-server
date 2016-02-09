@@ -1,6 +1,8 @@
 {-# Language RecordWildCards #-}
 module Pusher where
 
+import Control.Lens
+
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Trans.Either
@@ -17,7 +19,7 @@ import Pebble.Types
 
 push :: AppM ()
 push = do
-    forecasts <- stateM $ gets forecasts
+    forecasts <- stateM $ use stForecasts
     let fcount = length forecasts
     logStr $ "Pushing " ++ show fcount ++ " forecasts..."
     mapM_ putForecastPin forecasts
@@ -37,30 +39,30 @@ putForecastPin forecast = do
             Right result' -> return ()
 
 forecastPin :: Forecast -> [Pin]
-forecastPin forecast@Forecast{..} = [ Pin { pinId = pinId ++ "start"
-                                          , pinTime = fcStartTimeUtc forecast
-                                          , pinDuration = Nothing
-                                          , pinCreateNotification = Nothing
-                                          , pinUpdateNotification = Nothing
-                                          , pinLayout = startLayout
-                                          , pinReminders = []
-                                          , pinActions = []
-                                          }
-                                    , Pin { pinId = pinId ++ "end"
-                                          , pinTime = fcEndTimeUtc forecast
-                                          , pinDuration = Nothing
-                                          , pinCreateNotification = Nothing
-                                          , pinUpdateNotification = Nothing
-                                          , pinLayout = endLayout
-                                          , pinReminders = []
-                                          , pinActions = []
-                                          }
-                                    ]
+forecastPin fc = [ Pin { pinId = pinId ++ "start"
+                       , pinTime = fcStartTimeUtc fc
+                       , pinDuration = Nothing
+                       , pinCreateNotification = Nothing
+                       , pinUpdateNotification = Nothing
+                       , pinLayout = startLayout
+                       , pinReminders = []
+                       , pinActions = []
+                       }
+                 , Pin { pinId = pinId ++ "end"
+                       , pinTime = fcEndTimeUtc fc
+                       , pinDuration = Nothing
+                       , pinCreateNotification = Nothing
+                       , pinUpdateNotification = Nothing
+                       , pinLayout = endLayout
+                       , pinReminders = []
+                       , pinActions = []
+                       }
+                 ]
     where
         baseLayout = Layout { layoutType = GenericPin
                             , layoutTitle = ""
-                            , layoutSubtitle = Just $ "Max level: " ++ show (uvValue maxLevel)
-                            , layoutBody = Just $ "Alert from " ++ showTime alertStart ++ " to " ++ showTime alertEnd
+                            , layoutSubtitle = Just notificationTitle
+                            , layoutBody = Just notificationText
                             , layoutTinyIcon = Nothing
                             , layoutSmallIcon = Nothing
                             , layoutLargeIcon = Nothing
@@ -70,17 +72,19 @@ forecastPin forecast@Forecast{..} = [ Pin { pinId = pinId ++ "start"
                             , layoutParagraphs = []
                             , layoutLastUpdated = Nothing
                             }
+        notificationTitle = "Max level: " ++ show (fc ^. fcMaxLevel . uvValue)
+        notificationText = "Alert from " ++ showTime (fc ^. fcAlertStart) ++ " to " ++ showTime (fc ^. fcAlertEnd)
         startLayout = baseLayout { layoutTitle = "UV Alert start"
                                  , layoutTinyIcon = Just "system://images/TIMELINE_SUN"
                                  }
         endLayout = baseLayout { layoutTitle = "UV Alert end"
                                , layoutTinyIcon = Just "system://images/TIMELINE_SUN"
                                }
-        pinId = replaceSpace $ city location ++ show date
+        pinId = replaceSpace $ fc ^. fcLocation . locCity ++ show (fc ^. fcDate)
 
 forecastTopics :: Forecast -> Topics
 forecastTopics forecast = Topics [locTopic]
-    where locTopic = replaceSpace $ city $ location forecast
+    where locTopic = replaceSpace $ forecast ^. fcLocation . locCity
 
 replaceSpace = replace " " "_"
 

@@ -4,6 +4,8 @@ import Control.Concurrent
 
 import Control.Exception.Lifted
 
+import Control.Lens
+
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.State
@@ -47,17 +49,15 @@ fetchAll fs = do
         logStr $ "Fetching from " ++ fName f ++ "..."
         newForecasts <- fFetch f
         logStr $ "Added " ++ show (length newForecasts) ++ " forecasts."
-        stateM $ modify $
-            \store -> store { forecasts = S.fromList newForecasts `S.union` forecasts store }
+        stateM $ stForecasts %= S.union (S.fromList newForecasts)
     push
 
 removeOldM :: AppM ()
 removeOldM = do
-    oldCount <- stateM $ gets (length . forecasts)
+    oldCount <- stateM $ uses stForecasts length
     now <- liftIO getCurrentTime
-    stateM $ modify $
-        \store -> store { forecasts = removeOld now (forecasts store) }
-    newCount <- stateM $ gets (length . forecasts)
+    stateM $ stForecasts %= removeOld now
+    newCount <- stateM $ uses stForecasts length
     logStr $ "Removed " ++ show (oldCount - newCount) ++ " forecasts, " ++
         show newCount ++ " remain."
 
@@ -66,4 +66,5 @@ removeOld now = S.fromList . filterBestEachDay . filter (isRecent now) . S.toLis
 
 -- Leave only the latest forecast for each day
 filterBestEachDay :: [Forecast] -> [Forecast]
-filterBestEachDay = map (maximumBy compareUpdated) . groupWith (\fc -> (location fc, date fc))
+filterBestEachDay = map (maximumBy compareUpdated) . groupWith forecastKey
+    where forecastKey fc = (fc ^. fcLocation, fc ^. fcDate)

@@ -1,6 +1,8 @@
 {-# OPTIONS_GHC -F -pgmF htfpp #-}
 module TestFetcher where
 
+import Control.Lens
+
 import qualified Data.Set as S
 import Data.Time.Calendar
 import Data.Time.Clock
@@ -23,12 +25,12 @@ test_removeOld = do
         assertEqual (S.fromList [ forecasts !! 3 ]) $
             removeOld (evening day2) $ S.fromList forecasts
 
-    where dummyFc loc day updated = Forecast { location = Location loc
-                                             , date = day
-                                             , alertStart = TimeOfDay 8 0 0
-                                             , alertEnd = TimeOfDay 16 0 0
-                                             , maxLevel = UVLevel 10
-                                             , fcUpdated = updated
+    where dummyFc loc day updated = Forecast { _fcLocation = Location loc
+                                             , _fcDate = day
+                                             , _fcAlertStart = TimeOfDay 8 0 0
+                                             , _fcAlertEnd = TimeOfDay 16 0 0
+                                             , _fcMaxLevel = UVLevel 10
+                                             , _fcUpdated = updated
                                              }
           Just day1 = fromGregorianValid 2016 01 14
           Just day2 = fromGregorianValid 2016 01 15

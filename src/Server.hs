@@ -4,6 +4,8 @@ module Server where
 
 import Control.Concurrent.MVar
 
+import Control.Lens
+
 import Control.Monad.State
 import Control.Monad.Trans.Either
 import Control.Monad.Trans.Reader
@@ -35,18 +37,18 @@ app :: Config -> Application
 app cfg = serve api (readerServer cfg)
 
 registerApp :: AppKey -> AppSM ()
-registerApp key = stateM $ modify $
-        \store -> store { appKeys = appKeys store ++ [key] }
+registerApp key = stateM $ stAppKeys %= (++ [key])
 
 getForecast :: Location -> AppSM [Forecast]
 getForecast loc = do
-    forecasts <- stateM $ gets forecasts
-    let locForecasts = sortBy compareUpdated $ S.toList $ S.filter ((== loc) . location) forecasts
+    forecasts <- stateM $ use stForecasts
+    let locForecasts = sortBy compareUpdated $ S.toList $ S.filter ((== loc) . view fcLocation) forecasts
     case locForecasts of
         [] -> lift $ left $ err404 { errBody = "Location not found" }
         _ -> return locForecasts
 
 getLocations :: AppSM [Location]
 getLocations = do
-    forecasts <- stateM $ gets forecasts
-    return $ S.toList $ S.map location forecasts
+    forecasts <- stateM $ use stForecasts
+    -- FIXME: how to map a Lens over a Set?
+    return $ S.toList $ S.map (view fcLocation) forecasts

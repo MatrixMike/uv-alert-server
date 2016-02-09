@@ -1,6 +1,10 @@
+{-# LANGUAGE TemplateHaskell #-}
 module App where
 
 import Control.Concurrent.MVar
+
+import Control.Lens
+import Control.Lens.TH
 
 import Control.Monad
 import Control.Monad.IO.Class
@@ -22,9 +26,10 @@ import Pebble.Types
 
 
 -- TODO: Probably needs a database
-data Store = Store { appKeys :: [AppKey]
-                   , forecasts :: S.Set Forecast
+data Store = Store { _stAppKeys :: [AppKey]
+                   , _stForecasts :: S.Set Forecast
                    }
+makeLenses ''Store
 
 emptyStore :: Store
 emptyStore = Store [] S.empty

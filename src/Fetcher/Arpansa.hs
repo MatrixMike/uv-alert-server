@@ -67,7 +67,7 @@ fetchArpansa = do
                 Right graphImage -> do
                     time <- liftIO getCurrentTime
                     let forecast = parseGraph city today graphImage time
-                    return [forecast]
+                    return $ maybeToList forecast
 
 fetchGraph :: Manager -> String -> AppM BS.ByteString
 fetchGraph manager address = do
@@ -75,22 +75,30 @@ fetchGraph manager address = do
     chunks <- liftIO $ withResponse request manager (brConsume . responseBody)
     return $ BS.concat chunks
 
-parseGraph :: String -> Day -> DynamicImage -> UTCTime -> Forecast
-parseGraph city day image updated = Forecast { location = Location { city = city }
-                                             -- TODO Can read this from the image
-                                             , date = day
-                                             , alertStart = astart
-                                             , alertEnd = aend
-                                             , maxLevel = mlevel
-                                             , fcUpdated = updated
-                                             }
-    where uvLine = selectBestLine image
-          graph = map graphCoordinates uvLine
-          alertTimes = map fst $ filter ((>= alertLevel) . snd) graph
-          -- TODO: no alert if mlevel is low all the time
-          astart = minimum alertTimes
-          aend = maximum alertTimes
-          mlevel = maximum $ map snd graph
+maybeMinimum :: Ord a => [a] -> Maybe a
+maybeMinimum [] = Nothing
+maybeMinimum xs = Just $ minimum xs
+
+maybeMaximum :: Ord a => [a] -> Maybe a
+maybeMaximum [] = Nothing
+maybeMaximum xs = Just $ maximum xs
+
+parseGraph :: String -> Day -> DynamicImage -> UTCTime -> Maybe Forecast
+parseGraph city day image updated = do
+    let uvLine = selectBestLine image
+    let graph = map graphCoordinates uvLine
+    let alertTimes = map fst $ filter ((>= alertLevel) . snd) graph
+    astart <- maybeMinimum alertTimes
+    aend <- maybeMaximum alertTimes
+    let mlevel = maximum $ map snd graph
+    return Forecast { _fcLocation = Location { _locCity = city }
+                    -- TODO Can read this from the image
+                    , _fcDate = day
+                    , _fcAlertStart = astart
+                    , _fcAlertEnd = aend
+                    , _fcMaxLevel = mlevel
+                    , _fcUpdated = updated
+                    }
 
 forecastLineColor :: PixelRGB8
 forecastLineColor = PixelRGB8 248 135 0
