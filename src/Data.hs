@@ -36,7 +36,9 @@ makeLenses ''Location
 instance FromText Location where
     fromText txt = Location <$> fromText txt
 
-instance ToJSON Location
+instance ToJSON Location where
+    toJSON loc = object [ "city" .= (loc ^. locCity)
+                        ]
 
 instance ToJSON Day where
     toJSON = toJSON . showGregorian
@@ -48,7 +50,8 @@ makeLenses ''UVLevel
 alertLevel :: UVLevel
 alertLevel = UVLevel 3
 
-instance ToJSON UVLevel
+instance ToJSON UVLevel where
+    toJSON level = toJSON $ level ^. uvValue
 
 {-
           10        20        30        40        50        60        70       80
