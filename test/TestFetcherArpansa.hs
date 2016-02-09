@@ -25,6 +25,7 @@ loadImage imageName = do
 morningImage = "mel_rt_morning.gif"
 eveningImage = "mel_rt_evening.gif"
 noActualImage = "mel_rt_no_actual.gif"
+quietImage = "mel_rt_quiet.gif"
 
 test_selectForecastLine = do
     img <- loadImage morningImage
@@ -69,7 +70,7 @@ testTime = UTCTime test_date test_time
 
 test_parseGraph = do
         img <- loadImage morningImage
-        let fc = parseGraph "Melbourne" day img testTime
+        let (Just fc) = parseGraph "Melbourne" day img testTime
         assertEqual "Melbourne" (fc ^. fcLocation . locCity)
         assertEqual day (fc ^. fcDate)
         assertEqual (UVLevel 10) (fc ^. fcMaxLevel)
@@ -85,7 +86,7 @@ test_parseEveningGraph = do
         -- The real UV index was low in the morning, so the alert should be
         -- adjusted
         img <- loadImage eveningImage
-        let fc = parseGraph "Melbourne" day img testTime
+        let (Just fc) = parseGraph "Melbourne" day img testTime
         assertEqual "Melbourne" (fc ^. fcLocation . locCity)
         assertEqual day (fc ^. fcDate)
         assertEqual (UVLevel 12) (fc ^. fcMaxLevel)
@@ -94,4 +95,10 @@ test_parseEveningGraph = do
         assertBool (fcStart > (TimeOfDay 11 0 0) && fcStart < (TimeOfDay 11 20 0))
         assertBool (fcEnd > (TimeOfDay 17 30 0) && fcEnd < (TimeOfDay 17 50 0))
         assertEqual testTime (fc ^. fcUpdated)
+    where Just day = fromGregorianValid 2016 1 20
+
+test_parseQuietGraph = do
+        -- This image has been altered to have no alert
+        img <- loadImage quietImage
+        assertEqual Nothing $ parseGraph "Melbourne" day img testTime
     where Just day = fromGregorianValid 2016 1 20
