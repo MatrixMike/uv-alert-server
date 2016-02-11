@@ -22,10 +22,10 @@ import Network.FTP.Client
 import Network.URI
 
 import App
-import Data
 import Fetcher.Arpansa
 import Fetcher.Base
 import Pusher
+import Types
 
 
 updateInterval :: Int -- microseconds

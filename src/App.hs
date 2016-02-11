@@ -20,7 +20,7 @@ import Servant
 import System.Environment
 
 import API
-import Data
+import Types
 
 import Pebble.Types
 

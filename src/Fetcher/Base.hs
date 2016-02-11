@@ -5,7 +5,8 @@ module Fetcher.Base where
 import Network.URI
 
 import App
-import Data
+import Types
+import Types.Location
 
 
 data Fetcher = Fetcher { fName :: String

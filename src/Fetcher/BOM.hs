@@ -26,7 +26,9 @@ import Network.FTP.Client
 import Network.URI
 
 import App
-import Data
+import Types
+import Types.Location
+import Types.Location.Australia
 import Fetcher.Base
 
 
@@ -77,10 +79,14 @@ parseTime str = do
     minute <- readEither "minute" $ stringPartT 3 2 str
     return $ TimeOfDay hour minute 0
 
+bomLocation :: String -> Location
+bomLocation city = Location "Australia" state city
+    where state = auCityState city
+
 -- TODO: Parsec
 parseForecast :: UTCTime -> String -> Either String Forecast
 parseForecast updated str = do
-    let location = Location $ stringPartT 18 20 str
+    let location = bomLocation $ stringPartT 18 20 str
     date <- parseDate $ stringPart 38 10 str
     tStart <- parseTime $ stringPart 64 5 str
     tEnd <- parseTime $ stringPart 73 5 str
