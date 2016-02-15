@@ -70,12 +70,16 @@ test-suite uv-alert-server-test
   main-is:             Spec.hs
   build-depends:       base
                      , uv-alert-server
+                     , aeson
                      , bytestring
                      , containers
                      , JuicyPixels
                      , HTF
                      , lens
+                     , text
                      , time
+                     , transformers
+                     , vector
   other-modules:       TestFetcher
                      , TestFetcherArpansa
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
