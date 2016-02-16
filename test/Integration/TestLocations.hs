@@ -43,6 +43,10 @@ spec = do
 
         describe "GET /locations" $ do
             it "responds with locations JSON" $ do
-                get "/locations" `shouldRespondWith` [json|[ {city: "Melbourne"}
-                                                           , {city: "Sydney"}
+                get "/locations" `shouldRespondWith` [json|[ { city: "Sydney"
+                                                             , region: "New South Wales"
+                                                             , country: "Australia"}
+                                                           , { city: "Melbourne"
+                                                             , region: "Victoria"
+                                                             , country: "Australia"}
                                                            ]|]
