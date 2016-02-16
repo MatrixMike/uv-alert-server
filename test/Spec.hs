@@ -1,9 +1,14 @@
-{-# OPTIONS_GHC -F -pgmF htfpp #-}
+-- FIXME: Why doesn't hspec-discover work?
+import Test.Hspec
 
-import Test.Framework
+import qualified TestFetcher
+import qualified TestFetcherArpansa
+import qualified Integration.TestLocations
 
-import {-@ HTF_TESTS @-} TestFetcher
-import {-@ HTF_TESTS @-} TestFetcherArpansa
-import {-@ HTF_TESTS @-} Integration.TestLocations
+main :: IO ()
+main = hspec spec
 
-main = htfMain htf_importedTests
+spec = do
+    describe "TestFetcher" TestFetcher.spec
+    describe "TestFetcherArpansa" TestFetcherArpansa.spec
+    describe "Integration.TestLocations" Integration.TestLocations.spec

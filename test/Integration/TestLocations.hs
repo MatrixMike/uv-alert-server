@@ -1,12 +1,11 @@
-{-# OPTIONS_GHC -F -pgmF htfpp #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 module Integration.TestLocations where
 
 import Control.Lens
 import Control.Monad.IO.Class
 
 import qualified Data.Aeson as A
-import Data.Aeson hiding ((.=))
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar
@@ -16,20 +15,19 @@ import qualified Data.Set as S
 import qualified Data.Vector as V
 
 import App
+import Server
 import Types
 import Types.Location
 
 import Integration.Base
 
-import Test.Framework
+import Test.Hspec
+import Test.Hspec.Wai
+import Test.Hspec.Wai.JSON
 
--- Control.Lens and Aeson clash on .=
-aeq :: T.Text -> T.Text -> (T.Text, Value)
-aeq = (A..=)
 
-array = Array . V.fromList
-
-test_locations = withApp $ do
+spec = do
+    config <- runIO testConfig
     let dummyForecast loc = Forecast { _fcLocation = loc
                                      , _fcDate = fromJust $ fromGregorianValid 2016 2 1
                                      , _fcAlertStart = undefined
@@ -40,8 +38,11 @@ test_locations = withApp $ do
     let locations = [ Location "Australia" "Victoria" "Melbourne"
                     , Location "Australia" "New South Wales" "Sydney"
                     ]
-    stateM $ stForecasts .= (S.fromList $ map dummyForecast locations)
-    locJson <- getJson "/locations"
-    liftIO $ assertEqual (array [ object [ "city" `aeq` "Melbourne" ]
-                                , object [ "city" `aeq` "Sydney" ]
-                                ]) locJson
+    runIO $ inApp config $ stateM $ stForecasts .= (S.fromList $ map dummyForecast locations)
+    with (return $ app config) $ do
+
+        describe "GET /locations" $ do
+            it "responds with locations JSON" $ do
+                get "/locations" `shouldRespondWith` [json|[ {city: "Melbourne"}
+                                                           , {city: "Sydney"}
+                                                           ]|]

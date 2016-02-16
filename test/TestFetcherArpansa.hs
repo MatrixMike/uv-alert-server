@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -F -pgmF htfpp #-}
 module TestFetcherArpansa where
 
 import Codec.Picture
@@ -14,12 +13,11 @@ import Fetcher.Arpansa
 import Types
 import Types.Location
 
-import Test.Framework
+import Test.Hspec
 
 
-loadImage :: String -> IO DynamicImage
 loadImage imageName = do
-    bytes <- BS.readFile $ "test/" ++ imageName
+    bytes <- runIO $ BS.readFile $ "test/" ++ imageName
     let (Right image) = decodeImage bytes
     return image
 
@@ -30,78 +28,104 @@ quietImage = "mel_rt_quiet.gif"
 
 melbourne = Location "Australia" "Victoria" "Melbourne"
 
-test_selectForecastLine = do
-    img <- loadImage morningImage
-    let graphLine = selectForecastLine img
-    assertBool $ (274, 337) `elem` graphLine
-    assertBool $ not $ (272, 336) `elem` graphLine
-    -- This point belongs to the legend
-    assertBool $ not $ (755, 308) `elem` graphLine
-    -- This point belongs to the "Forecast UV Level" text
-    assertBool $ not $ (215, 541) `elem` graphLine
-
-test_selectBestLine = do
-    img <- loadImage eveningImage
-    let graphLine = selectBestLine img
-    assertBool $ (197, 431) `elem` graphLine
-    -- This point belongs to the forecast line where the actual data exists
-    assertBool $ not $ (197, 411) `elem` graphLine
-
-test_selectBestLine_no_actual = do
-    img <- loadImage noActualImage
-    let graphLine = selectBestLine img
-    assertBool $ (124, 435) `elem` graphLine
-
-test_extrapolate = do
-    let extrapolateExample = extrapolate (0, 10) (1, 20)
-    assertEqual 10 $ extrapolateExample 0
-    assertEqual 20 $ extrapolateExample 1
-    assertEqual 30 $ extrapolateExample 2
-
-test_graphLevel = do
-    assertEqual (UVLevel 10) (graphLevel 231)
-    assertEqual (UVLevel 5) (graphLevel 336)
-
-test_graphTimeOfDay = do
-        assertEqual (TimeOfDay 11 0 0) $ roundTime $ graphTimeOfDay 312
-        assertEqual (TimeOfDay 17 0 0) $ roundTime $ graphTimeOfDay 586
-    where roundTime (TimeOfDay h m _) = TimeOfDay h m 0
-
-testTime = UTCTime test_date test_time
-    where Just test_date = fromGregorianValid 2016 01 01
-          test_time = secondsToDiffTime 0
-
-test_parseGraph = do
+spec :: Spec
+spec = do
+    describe "selectForecastLine" $ do
         img <- loadImage morningImage
-        let (Just fc) = parseGraph melbourne day img testTime
-        assertEqual "Melbourne" (fc ^. fcLocation . locCity)
-        assertEqual day (fc ^. fcDate)
-        assertEqual (UVLevel 10) (fc ^. fcMaxLevel)
-        let fcStart = fc ^. fcAlertStart
-        let fcEnd = fc ^. fcAlertEnd
-        assertBool (fcStart > (TimeOfDay 9 0 0) && fcStart < (TimeOfDay 9 30 0))
-        assertBool (fcEnd > (TimeOfDay 17 40 0) && fcEnd < (TimeOfDay 18 0 0))
-        assertEqual testTime (fc ^. fcUpdated)
-    where Just day = fromGregorianValid 2016 1 19
+        let graphLine = selectForecastLine img
+        it "selects the graph point" $ do
+            graphLine `shouldSatisfy` (elem (274, 337))
+        it "does not select the point which is not in the graph" $ do
+            graphLine `shouldSatisfy` (not . elem (272, 336))
+        it "does not select the legend points" $ do
+            graphLine `shouldSatisfy` (not . elem (755, 308))
+        it "does not select the forecast level text" $ do
+            graphLine `shouldSatisfy` (not . elem (215, 541))
 
-test_parseEveningGraph = do
-        -- This image has the real data overlaid on the forecast
-        -- The real UV index was low in the morning, so the alert should be
-        -- adjusted
+    describe "selectBestLine" $ do
         img <- loadImage eveningImage
-        let (Just fc) = parseGraph melbourne day img testTime
-        assertEqual "Melbourne" (fc ^. fcLocation . locCity)
-        assertEqual day (fc ^. fcDate)
-        assertEqual (UVLevel 12) (fc ^. fcMaxLevel)
-        let fcStart = fc ^. fcAlertStart
-        let fcEnd = fc ^. fcAlertEnd
-        assertBool (fcStart > (TimeOfDay 11 0 0) && fcStart < (TimeOfDay 11 20 0))
-        assertBool (fcEnd > (TimeOfDay 17 30 0) && fcEnd < (TimeOfDay 17 50 0))
-        assertEqual testTime (fc ^. fcUpdated)
-    where Just day = fromGregorianValid 2016 1 20
+        let graphLine = selectBestLine img
+        it "selects the actual line point" $ do
+            graphLine `shouldSatisfy` (elem (197, 431))
+        it "does not select the forecast line where the actual data exists" $ do
+            graphLine `shouldSatisfy` (not . elem (197, 411))
+        context "when there is no actual line" $ do
+            img <- loadImage noActualImage
+            let graphLine = selectBestLine img
+            it "selects the forecast line" $ do
+                graphLine `shouldSatisfy` (elem (124, 435))
 
-test_parseQuietGraph = do
-        -- This image has been altered to have no alert
-        img <- loadImage quietImage
-        assertEqual Nothing $ parseGraph melbourne day img testTime
-    where Just day = fromGregorianValid 2016 1 20
+    describe "extrapolate" $ do
+        let extrapolateExample = extrapolate (0, 10) (1, 20)
+        it "works at the left point" $ do
+            extrapolateExample 0 `shouldBe` 10
+        it "works at the right point" $ do
+            extrapolateExample 1 `shouldBe` 20
+        it "works at a different point" $ do
+            extrapolateExample 2 `shouldBe` 30
+
+    describe "graphLevel" $ do
+        it "works for level 10" $ do
+            graphLevel 231 `shouldBe` UVLevel 10
+        it "works for level 5" $ do
+            graphLevel 336 `shouldBe` UVLevel 5
+
+    describe "graphTimeOfDay" $ do
+        let roundTime (TimeOfDay h m _) = TimeOfDay h m 0
+        it "works for 11:00" $
+            roundTime (graphTimeOfDay 312) `shouldBe` TimeOfDay 11 0 0
+        it "works for 17:00" $
+            roundTime (graphTimeOfDay 586) `shouldBe` TimeOfDay 17 0 0
+
+    describe "parseGraph" $ do
+
+        let Just test_date = fromGregorianValid 2016 01 01
+        let test_time = secondsToDiffTime 0
+        let testTime = UTCTime test_date test_time
+
+        let between :: Ord a => a -> a -> a -> Bool
+            between low high value = value > low && value < high
+
+        context "for a morning image" $ do
+            let Just day = fromGregorianValid 2016 1 19
+            img <- loadImage morningImage
+            let (Just fc) = parseGraph melbourne day img testTime
+            it "stores the city" $
+                fc ^. fcLocation . locCity `shouldBe` "Melbourne"
+            it "stores the day" $
+                fc ^. fcDate `shouldBe` day
+            it "calculates the maximum level" $ do
+                fc ^. fcMaxLevel `shouldBe` UVLevel 10
+            it "calculates the alert start time" $ do
+                fc ^. fcAlertStart `shouldSatisfy` (between (TimeOfDay 9 0 0) (TimeOfDay 9 30 0))
+            it "calculates the alert end time" $ do
+                fc ^. fcAlertEnd `shouldSatisfy` (between (TimeOfDay 17 40 0) (TimeOfDay 18 0 0))
+            it "stores the updated time" $ do
+                fc ^. fcUpdated `shouldBe` testTime
+
+        context "for an evening image" $ do
+            -- This image has the real data overlaid on the forecast
+            -- The real UV index was low in the morning, so the alert should be
+            -- adjusted
+            let Just day = fromGregorianValid 2016 1 20
+            img <- loadImage eveningImage
+            let (Just fc) = parseGraph melbourne day img testTime
+            it "stores the city" $
+                fc ^. fcLocation . locCity `shouldBe` "Melbourne"
+            it "stores the day" $
+                fc ^. fcDate `shouldBe` day
+            it "calculates the maximum level" $ do
+                fc ^. fcMaxLevel `shouldBe` UVLevel 12
+            it "calculates the alert start time" $ do
+                fc ^. fcAlertStart `shouldSatisfy` (between (TimeOfDay 11 0 0) (TimeOfDay 11 20 0))
+            it "calculates the alert end time" $ do
+                fc ^. fcAlertEnd `shouldSatisfy` (between (TimeOfDay 17 30 0) (TimeOfDay 17 50 0))
+            it "stores the updated time" $ do
+                fc ^. fcUpdated `shouldBe` testTime
+
+        context "for an image with no high UV level" $ do
+            -- This image has been altered to have no alert
+            img <- loadImage quietImage
+            let Just day = fromGregorianValid 2016 1 20
+            it "does not have an alert forecast" $ do
+                parseGraph melbourne day img testTime `shouldBe` Nothing
