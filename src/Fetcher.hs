@@ -41,6 +41,7 @@ fetcher :: AppM ()
 fetcher = forever $ do
     fetchAll fetchers
     removeOldM
+    push
     liftIO $ threadDelay updateInterval
 
 fetchAll :: [Fetcher] -> AppM ()
@@ -50,7 +51,6 @@ fetchAll fs = do
         newForecasts <- fFetch f
         logStr $ "Added " ++ show (length newForecasts) ++ " forecasts."
         stateM $ stForecasts %= S.union (S.fromList newForecasts)
-    push
 
 removeOldM :: AppM ()
 removeOldM = do
