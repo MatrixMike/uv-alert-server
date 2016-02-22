@@ -28,9 +28,6 @@ import Types.Location
 -- Supplementary types
 -- TODO: change them to something nicer
 
-instance ToJSON Day where
-    toJSON = toJSON . showGregorian
-
 data UVLevel = UVLevel { _uvValue :: Int }
     deriving (Eq, Ord, Show, Generic)
 makeLenses ''UVLevel
@@ -75,7 +72,7 @@ fcDuration fc = round (seconds / 60)
 
 instance ToJSON Forecast where
     toJSON fc = object [ "location" .= (fc ^. fcLocation . locCity)
-                       , "date" .= (fc ^. fcDate)
+                       , "date" .= (fc ^. fcDate . to showGregorian)
                        , "alertStart" .= show (fc ^. fcAlertStart)
                        , "alertEnd" .= show (fc ^. fcAlertEnd)
                        , "maxLevel" .= (fc ^. fcMaxLevel)
