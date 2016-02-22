@@ -2,7 +2,7 @@
 {-# Language OverloadedStrings #-}
 {-# Language RecordWildCards #-}
 {-# Language TemplateHaskell #-}
-module Data where
+module Types where
 
 import Control.Lens hiding ((.=))
 import Control.Lens.TH
@@ -18,30 +18,15 @@ import Data.Time.Clock
 import Data.Time.LocalTime
 import Data.Time.LocalTime.TimeZone.Series
 
-import GHC.Generics
+import GHC.Generics (Generic)
 
 import Servant
 
-import TZ
+import Types.Location
 
 
 -- Supplementary types
 -- TODO: change them to something nicer
-
-data Location = Location { _locCity :: String
-                         }
-    deriving (Eq, Show, Generic, Ord)
-makeLenses ''Location
-
-instance FromText Location where
-    fromText txt = Location <$> fromText txt
-
-instance ToJSON Location where
-    toJSON loc = object [ "city" .= (loc ^. locCity)
-                        ]
-
-instance ToJSON Day where
-    toJSON = toJSON . showGregorian
 
 data UVLevel = UVLevel { _uvValue :: Int }
     deriving (Eq, Ord, Show, Generic)
@@ -73,7 +58,7 @@ compareUpdated :: Forecast -> Forecast -> Ordering
 compareUpdated = compare `on` (view fcUpdated)
 
 fcTZ :: Forecast -> TimeZoneSeries
-fcTZ = cityTZ . view (fcLocation . locCity)
+fcTZ fc = fc ^. fcLocation . to locTZ
 
 fcStartTimeUtc :: Forecast -> UTCTime
 fcStartTimeUtc fc = localTimeToUTC' (fcTZ fc) $ LocalTime (fc ^. fcDate) (fc ^. fcAlertStart)
@@ -87,7 +72,7 @@ fcDuration fc = round (seconds / 60)
 
 instance ToJSON Forecast where
     toJSON fc = object [ "location" .= (fc ^. fcLocation . locCity)
-                       , "date" .= (fc ^. fcDate)
+                       , "date" .= (fc ^. fcDate . to showGregorian)
                        , "alertStart" .= show (fc ^. fcAlertStart)
                        , "alertEnd" .= show (fc ^. fcAlertEnd)
                        , "maxLevel" .= (fc ^. fcMaxLevel)

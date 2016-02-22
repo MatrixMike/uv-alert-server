@@ -6,6 +6,7 @@ import Codec.Picture
 
 import Control.Arrow
 import Control.Exception.Lifted
+import Control.Lens
 import Control.Monad
 import Control.Monad.IO.Class
 
@@ -21,43 +22,51 @@ import Network.HTTP.Client
 import Network.URI
 
 import App
-import Data
 import Fetcher.Base
-import TZ
+import Types
+import Types.Location
 
 
 arpansaFetcher :: Fetcher
 arpansaFetcher = Fetcher "ARPANSA" fetchArpansa
 
--- TODO: find other abbreviations on http://www.arpansa.gov.au/uvindex/realtime/
-addresses :: [(String, String)]
-addresses = map (second cityAddress) [ ("Adelaide", "adl")
-                                     , ("Alice Springs", "ali")
-                                     , ("Brisbane", "bri")
-                                     , ("Canberra", "can")
-                                     , ("Darwin", "dar")
-                                     , ("Kingston", "kin")
-                                     , ("Melbourne", "mel")
-                                     , ("Newcastle", "new")
-                                     , ("Perth", "per")
-                                     , ("Sydney", "syd")
-                                     , ("Townsville", "tow")
-                                     ]
-    where cityAddress abbr = "http://www.arpansa.gov.au/uvindex/realtime/images/" ++ abbr ++ "_rt.gif"
+addresses :: [(Location, String)]
+addresses = map makeLocation [ (sa, "Adelaide", "adl")
+                             , (nt, "Alice Springs", "ali")
+                             , (qld, "Brisbane", "bri")
+                             , (act, "Canberra", "can")
+                             , (nt, "Darwin", "dar")
+                             , (tas, "Kingston", "kin")
+                             , (vic, "Melbourne", "mel")
+                             , (nsw, "Newcastle", "new")
+                             , (wa, "Perth", "per")
+                             , (nsw, "Sydney", "syd")
+                             , (qld, "Townsville", "tow")
+                             ]
+    where makeLocation (state, town, abbr) = (Location "Australia" state town, cityAddress abbr)
+          cityAddress abbr = "http://www.arpansa.gov.au/uvindex/realtime/images/" ++ abbr ++ "_rt.gif"
+          act = "Australian Capital Territory"
+          nsw = "New South Wales"
+          nt = "Northern Territory"
+          qld = "Queensland"
+          sa = "South Australia"
+          tas = "Tasmania"
+          vic = "Victoria"
+          wa = "Western Australia"
 
-dateInCity :: String -> IO Day
-dateInCity city = do
+dateIn :: Location -> IO Day
+dateIn loc = do
     utcTime <- getCurrentTime
-    let tz = cityTZ city
+    let tz = locTZ loc
     let cityTime = utcToLocalTime (timeZoneFromSeries tz utcTime) utcTime
     return $ localDay cityTime
 
 fetchArpansa :: AppM [Forecast]
 fetchArpansa = do
     manager <- liftIO $ newManager defaultManagerSettings
-    liftM concat $ forM addresses $ \(city, address) -> do
-        logStr $ "Fetching graph for " ++ city ++ "..."
-        today <- liftIO $ dateInCity city
+    liftM concat $ forM addresses $ \(loc, address) -> do
+        logStr $ "Fetching graph for " ++ loc ^. locCity ++ "..."
+        today <- liftIO $ dateIn loc
         handle (logError address) $ do
             graphBytes <- fetchGraph manager address
             case decodeImage graphBytes of
@@ -66,7 +75,7 @@ fetchArpansa = do
                     return []
                 Right graphImage -> do
                     time <- liftIO getCurrentTime
-                    let forecast = parseGraph city today graphImage time
+                    let forecast = parseGraph loc today graphImage time
                     return $ maybeToList forecast
 
 fetchGraph :: Manager -> String -> AppM BS.ByteString
@@ -83,15 +92,15 @@ maybeMaximum :: Ord a => [a] -> Maybe a
 maybeMaximum [] = Nothing
 maybeMaximum xs = Just $ maximum xs
 
-parseGraph :: String -> Day -> DynamicImage -> UTCTime -> Maybe Forecast
-parseGraph city day image updated = do
+parseGraph :: Location -> Day -> DynamicImage -> UTCTime -> Maybe Forecast
+parseGraph loc day image updated = do
     let uvLine = selectBestLine image
     let graph = map graphCoordinates uvLine
     let alertTimes = map fst $ filter ((>= alertLevel) . snd) graph
     astart <- maybeMinimum alertTimes
     aend <- maybeMaximum alertTimes
     let mlevel = maximum $ map snd graph
-    return Forecast { _fcLocation = Location { _locCity = city }
+    return Forecast { _fcLocation = loc
                     -- TODO Can read this from the image
                     , _fcDate = day
                     , _fcAlertStart = astart

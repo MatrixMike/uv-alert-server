@@ -1,25 +1,36 @@
-{-# Language RecordWildCards #-}
 {-# Language TemplateHaskell #-}
-module TZ where
+module Types.Location.Australia where
 
 import Data.Time.LocalTime.TimeZone.Series
 import Data.Time.LocalTime.TimeZone.Olson.TH
 
 
-cityTZ :: String -> TimeZoneSeries
-cityTZ city = case city of
-    "Darwin" -> tzNorth
-    "Melbourne" -> tzVictoria
-    "Sydney" -> tzNSW
-    "Hobart" -> tzTasmania
-    "Perth" -> tzWest
-    "Adelaide" -> tzSouth
-    "Alice Springs" -> tzNorth
-    "Brisbane" -> tzQueensland
-    "Canberra" -> tzCanberra
-    "Mildura" -> tzVictoria
+-- Time zone in an Australian state
+auStateTZ :: String -> TimeZoneSeries
+auStateTZ "New South Wales" = $(loadTZFile "/usr/share/zoneinfo/Australia/NSW")
+auStateTZ "Northern Territory" = $(loadTZFile "/usr/share/zoneinfo/Australia/North")
+auStateTZ "South Australia" = $(loadTZFile "/usr/share/zoneinfo/Australia/South")
+auStateTZ "Queensland" = $(loadTZFile "/usr/share/zoneinfo/Australia/Queensland")
+auStateTZ "Western Australia" = $(loadTZFile "/usr/share/zoneinfo/Australia/West")
+auStateTZ "Victoria" = $(loadTZFile "/usr/share/zoneinfo/Australia/Victoria")
+auStateTZ "Tasmania" = $(loadTZFile "/usr/share/zoneinfo/Australia/Tasmania")
+auStateTZ "Australian Capital Territory" = $(loadTZFile "/usr/share/zoneinfo/Australia/Canberra")
+
+-- State which an Australian city is in
+auCityState :: String -> String
+auCityState city = case city of
+    "Darwin" -> "Northern Territory"
+    "Melbourne" -> "Victoria"
+    "Sydney" -> "New South Wales"
+    "Hobart" -> "Tasmania"
+    "Perth" -> "Western Australia"
+    "Adelaide" -> "South Australia"
+    "Alice Springs" -> "Northern Territory"
+    "Brisbane" -> "Queensland"
+    "Canberra" -> "Australian Capital Territory"
+    "Mildura" -> "Victoria"
     -- "Broome"
-    "Townsville" -> tzQueensland
+    "Townsville" -> "Queensland"
     -- "Mt Isa"
     -- "Albany"
     -- "Armidale"
@@ -35,7 +46,7 @@ cityTZ city = case city of
     -- "Cooma"
     -- "Deniliquin"
     -- "Dubbo"
-    "Gosford" -> tzNSW
+    "Gosford" -> "New South Wales"
     -- "Goulburn"
     -- "Grafton"
     -- "Griffith"
@@ -46,7 +57,7 @@ cityTZ city = case city of
     -- "Maitland NSW"
     -- "Moree"
     -- "Mudgee"
-    "Newcastle" -> tzNSW
+    "Newcastle" -> "New South Wales"
     -- "Nowra"
     -- "Orange"
     -- "Parkes"
@@ -188,7 +199,7 @@ cityTZ city = case city of
     -- "Woomera"
     -- "Wudinna"
     -- "Argyle"
-    -- "Fitzroy Crossing"
+    -- "Fi"roy Crossing""
     -- "Wyndham"
     -- "Barcaldine"
     -- "Burketown"
@@ -231,7 +242,7 @@ cityTZ city = case city of
     -- "Liawenee"
     -- "King Island"
     -- "Flinders Island"
-    "Kingston" -> tzTasmania
+    "Kingston" -> "Tasmania"
     -- "Mt Baw Baw"
     -- "Falls Creek"
     -- "Charlotte Pass"
@@ -242,13 +253,4 @@ cityTZ city = case city of
     -- "Campbell Town"
     -- "Queenstown"
     -- "New Norfolk"
-    _ -> tzVictoria -- TODO
-
-tzNSW = $(loadTZFile "/usr/share/zoneinfo/Australia/NSW")
-tzNorth = $(loadTZFile "/usr/share/zoneinfo/Australia/North")
-tzSouth = $(loadTZFile "/usr/share/zoneinfo/Australia/South")
-tzQueensland = $(loadTZFile "/usr/share/zoneinfo/Australia/Queensland")
-tzWest = $(loadTZFile "/usr/share/zoneinfo/Australia/West")
-tzVictoria = $(loadTZFile "/usr/share/zoneinfo/Australia/Victoria")
-tzTasmania = $(loadTZFile "/usr/share/zoneinfo/Australia/Tasmania")
-tzCanberra = $(loadTZFile "/usr/share/zoneinfo/Australia/Canberra")
+    _ -> "Victoria" -- TODO

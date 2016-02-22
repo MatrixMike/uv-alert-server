@@ -19,7 +19,8 @@ import Servant
 
 import API
 import App
-import Data
+import Types
+import Types.Location
 
 
 type AppSM = AppT (EitherT ServantErr IO)

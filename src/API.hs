@@ -4,7 +4,8 @@ module API where
 
 import Servant
 
-import Data
+import Types
+import Types.Location
 
 
 type API = "register-app" :> ReqBody '[FormUrlEncoded] AppKey :> Post '[JSON] ()

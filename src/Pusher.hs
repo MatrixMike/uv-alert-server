@@ -12,7 +12,8 @@ import Data.List.Utils
 import Data.Time.LocalTime
 
 import App
-import Data
+import Types
+import Types.Location
 import Pebble.Client
 import Pebble.Types
 
