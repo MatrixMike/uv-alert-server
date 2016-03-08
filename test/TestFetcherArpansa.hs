@@ -77,6 +77,20 @@ spec = do
         it "works for 17:00" $
             roundTime (graphTimeOfDay 586) `shouldBe` TimeOfDay 17 0 0
 
+    describe "charAt" $ do
+        img_2016_01_19 <- loadImage morningImage
+        img_2016_01_20 <- loadImage eveningImage
+        it "recognizes 0" $ do
+            charAt (274, 70) img_2016_01_20 `shouldBe` '0'
+        it "recognizes 1" $ do
+            charAt (401, 70) img_2016_01_20 `shouldBe` '1'
+        it "recognizes 2" $ do
+            charAt (264, 70) img_2016_01_20 `shouldBe` '2'
+        it "recognizes 6" $ do
+            charAt (409, 70) img_2016_01_20 `shouldBe` '6'
+        it "recognizes 9" $ do
+            charAt (256, 70) img_2016_01_20 `shouldBe` '9'
+
     describe "parseGraph" $ do
 
         let Just test_date = fromGregorianValid 2016 01 01

@@ -162,3 +162,6 @@ type GraphCoord = (TimeOfDay, UVLevel)
 
 graphCoordinates :: ImageCoord -> GraphCoord
 graphCoordinates = first graphTimeOfDay . second graphLevel
+
+charAt :: ImageCoord -> DynamicImage -> Char
+charAt = undefined
