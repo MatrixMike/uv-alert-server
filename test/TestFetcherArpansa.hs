@@ -25,6 +25,7 @@ morningImage = "mel_rt_morning.gif"
 eveningImage = "mel_rt_evening.gif"
 noActualImage = "mel_rt_no_actual.gif"
 quietImage = "mel_rt_quiet.gif"
+perthMarch08Image = "per_rt_2016-03-08.gif"
 
 melbourne = Location "Australia" "Victoria" "Melbourne"
 
@@ -80,6 +81,7 @@ spec = do
     describe "charAt" $ do
         img_2016_01_19 <- loadImage morningImage
         img_2016_01_20 <- loadImage eveningImage
+        img_2016_03_08 <- loadImage perthMarch08Image
         it "recognizes 0" $ do
             charAt (274, 70) img_2016_01_20 `shouldBe` '0'
         it "recognizes 1" $ do
@@ -88,6 +90,8 @@ spec = do
             charAt (264, 70) img_2016_01_20 `shouldBe` '2'
         it "recognizes 6" $ do
             charAt (409, 70) img_2016_01_20 `shouldBe` '6'
+        it "recognizes 8" $ do
+            charAt (247, 70) img_2016_03_08 `shouldBe` '8'
         it "recognizes 9" $ do
             charAt (256, 70) img_2016_01_20 `shouldBe` '9'
 
