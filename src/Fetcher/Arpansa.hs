@@ -245,11 +245,51 @@ digit2 = parseCharacter [ " xxxxxx "
                         , "xxxxxxxx"
                         ]
 
+digit6 = parseCharacter [ "  xxxxx "
+                        , " xx     "
+                        , "xx      "
+                        , "xx      "
+                        , "xxxxxxx "
+                        , "xxx   xx"
+                        , "xx    xx"
+                        , "xx    xx"
+                        , "xx    xx"
+                        , " xxxxxx "
+                        ]
+
+digit8 = parseCharacter [ " xxxxxx "
+                        , "xx    xx"
+                        , "xx    xx"
+                        , "xx    xx"
+                        , " xxxxxx "
+                        , "xx    xx"
+                        , "xx    xx"
+                        , "xx    xx"
+                        , "xx    xx"
+                        , " xxxxxx "
+                        ]
+
+digit9 = parseCharacter [ " xxxxxx "
+                        , "xx    xx"
+                        , "xx    xx"
+                        , "xx    xx"
+                        , "xx   xxx"
+                        , " xxxxxxx"
+                        , "      xx"
+                        , "      xx"
+                        , "     xx "
+                        , " xxxxx  "
+                        ]
+
+
 -- All known characters
 characters :: [(CharacterMatrix, Char)]
 characters = [ (digit0, '0')
              , (digit1, '1')
              , (digit2, '2')
+             , (digit6, '6')
+             , (digit8, '8')
+             , (digit9, '9')
              ]
 
 diffChars :: CharacterMatrix -> CharacterMatrix -> Int
