@@ -78,22 +78,30 @@ spec = do
         it "works for 17:00" $
             roundTime (graphTimeOfDay 586) `shouldBe` TimeOfDay 17 0 0
 
+    describe "findCharEdge" $ do
+        img_2016_01_19 <- loadImage morningImage
+        img_2016_01_20 <- loadImage eveningImage
+        img_2016_03_08 <- loadImage perthMarch08Image
+
+        it "finds the character top-left corner" $ do
+            findCharEdge (245, 70) img_2016_03_08 `shouldBe` Just (248, 72)
+
     describe "charAt" $ do
         img_2016_01_19 <- loadImage morningImage
         img_2016_01_20 <- loadImage eveningImage
         img_2016_03_08 <- loadImage perthMarch08Image
         it "recognizes 0" $ do
-            charAt (274, 70) img_2016_01_20 `shouldBe` '0'
+            charAt (274, 70) img_2016_01_20 `shouldBe` Just '0'
         it "recognizes 1" $ do
-            charAt (401, 70) img_2016_01_20 `shouldBe` '1'
+            charAt (401, 70) img_2016_01_20 `shouldBe` Just '1'
         it "recognizes 2" $ do
-            charAt (264, 70) img_2016_01_20 `shouldBe` '2'
+            charAt (264, 70) img_2016_01_20 `shouldBe` Just '2'
         it "recognizes 6" $ do
-            charAt (409, 70) img_2016_01_20 `shouldBe` '6'
+            charAt (409, 70) img_2016_01_20 `shouldBe` Just '6'
         it "recognizes 8" $ do
-            charAt (247, 70) img_2016_03_08 `shouldBe` '8'
+            charAt (247, 70) img_2016_03_08 `shouldBe` Just '8'
         it "recognizes 9" $ do
-            charAt (256, 70) img_2016_01_20 `shouldBe` '9'
+            charAt (256, 70) img_2016_01_19 `shouldBe` Just '9'
 
     describe "parseGraph" $ do
 
