@@ -10,6 +10,7 @@ import Data.Time.Clock
 import Data.Time.LocalTime
 
 import Fetcher.Arpansa
+import Fetcher.Arpansa.CharacterRecognizer
 import Types
 import Types.Location
 

@@ -19,6 +19,8 @@ library
                      , App
                      , Fetcher
                      , Fetcher.Arpansa
+                     , Fetcher.Arpansa.CharacterRecognizer
+                     , Fetcher.Arpansa.Base
                      , Fetcher.Base
                      , Fetcher.BOM
                      , Pebble.Client
