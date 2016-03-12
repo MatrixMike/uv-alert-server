@@ -79,17 +79,41 @@ digit9 = parseCharacter [ " xxxxxx "
                         , " xxxxx  "
                         ]
 
-letterBigF =parseCharacter [ "xxxxxxxx"
-                           , " xx     "
-                           , " xx     "
-                           , " xx     "
-                           , " xxxxx  "
-                           , " xx     "
-                           , " xx     "
-                           , " xx     "
-                           , " xx     "
-                           , " xx     "
-                           ]
+letterBigA = parseCharacter [ "   xx   "
+                            , "  xxxx  "
+                            , " xx  xx "
+                            , "xx    xx"
+                            , "xx    xx"
+                            , "xx    xx"
+                            , "xxxxxxxx"
+                            , "xx    xx"
+                            , "xx    xx"
+                            , "xx    xx"
+                            ]
+
+letterBigD = parseCharacter [ "xxxxxxx "
+                            , " xx   xx"
+                            , " xx   xx"
+                            , " xx   xx"
+                            , " xx   xx"
+                            , " xx   xx"
+                            , " xx   xx"
+                            , " xx   xx"
+                            , " xx   xx"
+                            , "xxxxxxx "
+                            ]
+
+letterBigF = parseCharacter [ "xxxxxxxx"
+                            , " xx     "
+                            , " xx     "
+                            , " xx     "
+                            , " xxxxx  "
+                            , " xx     "
+                            , " xx     "
+                            , " xx     "
+                            , " xx     "
+                            , " xx     "
+                            ]
 
 
 letterBigJ = parseCharacter [ "   xxxxx"
@@ -111,6 +135,18 @@ letterBigM = parseCharacter [ "xx    xx"
                             , "xxxxxxxx"
                             , "xx xx xx"
                             , "xx xx xx"
+                            , "xx    xx"
+                            , "xx    xx"
+                            , "xx    xx"
+                            ]
+
+letterBigN = parseCharacter [ "xx    xx"
+                            , "xx    xx"
+                            , "xxx   xx"
+                            , "xxxx  xx"
+                            , "xx xx xx"
+                            , "xx  xxxx"
+                            , "xx   xxx"
                             , "xx    xx"
                             , "xx    xx"
                             , "xx    xx"
@@ -164,6 +200,18 @@ letterA = parseCharacter [ ""
                          , " xxxxxxx"
                          ]
 
+letterB = parseCharacter [ "xx      "
+                         , "xx      "
+                         , "xx      "
+                         , "xxxxxxx "
+                         , "xxx   xx"
+                         , "xx    xx"
+                         , "xx    xx"
+                         , "xx    xx"
+                         , "xxx   xx"
+                         , "xxxxxxx "
+                         ]
+
 letterC = parseCharacter [ ""
                          , ""
                          , ""
@@ -200,6 +248,21 @@ letterE = parseCharacter [ ""
                          , " xxxxxx "
                          ]
 
+letterG = parseCharacter [ "        "
+                         , "        "
+                         , "        "
+                         , " xxxxxxx"
+                         , "xx   xx "
+                         , "xx   xx "
+                         , "xx   xx "
+                         , " xxxxx  "
+                         , "xx      "
+                         , " xxxxxx "
+                         , "xx    xx"
+                         , "xx    xx"
+                         , " xxxxxx "
+                         ]
+
 letterH = parseCharacter [ "xx      "
                          , "xx      "
                          , "xx      "
@@ -224,6 +287,30 @@ letterI = parseCharacter [ ""
                          , "xxxxxx  "
                          ]
 
+letterL = parseCharacter [ " xxx    "
+                         , "  xx    "
+                         , "  xx    "
+                         , "  xx    "
+                         , "  xx    "
+                         , "  xx    "
+                         , "  xx    "
+                         , "  xx    "
+                         , "  xx    "
+                         , "xxxxxx  "
+                         ]
+
+letterM = parseCharacter [ "        "
+                         , "        "
+                         , "        "
+                         , "xxxxxxx "
+                         , "xx xx xx"
+                         , "xx xx xx"
+                         , "xx xx xx"
+                         , "xx xx xx"
+                         , "xx xx xx"
+                         , "xx    xx"
+                         ]
+
 letterN = parseCharacter [ ""
                          , ""
                          , ""
@@ -234,6 +321,33 @@ letterN = parseCharacter [ ""
                          , "xx    xx"
                          , "xx    xx"
                          , "xx    xx"
+                         ]
+
+letterO = parseCharacter [ "        "
+                         , "        "
+                         , "        "
+                         , " xxxxxx "
+                         , "xx    xx"
+                         , "xx    xx"
+                         , "xx    xx"
+                         , "xx    xx"
+                         , "xx    xx"
+                         , " xxxxxx "
+                         ]
+
+letterP = parseCharacter [ "        "
+                         , "        "
+                         , "        "
+                         , "xxxxxxx "
+                         , "xxx   xx"
+                         , "xx    xx"
+                         , "xx    xx"
+                         , "xx    xx"
+                         , "xxx   xx"
+                         , "xxxxxxx "
+                         , "xx      "
+                         , "xx      "
+                         , "xx      "
                          ]
 
 letterR = parseCharacter [ ""
@@ -284,6 +398,18 @@ letterU = parseCharacter [ ""
                          , " xxxxxxx"
                          ]
 
+letterV = parseCharacter [ "        "
+                         , "        "
+                         , "        "
+                         , "xx    xx"
+                         , "xx    xx"
+                         , " xx  xx "
+                         , " xx  xx "
+                         , "  xxxx  "
+                         , "  xxxx  "
+                         , "   xx   "
+                         ]
+
 letterY = parseCharacter [ ""
                          , ""
                          , ""
@@ -308,22 +434,32 @@ characters = [ (digit0, '0')
              , (digit6, '6')
              , (digit8, '8')
              , (digit9, '9')
+             , (letterBigA, 'A')
+             , (letterBigD, 'D')
              , (letterBigF, 'F')
              , (letterBigJ, 'J')
              , (letterBigM, 'M')
+             , (letterBigN, 'N')
              , (letterBigS, 'S')
              , (letterBigT, 'T')
              , (letterBigW, 'W')
              , (letterA, 'a')
+             , (letterB, 'b')
              , (letterC, 'c')
              , (letterD, 'd')
              , (letterE, 'e')
+             , (letterG, 'g')
              , (letterH, 'h')
              , (letterI, 'i')
+             , (letterL, 'l')
+             , (letterM, 'm')
              , (letterN, 'n')
+             , (letterO, 'o')
+             , (letterP, 'p')
              , (letterR, 'r')
              , (letterS, 's')
              , (letterT, 't')
              , (letterU, 'u')
+             , (letterV, 'v')
              , (letterY, 'y')
              ]
