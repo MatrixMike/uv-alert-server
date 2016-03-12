@@ -20,6 +20,7 @@ library
                      , Fetcher
                      , Fetcher.Arpansa
                      , Fetcher.Arpansa.CharacterRecognizer
+                     , Fetcher.Arpansa.Characters
                      , Fetcher.Arpansa.Base
                      , Fetcher.Base
                      , Fetcher.BOM
@@ -47,6 +48,7 @@ library
                      , servant
                      , servant-client
                      , servant-server
+                     , split
                      , text
                      , time
                      , timezone-olson
