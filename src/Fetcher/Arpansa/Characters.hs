@@ -116,6 +116,18 @@ letterBigM = parseCharacter [ "xx    xx"
                             , "xx    xx"
                             ]
 
+letterBigS = parseCharacter [ " xxxxxx "
+                            , "xx    xx"
+                            , "xx      "
+                            , "xx      "
+                            , " xxxxxx "
+                            , "      xx"
+                            , "      xx"
+                            , "      xx"
+                            , "xx    xx"
+                            , " xxxxxx "
+                            ]
+
 letterBigT = parseCharacter [ "xxxxxxxx"
                             , "   xx   "
                             , "   xx   "
@@ -299,6 +311,7 @@ characters = [ (digit0, '0')
              , (letterBigF, 'F')
              , (letterBigJ, 'J')
              , (letterBigM, 'M')
+             , (letterBigS, 'S')
              , (letterBigT, 'T')
              , (letterBigW, 'W')
              , (letterA, 'a')

@@ -5,12 +5,15 @@ import Codec.Picture
 import Control.Lens
 
 import qualified Data.ByteString as BS
+import qualified Data.Map as M
+import qualified Data.Set as S
 import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.LocalTime
 
 import Fetcher.Arpansa
 import Fetcher.Arpansa.CharacterRecognizer
+import Fetcher.Arpansa.Characters
 import Types
 import Types.Location
 
@@ -102,6 +105,12 @@ spec = do
         it "recognizes the date string" $ do
             stringAt (176, 72) img_2016_01_20
                 `shouldBe` "Wednesday20thJanuary2016"
+
+    describe "characters" $ do
+        it "should have all the letters to recognize months" $ do
+            let known = S.fromList $ map snd characters
+            let needed = S.fromList $ concat $ M.keys months
+            S.difference needed known `shouldBe` S.empty
 
     describe "parseDate" $ do
         img_2016_03_08 <- loadImage perthMarch08Image
