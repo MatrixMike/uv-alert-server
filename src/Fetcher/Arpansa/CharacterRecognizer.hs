@@ -6,13 +6,18 @@ import Codec.Picture
 
 import Control.Monad
 
+import Data.Char
 import Data.Function
 import Data.List
 import Data.List.Split
+import qualified Data.Map as M
 import Data.Maybe
+import Data.Time.Calendar
+import Data.Tuple
 
 import Fetcher.Arpansa.Base
 import Fetcher.Arpansa.Characters
+import Utils
 
 isBackground :: PixelRGB8 -> Bool
 isBackground (PixelRGB8 r g b) = all (< 110) [r, g, b]
@@ -54,3 +59,39 @@ stringAt (left, top) dimg@(ImageRGB8 img) = catMaybes $ map (charAt dimg) charac
     where positions = [(x, top) | x <- [left..imageWidth img - 1]]
           hasCharacter = not . all isBackground . verticalCharLine dimg
           characterStarts = starts hasCharacter positions
+
+dateStringCoord :: ImageCoord
+dateStringCoord = (176, 72)
+
+months :: M.Map String Int
+months = M.fromList $ map swap $ zip [1..] [ "January"
+                                           , "February"
+                                           , "March"
+                                           , "April"
+                                           , "May"
+                                           , "June"
+                                           , "July"
+                                           , "August"
+                                           , "September"
+                                           , "October"
+                                           , "November"
+                                           , "December"
+                                           ]
+
+splitWhenChanges :: Eq b => (a -> b) -> [a] -> [[a]]
+splitWhenChanges _ [] = []
+splitWhenChanges fn (a:as) = (a:start):splitWhenChanges fn rest
+    where sameVal a' = fn a' == fn a
+          (start, rest) = break (not . sameVal) as
+
+-- Parse the date on the graph
+parseDate :: DynamicImage -> Either String Day
+parseDate img = do
+    let dateString = stringAt dateStringCoord img
+    [_, dayString, monthString, yearString] <- case splitWhenChanges isDigit dateString of
+                                                    res@[_, _, _, _] -> return res
+                                                    _ -> error $ "Invalid date parsed: " ++ dateString
+    day <- readEither "day" dayString
+    month <- maybeToEither "month" $ M.lookup (drop 2 monthString) months
+    year <- readEither "year" yearString
+    maybeToEither "invalid date" $ fromGregorianValid year month day

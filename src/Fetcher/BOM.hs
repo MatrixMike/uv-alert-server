@@ -26,10 +26,11 @@ import Network.FTP.Client
 import Network.URI
 
 import App
+import Fetcher.Base
 import Types
 import Types.Location
 import Types.Location.Australia
-import Fetcher.Base
+import Utils
 
 
 -- Data for today
@@ -103,8 +104,3 @@ stringPart start len = take len . drop start
 
 stringPartT :: Int -> Int -> String -> String
 stringPartT start len = trim . stringPart start len
-
-readEither :: Read a => e -> String -> Either e a
-readEither err str = case reads str of
-    [(res, "")] -> Right res
-    _ -> Left err

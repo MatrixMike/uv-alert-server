@@ -103,6 +103,12 @@ spec = do
             stringAt (176, 72) img_2016_01_20
                 `shouldBe` "Wednesday20thJanuary2016"
 
+    describe "parseDate" $ do
+        img_2016_03_08 <- loadImage perthMarch08Image
+        it "parses the date" $ do
+            let Just imgDate = fromGregorianValid 2016 03 08
+            parseDate img_2016_03_08 `shouldBe` Right imgDate
+
     describe "parseGraph" $ do
 
         let Just test_date = fromGregorianValid 2016 01 01

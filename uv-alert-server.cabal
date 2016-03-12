@@ -31,6 +31,7 @@ library
                      , Types
                      , Types.Location
                      , Types.Location.Australia
+                     , Utils
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , bytestring
