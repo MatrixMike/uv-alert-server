@@ -5,7 +5,6 @@
 module Types where
 
 import Control.Lens hiding ((.=))
-import Control.Lens.TH
 
 import Control.Monad
 
@@ -86,7 +85,7 @@ fcAge now fc = fromRational $ toRational $ diffUTCTime now $ fcStartTimeUtc fc
 isRecent :: UTCTime -> Forecast -> Bool
 isRecent now fc = fcAge now fc < (60 * 60 * 24)
 
-data AppKey = AppKey { key :: String }
+data AppKey = AppKey { akKey :: String }
 
 instance FromFormUrlEncoded AppKey where
     fromFormUrlEncoded = liftM (AppKey . T.unpack) . maybeToEither "key not found" . M.lookup "key" . M.fromList

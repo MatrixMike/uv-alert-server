@@ -6,30 +6,25 @@ Fetch UV forecast from Buerau of Meteorology.
 Unfortunately, this data is free for personal use but not for redistribution.
 -}
 
-import Control.Concurrent
-
 import Control.Exception.Lifted
 
 import Control.Monad
 import Control.Monad.IO.Class
-import Control.Monad.State
-import Control.Monad.Trans.Reader
 
 import Data.Either
-import qualified Data.Set as S
 import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.LocalTime
-import Data.Time.LocalTime.TimeZone.Series
 
 import Network.FTP.Client
 import Network.URI
 
 import App
+import Fetcher.Base
 import Types
 import Types.Location
 import Types.Location.Australia
-import Fetcher.Base
+import Utils
 
 
 -- Data for today
@@ -52,13 +47,14 @@ fetchLines :: MonadIO m => URI -> m String
 fetchLines uri = liftIO $ do
     let (Just host) = liftM uriRegName $ uriAuthority uri
     conn <- easyConnectFTP host
-    loginAnon conn
+    _ <- loginAnon conn
     (content, _) <- getbinary conn $ uriPath uri
     return content
 
 fetchTestContent :: MonadIO m => m String
 fetchTestContent = liftIO $ readFile "src/IDYGP007.txt"
 
+bomFetchers :: [Fetcher]
 bomFetchers = [ Fetcher "BOM today" (fetchBOM todayAddress)
               , Fetcher "BOM forecast" (fetchBOM forecastAddress)
               ]
@@ -90,8 +86,8 @@ parseForecast updated str = do
     date <- parseDate $ stringPart 38 10 str
     tStart <- parseTime $ stringPart 64 5 str
     tEnd <- parseTime $ stringPart 73 5 str
-    max <- liftM UVLevel $ readEither "UV level" $ stringPartT 84 3 str
-    return $ Forecast location date tStart tEnd max updated
+    maxLevel <- liftM UVLevel $ readEither "UV level" $ stringPartT 84 3 str
+    return $ Forecast location date tStart tEnd maxLevel updated
 
 trim :: String -> String
 trim = trimStart . trimEnd
@@ -103,8 +99,3 @@ stringPart start len = take len . drop start
 
 stringPartT :: Int -> Int -> String -> String
 stringPartT start len = trim . stringPart start len
-
-readEither :: Read a => e -> String -> Either e a
-readEither err str = case reads str of
-    [(res, "")] -> Right res
-    _ -> Left err

@@ -4,10 +4,8 @@ module Pusher where
 import Control.Lens
 
 import Control.Monad.Reader
-import Control.Monad.State
 import Control.Monad.Trans.Either
 
-import qualified Data.Aeson as A
 import Data.List.Utils
 import Data.Time.LocalTime
 
@@ -37,7 +35,7 @@ putForecastPin forecast = do
             Left err -> do
                 logStr $ "Error pushing forecast: " ++ show err
                 return ()
-            Right result' -> return ()
+            Right _ -> return ()
 
 forecastPin :: Forecast -> [Pin]
 forecastPin fc = [ Pin { pinId = pinId ++ "start"
@@ -87,6 +85,7 @@ forecastTopics :: Forecast -> Topics
 forecastTopics forecast = Topics [locTopic]
     where locTopic = replaceSpace $ forecast ^. fcLocation . locCity
 
+replaceSpace :: String -> String
 replaceSpace = replace " " "_"
 
 showTime :: TimeOfDay -> String

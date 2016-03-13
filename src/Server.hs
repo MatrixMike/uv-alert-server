@@ -2,8 +2,6 @@
 {-# Language TypeOperators #-}
 module Server where
 
-import Control.Concurrent.MVar
-
 import Control.Lens
 
 import Control.Monad.State

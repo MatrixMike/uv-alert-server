@@ -19,6 +19,9 @@ library
                      , App
                      , Fetcher
                      , Fetcher.Arpansa
+                     , Fetcher.Arpansa.CharacterRecognizer
+                     , Fetcher.Arpansa.Characters
+                     , Fetcher.Arpansa.Base
                      , Fetcher.Base
                      , Fetcher.BOM
                      , Pebble.Client
@@ -28,6 +31,7 @@ library
                      , Types
                      , Types.Location
                      , Types.Location.Australia
+                     , Utils
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , bytestring
@@ -45,6 +49,7 @@ library
                      , servant
                      , servant-client
                      , servant-server
+                     , split
                      , text
                      , time
                      , timezone-olson
