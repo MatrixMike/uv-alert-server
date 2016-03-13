@@ -15,5 +15,5 @@ main = do
     hSetBuffering stdout LineBuffering
     config <- initConfig
     let theApp = app config
-    forkIO $ runFetcher config
+    _ <- forkIO $ runFetcher config
     run (coListenPort config) theApp

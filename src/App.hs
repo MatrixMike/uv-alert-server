@@ -4,22 +4,17 @@ module App where
 import Control.Concurrent.MVar
 
 import Control.Lens
-import Control.Lens.TH
 
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.State
-import Control.Monad.Trans.Either
 import Control.Monad.Trans.Reader
 
 import Data.Maybe
 import qualified Data.Set as S
 
-import Servant
-
 import System.Environment
 
-import API
 import Types
 
 import Pebble.Types

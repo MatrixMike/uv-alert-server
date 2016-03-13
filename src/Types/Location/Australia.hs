@@ -15,6 +15,7 @@ auStateTZ "Western Australia" = $(loadTZFile "/usr/share/zoneinfo/Australia/West
 auStateTZ "Victoria" = $(loadTZFile "/usr/share/zoneinfo/Australia/Victoria")
 auStateTZ "Tasmania" = $(loadTZFile "/usr/share/zoneinfo/Australia/Tasmania")
 auStateTZ "Australian Capital Territory" = $(loadTZFile "/usr/share/zoneinfo/Australia/Canberra")
+auStateTZ _ = error "Invalid state"
 
 -- State which an Australian city is in
 auCityState :: String -> String

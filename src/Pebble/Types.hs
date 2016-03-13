@@ -7,7 +7,6 @@ import Control.Monad
 import Data.Aeson
 import Data.Aeson.Types
 import Data.List
-import Data.Maybe
 import Data.Time.Clock
 import qualified Data.Text as T
 import qualified Data.Vector as V
@@ -110,11 +109,11 @@ instance ToJSON Color where
 
 -- TODO: this must be already defined somewhere
 hexColor :: Color -> String
-hexColor (Color c) = '#':hexStr c
+hexColor (Color clr) = '#':hexStr clr
     where hexStr c | c < 16 = [hexChr c]
                    | otherwise = hexStr (c `div` 16) ++ [hexChr (c `mod` 16)]
           hexChr :: Int -> Char
-          hexChr c = "0123456789abcdef" !! c
+          hexChr i = "0123456789abcdef" !! i
 
 data Paragraph = Paragraph { paragraphHeading :: String
                            , paragraphText :: String

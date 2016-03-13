@@ -12,13 +12,10 @@ import Control.Monad.IO.Class
 
 import qualified Data.ByteString as BS
 import Data.Maybe
-import Data.String
-import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.LocalTime
 
 import Network.HTTP.Client
-import Network.URI
 
 import App
 import Fetcher.Base
@@ -93,10 +90,10 @@ parseGraph loc image updated = do
     let alertTimes = map fst $ filter ((>= alertLevel) . snd) graph
     astart <- maybeMinimum alertTimes
     aend <- maybeMaximum alertTimes
-    fcDate <- eitherToMaybe $ parseDate image
+    date <- eitherToMaybe $ parseDate image
     let mlevel = maximum $ map snd graph
     return Forecast { _fcLocation = loc
-                    , _fcDate = fcDate
+                    , _fcDate = date
                     , _fcAlertStart = astart
                     , _fcAlertEnd = aend
                     , _fcMaxLevel = mlevel
@@ -136,7 +133,9 @@ extrapolate :: Fractional a => (a, a) -> (a, a) -> a -> a
 extrapolate (a1, b1) (a2, b2) a = b1 + (b2 - b1) * (a - a1) / (a2 - a1)
 
 graphLevel :: Int -> UVLevel
-graphLevel = UVLevel . round . extrapolate (438, 0) (106, 16) . realToFrac
+graphLevel = UVLevel . round . extrapolateLevel . realToFrac
+    where extrapolateLevel :: Double -> Double
+          extrapolateLevel = extrapolate (438, 0) (106, 16)
 
 graphTimeOfDay :: Int -> TimeOfDay
 graphTimeOfDay = floatToTod . extrapolate (83, t6) (723, t20) . realToFrac

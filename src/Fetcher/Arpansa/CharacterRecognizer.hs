@@ -4,8 +4,6 @@ module Fetcher.Arpansa.CharacterRecognizer where
 
 import Codec.Picture
 
-import Control.Monad
-
 import Data.Char
 import Data.Function
 import Data.List

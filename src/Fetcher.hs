@@ -2,24 +2,17 @@ module Fetcher where
 
 import Control.Concurrent
 
-import Control.Exception.Lifted
-
 import Control.Lens
 
 import Control.Monad
 import Control.Monad.IO.Class
-import Control.Monad.State
 import Control.Monad.Trans.Reader
 
-import Data.Either
 import Data.List
 import qualified Data.Set as S
 import Data.Time.Clock
 
 import GHC.Exts (groupWith)
-
-import Network.FTP.Client
-import Network.URI
 
 import App
 import Fetcher.Arpansa

@@ -2,11 +2,8 @@ module Fetcher.Base where
 
 {- Base functions for all the UV level sources -}
 
-import Network.URI
-
 import App
 import Types
-import Types.Location
 
 
 data Fetcher = Fetcher { fName :: String

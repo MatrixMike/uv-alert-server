@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# Language DataKinds #-}
 {-# Language FlexibleContexts #-}
 {-# Language FlexibleInstances #-}
@@ -12,7 +13,6 @@ import Data.Text
 import Pebble.Types
 
 import Servant
-import Servant.API.Alternative
 import Servant.Client
 
 
@@ -38,23 +38,23 @@ baseUrl = BaseUrl Https "timeline-api.getpebble.com" 443
 userClient :<|> sharedClient = client api baseUrl
 
 putUserPin :: Maybe UserToken -> String -> Pin -> EitherT ServantError IO Text
-putUserPin token pinId = putPin
+putUserPin token id_ = putPin
     where userPinClient :<|> _ = userClient token
-          putPin :<|> _ = userPinClient pinId
+          putPin :<|> _ = userPinClient id_
 
 deleteUserPin :: Maybe UserToken -> String -> EitherT ServantError IO Text
-deleteUserPin token pinId = deletePin
+deleteUserPin token id_ = deletePin
     where userPinClient :<|> _ = userClient token
-          _ :<|> deletePin = userPinClient pinId
+          _ :<|> deletePin = userPinClient id_
 
 getUserSubscriptions :: Maybe UserToken -> EitherT ServantError IO Topics
 getUserSubscriptions token = getSubscriptions
     where _ :<|> getSubscriptions = userClient token
 
 putSharedPin :: Maybe APIKey -> Maybe Topics -> String -> Pin -> EitherT ServantError IO Text
-putSharedPin key topics pinId = putPin
-    where putPin :<|> _ = sharedClient key topics pinId
+putSharedPin key topics id_ = putPin
+    where putPin :<|> _ = sharedClient key topics id_
 
 deleteSharedPin :: Maybe APIKey -> Maybe Topics -> String -> EitherT ServantError IO Text
-deleteSharedPin key topics pinId = deletePin
-    where _ :<|> deletePin = sharedClient key topics pinId
+deleteSharedPin key topics id_ = deletePin
+    where _ :<|> deletePin = sharedClient key topics id_

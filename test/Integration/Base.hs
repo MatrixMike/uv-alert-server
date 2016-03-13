@@ -2,12 +2,9 @@ module Integration.Base where
 
 import Control.Monad.Reader
 
-import Data.Aeson
-
 import System.Environment
 
 import App
-import Server
 
 testConfig :: IO Config
 testConfig = do

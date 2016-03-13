@@ -19,6 +19,7 @@ digit0 = parseCharacter [ "  xxxx  "
                         , "  xxxx  "
                         ]
 
+digit1 :: CharacterMatrix
 digit1 = parseCharacter [ "  xx  "
                         , " xxx  "
                         , "xxxx  "
@@ -31,6 +32,7 @@ digit1 = parseCharacter [ "  xx  "
                         , "xxxxxx"
                         ]
 
+digit2 :: CharacterMatrix
 digit2 = parseCharacter [ " xxxxxx "
                         , "xx    xx"
                         , "xx    xx"
@@ -43,6 +45,7 @@ digit2 = parseCharacter [ " xxxxxx "
                         , "xxxxxxxx"
                         ]
 
+digit3 :: CharacterMatrix
 digit3 = parseCharacter [ "xxxxxxxx"
                         , "      xx"
                         , "     xx "
@@ -55,6 +58,7 @@ digit3 = parseCharacter [ "xxxxxxxx"
                         , " xxxxxx "
                         ]
 
+digit4 :: CharacterMatrix
 digit4 = parseCharacter [ "     xx "
                         , "    xxx "
                         , "   xxxx "
@@ -67,6 +71,7 @@ digit4 = parseCharacter [ "     xx "
                         , "     xx "
                         ]
 
+digit5 :: CharacterMatrix
 digit5 = parseCharacter [ "xxxxxxxx"
                         , "xx      "
                         , "xx      "
@@ -79,6 +84,7 @@ digit5 = parseCharacter [ "xxxxxxxx"
                         , " xxxxxx "
                         ]
 
+digit6 :: CharacterMatrix
 digit6 = parseCharacter [ "  xxxxx "
                         , " xx     "
                         , "xx      "
@@ -91,6 +97,7 @@ digit6 = parseCharacter [ "  xxxxx "
                         , " xxxxxx "
                         ]
 
+digit7 :: CharacterMatrix
 digit7 = parseCharacter [ "xxxxxxxx"
                         , "      xx"
                         , "      xx"
@@ -103,6 +110,7 @@ digit7 = parseCharacter [ "xxxxxxxx"
                         , " xx     "
                         ]
 
+digit8 :: CharacterMatrix
 digit8 = parseCharacter [ " xxxxxx "
                         , "xx    xx"
                         , "xx    xx"
@@ -115,6 +123,7 @@ digit8 = parseCharacter [ " xxxxxx "
                         , " xxxxxx "
                         ]
 
+digit9 :: CharacterMatrix
 digit9 = parseCharacter [ " xxxxxx "
                         , "xx    xx"
                         , "xx    xx"
@@ -127,6 +136,7 @@ digit9 = parseCharacter [ " xxxxxx "
                         , " xxxxx  "
                         ]
 
+letterBigA :: CharacterMatrix
 letterBigA = parseCharacter [ "   xx   "
                             , "  xxxx  "
                             , " xx  xx "
@@ -139,6 +149,7 @@ letterBigA = parseCharacter [ "   xx   "
                             , "xx    xx"
                             ]
 
+letterBigD :: CharacterMatrix
 letterBigD = parseCharacter [ "xxxxxxx "
                             , " xx   xx"
                             , " xx   xx"
@@ -151,6 +162,7 @@ letterBigD = parseCharacter [ "xxxxxxx "
                             , "xxxxxxx "
                             ]
 
+letterBigF :: CharacterMatrix
 letterBigF = parseCharacter [ "xxxxxxxx"
                             , " xx     "
                             , " xx     "
@@ -164,6 +176,7 @@ letterBigF = parseCharacter [ "xxxxxxxx"
                             ]
 
 
+letterBigJ :: CharacterMatrix
 letterBigJ = parseCharacter [ "   xxxxx"
                             , "     xx "
                             , "     xx "
@@ -176,6 +189,7 @@ letterBigJ = parseCharacter [ "   xxxxx"
                             , " xxxxx  "
                             ]
 
+letterBigM :: CharacterMatrix
 letterBigM = parseCharacter [ "xx    xx"
                             , "xx    xx"
                             , "xxx  xxx"
@@ -188,6 +202,7 @@ letterBigM = parseCharacter [ "xx    xx"
                             , "xx    xx"
                             ]
 
+letterBigN :: CharacterMatrix
 letterBigN = parseCharacter [ "xx    xx"
                             , "xx    xx"
                             , "xxx   xx"
@@ -200,6 +215,7 @@ letterBigN = parseCharacter [ "xx    xx"
                             , "xx    xx"
                             ]
 
+letterBigO :: CharacterMatrix
 letterBigO = parseCharacter [ " xxxxxx "
                             , "xx    xx"
                             , "xx    xx"
@@ -212,6 +228,7 @@ letterBigO = parseCharacter [ " xxxxxx "
                             , " xxxxxx "
                             ]
 
+letterBigS :: CharacterMatrix
 letterBigS = parseCharacter [ " xxxxxx "
                             , "xx    xx"
                             , "xx      "
@@ -224,6 +241,7 @@ letterBigS = parseCharacter [ " xxxxxx "
                             , " xxxxxx "
                             ]
 
+letterBigT :: CharacterMatrix
 letterBigT = parseCharacter [ "xxxxxxxx"
                             , "   xx   "
                             , "   xx   "
@@ -236,6 +254,7 @@ letterBigT = parseCharacter [ "xxxxxxxx"
                             , "   xx   "
                             ]
 
+letterBigW :: CharacterMatrix
 letterBigW = parseCharacter [ "xx    xx"
                             , "xx    xx"
                             , "xx    xx"
@@ -248,6 +267,7 @@ letterBigW = parseCharacter [ "xx    xx"
                             , " xx  xx "
                             ]
 
+letterA :: CharacterMatrix
 letterA = parseCharacter [ ""
                          , ""
                          , ""
@@ -260,6 +280,7 @@ letterA = parseCharacter [ ""
                          , " xxxxxxx"
                          ]
 
+letterB :: CharacterMatrix
 letterB = parseCharacter [ "xx      "
                          , "xx      "
                          , "xx      "
@@ -272,6 +293,7 @@ letterB = parseCharacter [ "xx      "
                          , "xxxxxxx "
                          ]
 
+letterC :: CharacterMatrix
 letterC = parseCharacter [ ""
                          , ""
                          , ""
@@ -284,6 +306,7 @@ letterC = parseCharacter [ ""
                          , " xxxxxx "
                          ]
 
+letterD :: CharacterMatrix
 letterD = parseCharacter [ "      xx"
                          , "      xx"
                          , "      xx"
@@ -296,6 +319,7 @@ letterD = parseCharacter [ "      xx"
                          , " xxxxxxx"
                          ]
 
+letterE :: CharacterMatrix
 letterE = parseCharacter [ ""
                          , ""
                          , ""
@@ -308,6 +332,7 @@ letterE = parseCharacter [ ""
                          , " xxxxxx "
                          ]
 
+letterG :: CharacterMatrix
 letterG = parseCharacter [ "        "
                          , "        "
                          , "        "
@@ -323,6 +348,7 @@ letterG = parseCharacter [ "        "
                          , " xxxxxx "
                          ]
 
+letterH :: CharacterMatrix
 letterH = parseCharacter [ "xx      "
                          , "xx      "
                          , "xx      "
@@ -335,6 +361,7 @@ letterH = parseCharacter [ "xx      "
                          , "xx    xx"
                          ]
 
+letterI :: CharacterMatrix
 letterI = parseCharacter [ ""
                          , "  xx    "
                          , "        "
@@ -347,6 +374,7 @@ letterI = parseCharacter [ ""
                          , "xxxxxx  "
                          ]
 
+letterL :: CharacterMatrix
 letterL = parseCharacter [ " xxx    "
                          , "  xx    "
                          , "  xx    "
@@ -359,6 +387,7 @@ letterL = parseCharacter [ " xxx    "
                          , "xxxxxx  "
                          ]
 
+letterM :: CharacterMatrix
 letterM = parseCharacter [ "        "
                          , "        "
                          , "        "
@@ -371,6 +400,7 @@ letterM = parseCharacter [ "        "
                          , "xx    xx"
                          ]
 
+letterN :: CharacterMatrix
 letterN = parseCharacter [ ""
                          , ""
                          , ""
@@ -383,6 +413,7 @@ letterN = parseCharacter [ ""
                          , "xx    xx"
                          ]
 
+letterO :: CharacterMatrix
 letterO = parseCharacter [ "        "
                          , "        "
                          , "        "
@@ -395,6 +426,7 @@ letterO = parseCharacter [ "        "
                          , " xxxxxx "
                          ]
 
+letterP :: CharacterMatrix
 letterP = parseCharacter [ "        "
                          , "        "
                          , "        "
@@ -410,6 +442,7 @@ letterP = parseCharacter [ "        "
                          , "xx      "
                          ]
 
+letterR :: CharacterMatrix
 letterR = parseCharacter [ ""
                          , ""
                          , ""
@@ -422,6 +455,7 @@ letterR = parseCharacter [ ""
                          , " xx     "
                          ]
 
+letterS :: CharacterMatrix
 letterS = parseCharacter [ ""
                          , ""
                          , ""
@@ -434,6 +468,7 @@ letterS = parseCharacter [ ""
                          , " xxxxxx "
                          ]
 
+letterT :: CharacterMatrix
 letterT = parseCharacter [ ""
                          , "  xx    "
                          , "  xx    "
@@ -446,6 +481,7 @@ letterT = parseCharacter [ ""
                          , "   xxxx "
                          ]
 
+letterU :: CharacterMatrix
 letterU = parseCharacter [ ""
                          , ""
                          , ""
@@ -458,6 +494,7 @@ letterU = parseCharacter [ ""
                          , " xxxxxxx"
                          ]
 
+letterV :: CharacterMatrix
 letterV = parseCharacter [ "        "
                          , "        "
                          , "        "
@@ -470,6 +507,7 @@ letterV = parseCharacter [ "        "
                          , "   xx   "
                          ]
 
+letterY :: CharacterMatrix
 letterY = parseCharacter [ ""
                          , ""
                          , ""
@@ -484,7 +522,6 @@ letterY = parseCharacter [ ""
                          , "xx   xx "
                          , " xxxxx  "
                          ]
-
 
 -- All known characters
 characters :: [(CharacterMatrix, Char)]

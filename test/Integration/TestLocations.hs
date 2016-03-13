@@ -3,16 +3,10 @@
 module Integration.TestLocations where
 
 import Control.Lens
-import Control.Monad.IO.Class
 
-import qualified Data.Aeson as A
 import Data.Maybe
-import qualified Data.Text as T
 import Data.Time.Calendar
-import Data.Time.Clock
-import Data.Time.LocalTime
 import qualified Data.Set as S
-import qualified Data.Vector as V
 
 import App
 import Server

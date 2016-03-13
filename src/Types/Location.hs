@@ -4,9 +4,6 @@
 module Types.Location where
 
 import Control.Lens hiding ((.=))
-import Control.Lens.TH
-
-import Control.Monad
 
 import Data.Aeson
 import qualified Data.Text as T
