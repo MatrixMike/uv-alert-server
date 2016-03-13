@@ -43,6 +43,42 @@ digit2 = parseCharacter [ " xxxxxx "
                         , "xxxxxxxx"
                         ]
 
+digit3 = parseCharacter [ "xxxxxxxx"
+                        , "      xx"
+                        , "     xx "
+                        , "    xx  "
+                        , "   xxxx "
+                        , "      xx"
+                        , "      xx"
+                        , "      xx"
+                        , "xx    xx"
+                        , " xxxxxx "
+                        ]
+
+digit4 = parseCharacter [ "     xx "
+                        , "    xxx "
+                        , "   xxxx "
+                        , "  xx xx "
+                        , " xx  xx "
+                        , "xx   xx "
+                        , "xxxxxxxx"
+                        , "     xx "
+                        , "     xx "
+                        , "     xx "
+                        ]
+
+digit5 = parseCharacter [ "xxxxxxxx"
+                        , "xx      "
+                        , "xx      "
+                        , "xxxxxxx "
+                        , "xxx   xx"
+                        , "      xx"
+                        , "      xx"
+                        , "      xx"
+                        , "xx    xx"
+                        , " xxxxxx "
+                        ]
+
 digit6 = parseCharacter [ "  xxxxx "
                         , " xx     "
                         , "xx      "
@@ -53,6 +89,18 @@ digit6 = parseCharacter [ "  xxxxx "
                         , "xx    xx"
                         , "xx    xx"
                         , " xxxxxx "
+                        ]
+
+digit7 = parseCharacter [ "xxxxxxxx"
+                        , "      xx"
+                        , "      xx"
+                        , "     xx "
+                        , "    xx  "
+                        , "   xx   "
+                        , "  xx    "
+                        , "  xx    "
+                        , " xx     "
+                        , " xx     "
                         ]
 
 digit8 = parseCharacter [ " xxxxxx "
@@ -431,7 +479,11 @@ characters :: [(CharacterMatrix, Char)]
 characters = [ (digit0, '0')
              , (digit1, '1')
              , (digit2, '2')
+             , (digit3, '3')
+             , (digit4, '4')
+             , (digit5, '5')
              , (digit6, '6')
+             , (digit7, '7')
              , (digit8, '8')
              , (digit9, '9')
              , (letterBigA, 'A')

@@ -107,10 +107,13 @@ spec = do
                 `shouldBe` "Wednesday20thJanuary2016"
 
     describe "characters" $ do
+        let known = S.fromList $ map snd characters
         it "should have all the letters to recognize months" $ do
-            let known = S.fromList $ map snd characters
             let needed = S.fromList $ concat $ M.keys months
             S.difference needed known `shouldBe` S.empty
+        it "should have all the digits" $ do
+            let digits = S.fromList $ ['0'..'9']
+            S.difference digits known `shouldBe` S.empty
 
     describe "parseDate" $ do
         img_2016_03_08 <- loadImage perthMarch08Image
