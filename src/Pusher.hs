@@ -6,6 +6,7 @@ import Control.Lens
 import Control.Monad.Reader
 import Control.Monad.Trans.Either
 
+import Data.List
 import Data.List.Utils
 import Data.Time.LocalTime
 
@@ -81,9 +82,20 @@ forecastPin fc = [ Pin { pinId = pinId ++ "start"
                                }
         pinId = replaceSpace $ fc ^. fcLocation . locCity ++ show (fc ^. fcDate)
 
+-- Initially the application only supported Australia, so city in the topic was
+-- sufficient. Have to maintain for backwards compatibility
 forecastTopics :: Forecast -> Topics
-forecastTopics forecast = Topics [locTopic]
-    where locTopic = replaceSpace $ forecast ^. fcLocation . locCity
+forecastTopics forecast = Topics $ [locTopic] ++ [legacyTopic | country == "Australia"]
+    where legacyTopic = replaceSpace city
+          locTopic = replaceSpace $ intercalate "-" [ "v2"
+                                                    , country
+                                                    , region
+                                                    , city
+                                                    ]
+          loc = forecast ^. fcLocation
+          country = loc ^. locCountry
+          region = loc ^. locRegion
+          city = loc ^. locCity
 
 replaceSpace :: String -> String
 replaceSpace = replace " " "_"
