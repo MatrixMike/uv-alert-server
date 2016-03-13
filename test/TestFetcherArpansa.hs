@@ -131,12 +131,12 @@ spec = do
             between low high value = value > low && value < high
 
         context "for a morning image" $ do
-            let Just day = fromGregorianValid 2016 1 19
             img <- loadImage morningImage
-            let (Just fc) = parseGraph melbourne day img testTime
+            let (Just fc) = parseGraph melbourne img testTime
             it "stores the city" $
                 fc ^. fcLocation . locCity `shouldBe` "Melbourne"
-            it "stores the day" $
+            it "stores the day" $ do
+                let Just day = fromGregorianValid 2016 1 19
                 fc ^. fcDate `shouldBe` day
             it "calculates the maximum level" $ do
                 fc ^. fcMaxLevel `shouldBe` UVLevel 10
@@ -151,12 +151,12 @@ spec = do
             -- This image has the real data overlaid on the forecast
             -- The real UV index was low in the morning, so the alert should be
             -- adjusted
-            let Just day = fromGregorianValid 2016 1 20
             img <- loadImage eveningImage
-            let (Just fc) = parseGraph melbourne day img testTime
+            let (Just fc) = parseGraph melbourne img testTime
             it "stores the city" $
                 fc ^. fcLocation . locCity `shouldBe` "Melbourne"
-            it "stores the day" $
+            it "stores the day" $ do
+                let Just day = fromGregorianValid 2016 1 20
                 fc ^. fcDate `shouldBe` day
             it "calculates the maximum level" $ do
                 fc ^. fcMaxLevel `shouldBe` UVLevel 12
@@ -172,4 +172,4 @@ spec = do
             img <- loadImage quietImage
             let Just day = fromGregorianValid 2016 1 20
             it "does not have an alert forecast" $ do
-                parseGraph melbourne day img testTime `shouldBe` Nothing
+                parseGraph melbourne img testTime `shouldBe` Nothing

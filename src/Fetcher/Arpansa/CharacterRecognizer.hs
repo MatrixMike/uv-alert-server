@@ -20,7 +20,7 @@ import Fetcher.Arpansa.Characters
 import Utils
 
 isBackground :: PixelRGB8 -> Bool
-isBackground (PixelRGB8 r g b) = all (< 110) [r, g, b]
+isBackground (PixelRGB8 r g b) = maximum [r, g, b] < 240
 
 verticalCharLine :: DynamicImage -> ImageCoord -> [PixelRGB8]
 verticalCharLine (ImageRGB8 img) (left, top) = [pixelAt img left y | y <- [top..bottom]]

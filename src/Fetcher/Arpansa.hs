@@ -16,7 +16,6 @@ import Data.String
 import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.LocalTime
-import Data.Time.LocalTime.TimeZone.Series
 
 import Network.HTTP.Client
 import Network.URI
@@ -24,8 +23,10 @@ import Network.URI
 import App
 import Fetcher.Base
 import Fetcher.Arpansa.Base
+import Fetcher.Arpansa.CharacterRecognizer
 import Types
 import Types.Location
+import Utils
 
 
 arpansaFetcher :: Fetcher
@@ -55,19 +56,11 @@ addresses = map makeLocation [ (sa, "Adelaide", "adl")
           vic = "Victoria"
           wa = "Western Australia"
 
-dateIn :: Location -> IO Day
-dateIn loc = do
-    utcTime <- getCurrentTime
-    let tz = locTZ loc
-    let cityTime = utcToLocalTime (timeZoneFromSeries tz utcTime) utcTime
-    return $ localDay cityTime
-
 fetchArpansa :: AppM [Forecast]
 fetchArpansa = do
     manager <- liftIO $ newManager defaultManagerSettings
     liftM concat $ forM addresses $ \(loc, address) -> do
         logStr $ "Fetching graph for " ++ loc ^. locCity ++ "..."
-        today <- liftIO $ dateIn loc
         handle (logError address) $ do
             graphBytes <- fetchGraph manager address
             case decodeImage graphBytes of
@@ -76,7 +69,7 @@ fetchArpansa = do
                     return []
                 Right graphImage -> do
                     time <- liftIO getCurrentTime
-                    let forecast = parseGraph loc today graphImage time
+                    let forecast = parseGraph loc graphImage time
                     return $ maybeToList forecast
 
 fetchGraph :: Manager -> String -> AppM BS.ByteString
@@ -93,17 +86,17 @@ maybeMaximum :: Ord a => [a] -> Maybe a
 maybeMaximum [] = Nothing
 maybeMaximum xs = Just $ maximum xs
 
-parseGraph :: Location -> Day -> DynamicImage -> UTCTime -> Maybe Forecast
-parseGraph loc day image updated = do
+parseGraph :: Location -> DynamicImage -> UTCTime -> Maybe Forecast
+parseGraph loc image updated = do
     let uvLine = selectBestLine image
     let graph = map graphCoordinates uvLine
     let alertTimes = map fst $ filter ((>= alertLevel) . snd) graph
     astart <- maybeMinimum alertTimes
     aend <- maybeMaximum alertTimes
+    fcDate <- eitherToMaybe $ parseDate image
     let mlevel = maximum $ map snd graph
     return Forecast { _fcLocation = loc
-                    -- TODO Can read this from the image
-                    , _fcDate = day
+                    , _fcDate = fcDate
                     , _fcAlertStart = astart
                     , _fcAlertEnd = aend
                     , _fcMaxLevel = mlevel
