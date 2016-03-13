@@ -200,6 +200,18 @@ letterBigN = parseCharacter [ "xx    xx"
                             , "xx    xx"
                             ]
 
+letterBigO = parseCharacter [ " xxxxxx "
+                            , "xx    xx"
+                            , "xx    xx"
+                            , "xx    xx"
+                            , "xx    xx"
+                            , "xx    xx"
+                            , "xx    xx"
+                            , "xx    xx"
+                            , "xx    xx"
+                            , " xxxxxx "
+                            ]
+
 letterBigS = parseCharacter [ " xxxxxx "
                             , "xx    xx"
                             , "xx      "
@@ -492,6 +504,7 @@ characters = [ (digit0, '0')
              , (letterBigJ, 'J')
              , (letterBigM, 'M')
              , (letterBigN, 'N')
+             , (letterBigO, 'O')
              , (letterBigS, 'S')
              , (letterBigT, 'T')
              , (letterBigW, 'W')
