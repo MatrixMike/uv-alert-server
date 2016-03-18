@@ -61,15 +61,6 @@ spec = do
             it "selects the forecast line" $ do
                 graphLine `shouldSatisfy` (elem (124, 435))
 
-    describe "extrapolate" $ do
-        let extrapolateExample = extrapolate (0, 10) (1, 20)
-        it "works at the left point" $ do
-            extrapolateExample 0 `shouldBe` 10
-        it "works at the right point" $ do
-            extrapolateExample 1 `shouldBe` 20
-        it "works at a different point" $ do
-            extrapolateExample 2 `shouldBe` 30
-
     describe "graphLevel" $ do
         it "works for level 10" $ do
             graphLevel 231 `shouldBe` UVLevel 10

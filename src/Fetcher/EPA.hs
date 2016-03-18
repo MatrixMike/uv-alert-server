@@ -4,6 +4,7 @@ module Fetcher.EPA where
 {- Fetch USA data from EPA API. -}
 
 import Control.Exception.Lifted
+import Control.Lens
 import Control.Monad
 import Control.Monad.IO.Class
 
@@ -25,6 +26,7 @@ import Fetcher.HTTP
 import Types
 import Types.Location
 import Types.Location.USA
+import Utils
 
 
 epaFetcher :: Fetcher
@@ -86,8 +88,22 @@ buildForecast city state items@(firstItem:_) updated = do
 addHours :: Float -> UTCTime -> UTCTime
 addHours hours = addUTCTime $ fromRational $ toRational $ hours * 60 * 60
 
+maybeSplitHead :: [a] -> Maybe (a, [a])
+maybeSplitHead [] = Nothing
+maybeSplitHead (a:as) = Just (a, as)
+
 firstAlertTime :: [UVLevel] -> Maybe Float
-firstAlertTime = undefined
+firstAlertTime ls = do
+        (l1, ls') <- maybeSplitHead ls
+        if l1 >= alertLevel then return 0 else do
+            (l2, _) <- maybeSplitHead ls'
+            if l2 >= alertLevel then return $ extrapolateUV l1 l2 alertLevel
+                                else do
+                                    alertTime <- firstAlertTime ls'
+                                    return $ alertTime + 1
+    where extrapolateUV :: UVLevel -> UVLevel -> UVLevel -> Float
+          extrapolateUV v1 v2 v = extrapolate (uvToFloat v1, 0) (uvToFloat v2, 1) (uvToFloat v)
+          uvToFloat v = v ^. uvValue . to toInteger . to fromInteger
 
 lastAlertTime :: [UVLevel] -> Maybe Float
 lastAlertTime = undefined
