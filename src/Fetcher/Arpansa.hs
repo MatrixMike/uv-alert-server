@@ -18,9 +18,10 @@ import Data.Time.LocalTime
 import Network.HTTP.Client
 
 import App
-import Fetcher.Base
 import Fetcher.Arpansa.Base
 import Fetcher.Arpansa.CharacterRecognizer
+import Fetcher.Base
+import Fetcher.HTTP
 import Types
 import Types.Location
 import Utils
@@ -59,7 +60,7 @@ fetchArpansa = do
     liftM concat $ forM addresses $ \(loc, address) -> do
         logStr $ "Fetching graph for " ++ loc ^. locCity ++ "..."
         handle (logError address) $ do
-            graphBytes <- fetchGraph manager address
+            graphBytes <- fetchHTTP manager address
             case decodeImage graphBytes of
                 Left err -> do
                     logStr err
@@ -68,12 +69,6 @@ fetchArpansa = do
                     time <- liftIO getCurrentTime
                     let forecast = parseGraph loc graphImage time
                     return $ maybeToList forecast
-
-fetchGraph :: Manager -> String -> AppM BS.ByteString
-fetchGraph manager address = do
-    request <- parseUrl address
-    chunks <- liftIO $ withResponse request manager (brConsume . responseBody)
-    return $ BS.concat chunks
 
 maybeMinimum :: Ord a => [a] -> Maybe a
 maybeMinimum [] = Nothing

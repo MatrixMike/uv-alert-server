@@ -1,6 +1,6 @@
 module Fetcher.EPA.Cities (
     usCities,
-    usStateAbbreviations,
+    usStateAbbreviation,
 ) where
 
 import qualified Data.Map as M
@@ -268,3 +268,7 @@ usStateAbbreviations = M.fromList [ ("Alabama", "AL")
                                   , ("Puerto Rico", "PR")
                                   , ("Virgin Islands", "VI")
                                   ]
+
+usStateAbbreviation state = case M.lookup state usStateAbbreviations of
+                              Just abbr -> abbr
+                              Nothing -> error $ "Invalid state " ++ state
