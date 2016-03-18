@@ -47,5 +47,5 @@ instance ToJSON Location where
 -- FIXME: disallow creating locations if the time zone is unknown
 locTZ :: Location -> TimeZoneSeries
 locTZ (Location "Australia" state _) = auStateTZ state
-locTZ loc@(Location "USA" city state) = usTZ city state
+locTZ loc@(Location "USA" state city) = usTZ city state
 locTZ loc = error $ "Unknown time zone for location " ++ show loc

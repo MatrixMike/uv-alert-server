@@ -44,6 +44,7 @@ library
                      , ftphs
                      , JuicyPixels
                      , http-client
+                     , http-client-tls
                      , lens
                      , lifted-base
                      , MissingH

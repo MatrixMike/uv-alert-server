@@ -18,6 +18,7 @@ import Data.Time.LocalTime
 import Data.Time.LocalTime.TimeZone.Series
 
 import Network.HTTP.Client
+import Network.HTTP.Client.TLS
 
 import App
 import Fetcher.Base
@@ -34,7 +35,7 @@ epaFetcher = Fetcher "EPA" fetchEpa
 
 fetchEpa :: AppM [Forecast]
 fetchEpa = do
-    manager <- liftIO $ newManager defaultManagerSettings
+    manager <- liftIO $ newManager tlsManagerSettings
     liftM concat $ forM usCities $ \(city, state) -> do
         logStr $ "Fetching graph for " ++ city ++ ", " ++ state ++ "..."
         let address = forecastAddress city state
@@ -77,7 +78,7 @@ buildForecast city state items@(firstItem:_) updated = do
     let firstTime = fiDateTime city state firstItem
     astart <- liftM (flip addHours firstTime) (firstAlertTime levels)
     aend <- liftM (flip addHours firstTime) (lastAlertTime levels)
-    return Forecast { _fcLocation = Location "USA" city state
+    return Forecast { _fcLocation = Location "USA" state city
                     , _fcDate = utctDay astart
                     , _fcAlertStart = localDayTime astart
                     , _fcAlertEnd = localDayTime aend
