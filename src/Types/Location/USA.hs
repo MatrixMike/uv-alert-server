@@ -156,7 +156,6 @@ usTZ "Oceanside" "California" = pacific
 usTZ "Plano" "Texas" = central
 usTZ "New Haven" "Connecticut" = eastern
 usTZ "Rochester" "New York" = eastern
-usTZ "Naperville" "Illinois" = central
 usTZ "Mesquite" "Texas" = central
 usTZ "Shreveport" "Louisiana" = central
 usTZ "Springfield" "Massachusetts" = eastern
