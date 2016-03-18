@@ -73,7 +73,7 @@ buildForecast city state items@(firstItem:_) updated = do
     let localDayTime = localTimeOfDay . utcToLocalTime' tz
     let levels = map fiLevel items
     let maxlevel = maximum levels
-    guard (maxlevel >= alertLevel)
+    guard $ isDangerous maxlevel
     let firstTime = fiDateTime city state firstItem
     astart <- liftM (flip addHours firstTime) (firstAlertTime levels)
     aend <- liftM (flip addHours firstTime) (lastAlertTime levels)
@@ -95,9 +95,9 @@ maybeSplitHead (a:as) = Just (a, as)
 firstAlertTime :: [UVLevel] -> Maybe Float
 firstAlertTime ls = do
         (l1, ls') <- maybeSplitHead ls
-        if l1 >= alertLevel then return 0 else do
+        if isDangerous l1 then return 0 else do
             (l2, _) <- maybeSplitHead ls'
-            if l2 >= alertLevel then return $ extrapolateUV l1 l2 alertLevel
+            if isDangerous l2 then return $ extrapolateUV l1 l2 alertLevel
                                 else do
                                     alertTime <- firstAlertTime ls'
                                     return $ alertTime + 1

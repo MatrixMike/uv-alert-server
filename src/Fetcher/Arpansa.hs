@@ -82,7 +82,7 @@ parseGraph :: Location -> DynamicImage -> UTCTime -> Maybe Forecast
 parseGraph loc image updated = do
     let uvLine = selectBestLine image
     let graph = map graphCoordinates uvLine
-    let alertTimes = map fst $ filter ((>= alertLevel) . snd) graph
+    let alertTimes = map fst $ filter (isDangerous . snd) graph
     astart <- maybeMinimum alertTimes
     aend <- maybeMaximum alertTimes
     date <- eitherToMaybe $ parseDate image

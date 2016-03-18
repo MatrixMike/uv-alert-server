@@ -34,6 +34,9 @@ makeLenses ''UVLevel
 alertLevel :: UVLevel
 alertLevel = UVLevel 3
 
+isDangerous :: UVLevel -> Bool
+isDangerous = (>= alertLevel)
+
 instance ToJSON UVLevel where
     toJSON level = toJSON $ level ^. uvValue
 
