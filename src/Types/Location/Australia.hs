@@ -1,5 +1,8 @@
 {-# Language TemplateHaskell #-}
-module Types.Location.Australia where
+module Types.Location.Australia (
+    auCityState,
+    auStateTZ,
+) where
 
 import Data.Time.LocalTime.TimeZone.Series
 import Data.Time.LocalTime.TimeZone.Olson.TH

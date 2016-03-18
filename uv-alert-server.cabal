@@ -24,6 +24,7 @@ library
                      , Fetcher.Arpansa.Base
                      , Fetcher.Base
                      , Fetcher.BOM
+                     , Fetcher.EPA.Cities
                      , Pebble.Client
                      , Pebble.Types
                      , Pusher
@@ -31,6 +32,7 @@ library
                      , Types
                      , Types.Location
                      , Types.Location.Australia
+                     , Types.Location.USA
                      , Utils
   build-depends:       base >= 4.7 && < 5
                      , aeson

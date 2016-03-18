@@ -1,7 +1,13 @@
 {-# Language DeriveGeneric #-}
 {-# Language OverloadedStrings #-}
 {-# Language TemplateHaskell #-}
-module Types.Location where
+module Types.Location (
+    Location(..),
+    locCountry,
+    locRegion,
+    locCity,
+    locTZ,
+) where
 
 import Control.Lens hiding ((.=))
 
@@ -14,6 +20,7 @@ import GHC.Generics
 import Servant
 
 import Types.Location.Australia
+import Types.Location.USA
 
 
 data Location = Location { _locCountry :: String
@@ -40,4 +47,5 @@ instance ToJSON Location where
 -- FIXME: disallow creating locations if the time zone is unknown
 locTZ :: Location -> TimeZoneSeries
 locTZ (Location "Australia" state _) = auStateTZ state
+locTZ loc@(Location "USA" city state) = usTZ city state
 locTZ loc = error $ "Unknown time zone for location " ++ show loc
