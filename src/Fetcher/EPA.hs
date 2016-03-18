@@ -94,16 +94,19 @@ maybeSplitHead (a:as) = Just (a, as)
 
 firstAlertTime :: [UVLevel] -> Maybe Float
 firstAlertTime ls = do
-        (l1, ls') <- maybeSplitHead ls
-        if isDangerous l1 then return 0 else do
-            (l2, _) <- maybeSplitHead ls'
-            if isDangerous l2 then return $ extrapolateUV l1 l2 alertLevel
-                                else do
-                                    alertTime <- firstAlertTime ls'
-                                    return $ alertTime + 1
-    where extrapolateUV :: UVLevel -> UVLevel -> UVLevel -> Float
-          extrapolateUV v1 v2 v = extrapolate (uvToFloat v1, 0) (uvToFloat v2, 1) (uvToFloat v)
-          uvToFloat v = v ^. uvValue . to toInteger . to fromInteger
+    (l1, ls') <- maybeSplitHead ls
+    if isDangerous l1 then return 0 else do
+        (l2, _) <- maybeSplitHead ls'
+        if isDangerous l2 then return $ extrapolateUV l1 l2
+                            else do
+                                alertTime <- firstAlertTime ls'
+                                return $ alertTime + 1
 
 lastAlertTime :: [UVLevel] -> Maybe Float
-lastAlertTime = undefined
+lastAlertTime ls = do
+    alertTime <- firstAlertTime $ reverse ls
+    return $ fromInteger (toInteger (length ls - 1)) - alertTime
+
+extrapolateUV :: UVLevel -> UVLevel -> Float
+extrapolateUV v1 v2 = extrapolate (uvToFloat v1, 0) (uvToFloat v2, 1) (uvToFloat alertLevel)
+    where uvToFloat v = v ^. uvValue . to toInteger . to fromInteger
