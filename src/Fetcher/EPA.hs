@@ -37,7 +37,7 @@ fetchEpa :: AppM [Forecast]
 fetchEpa = do
     manager <- liftIO $ newManager tlsManagerSettings
     liftM concat $ forM usCities $ \(city, state) -> do
-        logStr $ "Fetching graph for " ++ city ++ ", " ++ state ++ "..."
+        logStr $ "Fetching forecast for " ++ city ++ ", " ++ state ++ "..."
         let address = forecastAddress city state
         handle (logError address) $ do
             responseStr <- fetchHTTP manager address
