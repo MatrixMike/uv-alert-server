@@ -17,6 +17,7 @@ import GHC.Exts (groupWith)
 import App
 import Fetcher.Arpansa
 import Fetcher.Base
+import Fetcher.EPA
 import Pusher
 import Types
 
@@ -25,7 +26,7 @@ updateInterval :: Int -- microseconds
 updateInterval = 3600 * 1000000
 
 fetchers :: [Fetcher]
-fetchers = [arpansaFetcher]
+fetchers = [arpansaFetcher, epaFetcher]
 
 runFetcher :: Config -> IO ()
 runFetcher = runReaderT fetcher

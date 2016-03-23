@@ -24,6 +24,9 @@ library
                      , Fetcher.Arpansa.Base
                      , Fetcher.Base
                      , Fetcher.BOM
+                     , Fetcher.EPA
+                     , Fetcher.EPA.Cities
+                     , Fetcher.HTTP
                      , Pebble.Client
                      , Pebble.Types
                      , Pusher
@@ -31,6 +34,7 @@ library
                      , Types
                      , Types.Location
                      , Types.Location.Australia
+                     , Types.Location.USA
                      , Utils
   build-depends:       base >= 4.7 && < 5
                      , aeson
@@ -40,6 +44,7 @@ library
                      , ftphs
                      , JuicyPixels
                      , http-client
+                     , http-client-tls
                      , lens
                      , lifted-base
                      , MissingH
@@ -94,6 +99,8 @@ test-suite uv-alert-server-test
                      , Integration.TestLocations
                      , TestFetcher
                      , TestFetcherArpansa
+                     , TestFetcherEPA
+                     , TestUtils
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 
