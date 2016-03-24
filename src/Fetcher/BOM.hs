@@ -6,8 +6,6 @@ Fetch UV forecast from Buerau of Meteorology.
 Unfortunately, this data is free for personal use but not for redistribution.
 -}
 
-import Control.Exception.Lifted
-
 import Control.Monad
 import Control.Monad.IO.Class
 
@@ -38,7 +36,7 @@ Just forecastAddress = parseURI "ftp://ftp2.bom.gov.au/anon/gen/fwo/IDYGP026.txt
 fetchBOM :: URI -> AppM [Forecast]
 fetchBOM address = do
     logStr $ "Fetching " ++ show address ++ "..."
-    handle (logError address) $ do
+    logErrors address $ do
         content <- fetchLines address
         time <- liftIO getCurrentTime
         return $ rights $ map (parseForecast time) $ lines content

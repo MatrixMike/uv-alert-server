@@ -5,7 +5,6 @@ module Fetcher.Arpansa where
 import Codec.Picture
 
 import Control.Arrow
-import Control.Exception.Lifted
 import Control.Lens
 import Control.Monad
 import Control.Monad.IO.Class
@@ -59,7 +58,7 @@ fetchArpansa = do
     manager <- liftIO $ newManager defaultManagerSettings
     liftM concat $ forM addresses $ \(loc, address) -> do
         logStr $ "Fetching graph for " ++ loc ^. locCity ++ "..."
-        handle (logError address) $ do
+        logErrors address $ do
             graphBytes <- fetchHTTP manager address
             case decodeImage graphBytes of
                 Left err -> do

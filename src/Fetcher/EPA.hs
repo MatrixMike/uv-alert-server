@@ -3,7 +3,6 @@ module Fetcher.EPA where
 
 {- Fetch USA data from EPA API. -}
 
-import Control.Exception.Lifted
 import Control.Lens
 import Control.Monad
 import Control.Monad.IO.Class
@@ -39,7 +38,7 @@ fetchEpa = do
     liftM concat $ forM usCities $ \(city, state) -> do
         logStr $ "Fetching forecast for " ++ city ++ ", " ++ state ++ "..."
         let address = forecastAddress city state
-        handle (logError address) $ do
+        logErrors address $ do
             responseStr <- fetchHTTP manager address
             case decode $ LBS.fromStrict responseStr of
                 Just response -> do
