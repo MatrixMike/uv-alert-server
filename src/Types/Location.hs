@@ -12,6 +12,7 @@ module Types.Location (
 import Control.Lens hiding ((.=))
 
 import Data.Aeson
+import Data.Either
 import qualified Data.Text as T
 import Data.Time.LocalTime.TimeZone.Series
 
@@ -30,12 +31,12 @@ data Location = Location { _locCountry :: String
     deriving (Eq, Show, Generic, Ord)
 makeLenses ''Location
 
-instance FromText Location where
+instance FromHttpApiData Location where
     -- Parse locations like "city, region, country"
-    fromText txt = do
-        [city, region, country] <- mapM fromText =<< case T.splitOn ", " txt of
-                                                       lst@[_, _, _] -> Just lst
-                                                       _ -> Nothing
+    parseQueryParam txt = do
+        [city, region, country] <- mapM parseQueryParam =<< case T.splitOn ", " txt of
+                                                              lst@[_, _, _] -> return lst
+                                                              _ -> Left ""
         return $ Location country region city
 
 instance ToJSON Location where

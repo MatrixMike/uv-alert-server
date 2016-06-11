@@ -6,9 +6,11 @@
 {-# Language TypeOperators #-}
 module Pebble.Client where
 
-import Control.Monad.Trans.Either
+import Control.Monad.Trans.Except
 
 import Data.Text
+
+import Network.HTTP.Client (Manager)
 
 import Pebble.Types
 
@@ -32,29 +34,29 @@ type PinAPI = "pins" :> Capture "pin-id" String :>
 api :: Proxy PebbleAPI
 api = Proxy
 
-baseUrl :: BaseUrl
-baseUrl = BaseUrl Https "timeline-api.getpebble.com" 443
+pebbleUrl :: BaseUrl
+pebbleUrl = BaseUrl Https "timeline-api.getpebble.com" 443 "/"
 
-userClient :<|> sharedClient = client api baseUrl
+userClient :<|> sharedClient = client api
 
-putUserPin :: Maybe UserToken -> String -> Pin -> EitherT ServantError IO Text
+putUserPin :: Maybe UserToken -> String -> Pin -> Manager -> BaseUrl -> ExceptT ServantError IO Text
 putUserPin token id_ = putPin
     where userPinClient :<|> _ = userClient token
           putPin :<|> _ = userPinClient id_
 
-deleteUserPin :: Maybe UserToken -> String -> EitherT ServantError IO Text
+deleteUserPin :: Maybe UserToken -> String -> Manager -> BaseUrl -> ExceptT ServantError IO Text
 deleteUserPin token id_ = deletePin
     where userPinClient :<|> _ = userClient token
           _ :<|> deletePin = userPinClient id_
 
-getUserSubscriptions :: Maybe UserToken -> EitherT ServantError IO Topics
+getUserSubscriptions :: Maybe UserToken -> Manager -> BaseUrl -> ExceptT ServantError IO Topics
 getUserSubscriptions token = getSubscriptions
     where _ :<|> getSubscriptions = userClient token
 
-putSharedPin :: Maybe APIKey -> Maybe Topics -> String -> Pin -> EitherT ServantError IO Text
+putSharedPin :: Maybe APIKey -> Maybe Topics -> String -> Pin -> Manager -> BaseUrl -> ExceptT ServantError IO Text
 putSharedPin key topics id_ = putPin
     where putPin :<|> _ = sharedClient key topics id_
 
-deleteSharedPin :: Maybe APIKey -> Maybe Topics -> String -> EitherT ServantError IO Text
+deleteSharedPin :: Maybe APIKey -> Maybe Topics -> String -> Manager -> BaseUrl -> ExceptT ServantError IO Text
 deleteSharedPin key topics id_ = deletePin
     where _ :<|> deletePin = sharedClient key topics id_

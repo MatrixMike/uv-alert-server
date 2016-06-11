@@ -4,11 +4,14 @@ module Pusher where
 import Control.Lens
 
 import Control.Monad.Reader
-import Control.Monad.Trans.Either
+import Control.Monad.Trans.Except
 
 import Data.List
 import Data.List.Utils
 import Data.Time.LocalTime
+
+import Network.HTTP.Client
+import Network.HTTP.Client.TLS
 
 import App
 import Types
@@ -21,17 +24,18 @@ push :: AppM ()
 push = do
     forecasts <- stateM $ use stForecasts
     let fcount = length forecasts
+    manager <- liftIO $ newManager tlsManagerSettings
     logStr $ "Pushing " ++ show fcount ++ " forecasts..."
-    mapM_ putForecastPin forecasts
+    mapM_ (putForecastPin manager) forecasts
     logStr "All pushed."
 
-putForecastPin :: Forecast -> AppM ()
-putForecastPin forecast = do
+putForecastPin :: Manager -> Forecast -> AppM ()
+putForecastPin manager forecast = do
     apiKey <- asks coApiKey
     let topics = forecastTopics forecast
     let pins = forecastPin forecast
     forM_ pins $ \pin -> do
-        result <- liftIO $ runEitherT $ putSharedPin (Just apiKey) (Just topics) (pinId pin) pin
+        result <- liftIO $ runExceptT $ putSharedPin (Just apiKey) (Just topics) (pinId pin) pin manager pebbleUrl
         case result of
             Left err -> do
                 logStr $ "Error pushing forecast: " ++ show err

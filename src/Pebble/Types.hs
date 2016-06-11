@@ -134,18 +134,18 @@ data ActionType = OpenWatchAppAction
 
 data UserToken = UserToken String
 
-instance ToText UserToken where
-    toText (UserToken token) = T.pack token
+instance ToHttpApiData UserToken where
+    toUrlPiece (UserToken token) = T.pack token
 
 data APIKey = APIKey String
 
-instance ToText APIKey where
-    toText (APIKey key) = T.pack key
+instance ToHttpApiData APIKey where
+    toUrlPiece (APIKey key) = T.pack key
 
 data Topics = Topics [String]
 
-instance ToText Topics where
-    toText (Topics topics) = T.pack $ intercalate "," topics
+instance ToHttpApiData Topics where
+    toUrlPiece (Topics topics) = T.pack $ intercalate "," topics
 
 instance FromJSON Topics where
     parseJSON (Object v) = do

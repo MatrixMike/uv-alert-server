@@ -5,7 +5,7 @@ module Server where
 import Control.Lens
 
 import Control.Monad.State
-import Control.Monad.Trans.Either
+import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
 
 import Data.List
@@ -21,16 +21,16 @@ import Types
 import Types.Location
 
 
-type AppSM = AppT (EitherT ServantErr IO)
+type AppSM = AppT (ExceptT ServantErr IO)
 
 server :: ServerT API AppSM
 server = registerApp :<|> getForecast :<|> getLocations
 
-readerToEither :: Config -> AppSM :~> EitherT ServantErr IO
-readerToEither cfg = Nat $ \x -> runReaderT x cfg
+readerToExcept :: Config -> AppSM :~> ExceptT ServantErr IO
+readerToExcept cfg = Nat $ \x -> runReaderT x cfg
 
 readerServer :: Config -> Server API
-readerServer cfg = enter (readerToEither cfg) server
+readerServer cfg = enter (readerToExcept cfg) server
 
 app :: Config -> Application
 app cfg = serve api (readerServer cfg)
@@ -43,7 +43,7 @@ getForecast loc = do
     forecasts <- stateM $ use stForecasts
     let locForecasts = sortBy compareUpdated $ S.toList $ S.filter ((== loc) . view fcLocation) forecasts
     case locForecasts of
-        [] -> lift $ left $ err404 { errBody = "Location not found" }
+        [] -> lift $ throwError $ err404 { errBody = "Location not found" }
         _ -> return locForecasts
 
 getLocations :: AppSM [Location]
