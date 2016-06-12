@@ -19,11 +19,11 @@ import Data.Time.LocalTime.TimeZone.Series
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 
-import App
 import Fetcher.Base
 import Fetcher.EPA.Cities
 import Fetcher.HTTP
 import Types
+import Types.Config
 import Types.Location
 import Types.Location.USA
 import Utils

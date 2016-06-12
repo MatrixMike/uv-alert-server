@@ -8,9 +8,9 @@ import Data.Maybe
 import Data.Time.Calendar
 import qualified Data.Set as S
 
-import App
 import Server
 import Types
+import Types.Config
 import Types.Location
 
 import Integration.Base

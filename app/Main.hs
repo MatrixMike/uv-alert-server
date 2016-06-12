@@ -9,6 +9,7 @@ import System.IO
 import App
 import Fetcher
 import Server
+import Types.Config
 
 main :: IO ()
 main = do

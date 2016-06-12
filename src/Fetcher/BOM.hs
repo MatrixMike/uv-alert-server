@@ -17,9 +17,9 @@ import Data.Time.LocalTime
 import Network.FTP.Client
 import Network.URI
 
-import App
 import Fetcher.Base
 import Types
+import Types.Config
 import Types.Location
 import Types.Location.Australia
 import Utils

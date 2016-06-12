@@ -14,25 +14,23 @@ import Data.Time.Clock
 
 import GHC.Exts (groupWith)
 
-import App
 import Fetcher.Arpansa
 import Fetcher.Base
 import Fetcher.EPA
 import Pusher
 import Types
+import Types.Config
 
 
 updateInterval :: Int -- microseconds
 updateInterval = 3600 * 1000000
-
-fetchers :: [Fetcher]
-fetchers = [arpansaFetcher, epaFetcher]
 
 runFetcher :: Config -> IO ()
 runFetcher = runReaderT fetcher
 
 fetcher :: AppM ()
 fetcher = forever $ do
+    fetchers <- asks coFetchers
     fetchAll fetchers
     removeOldM
     push

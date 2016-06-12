@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 module App where
 
 import Control.Concurrent.MVar
@@ -11,38 +10,20 @@ import Control.Monad.State
 import Control.Monad.Trans.Reader
 
 import Data.Maybe
-import qualified Data.Set as S
 
 import System.Environment
 
+import Fetcher
+import Fetcher.Arpansa
+import Fetcher.EPA
 import Types
+import Types.Config
 
 import Pebble.Types
 
 
--- TODO: Probably needs a database
-data Store = Store { _stAppKeys :: [AppKey]
-                   , _stForecasts :: S.Set Forecast
-                   }
-makeLenses ''Store
-
-emptyStore :: Store
-emptyStore = Store [] S.empty
-
-data Config = Config { coStore :: MVar Store
-                     , coApiKey :: APIKey
-                     , coListenPort :: Int
-                     }
-
-type AppT m = ReaderT Config m
-
-type AppM = AppT IO
-
-stateM :: MonadIO m => State Store a -> AppT m a
-stateM fn = do
-        store <- asks coStore
-        liftIO $ modifyMVar store $ return . fn'
-    where fn' s = let (a, s') = runState fn s in (s', a)
+defaultFetchers :: [Fetcher]
+defaultFetchers = [arpansaFetcher, epaFetcher]
 
 initConfig :: IO Config
 initConfig = do
@@ -52,7 +33,4 @@ initConfig = do
         when (key == "") $ error "Pebble API key must be provided."
         return key
     listenPort <- liftM (read . fromMaybe "8000") $ lookupEnv "LISTEN_PORT"
-    return $ Config store apiKey listenPort
-
-logStr :: String -> AppM ()
-logStr = liftIO . putStrLn
+    return $ Config store apiKey listenPort defaultFetchers

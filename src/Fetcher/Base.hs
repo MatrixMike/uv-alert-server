@@ -6,13 +6,9 @@ import Control.Exception.Lifted
 
 import Network.HTTP.Client (HttpException)
 
-import App
+import Types.Config
 import Types
 
-
-data Fetcher = Fetcher { fName :: String
-                       , fFetch :: AppM [Forecast]
-                       }
 
 logErrorStr :: (Monoid a, Show c) => c -> String -> AppM a
 logErrorStr context err = do

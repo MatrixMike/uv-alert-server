@@ -13,8 +13,8 @@ import Data.Time.LocalTime
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 
-import App
 import Types
+import Types.Config
 import Types.Location
 import Pebble.Client
 import Pebble.Types

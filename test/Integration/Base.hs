@@ -5,6 +5,7 @@ import Control.Monad.Reader
 import System.Environment
 
 import App
+import Types.Config
 
 testConfig :: IO Config
 testConfig = do

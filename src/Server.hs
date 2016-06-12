@@ -16,8 +16,8 @@ import Network.Wai
 import Servant
 
 import API
-import App
 import Types
+import Types.Config
 import Types.Location
 
 
