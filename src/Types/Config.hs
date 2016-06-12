@@ -16,12 +16,14 @@ import qualified Data.Set as S
 import System.Environment
 
 import Types
+import Types.Location
 
 import Pebble.Types
 
 
 data Fetcher = Fetcher { fName :: String
                        , fFetch :: AppM [Forecast]
+                       , fLocations :: [Location]
                        }
 
 data Config = Config { coStore :: MVar Store

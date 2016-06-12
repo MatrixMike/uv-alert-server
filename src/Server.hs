@@ -48,6 +48,5 @@ getForecast loc = do
 
 getLocations :: AppSM [Location]
 getLocations = do
-    forecasts <- stateM $ use stForecasts
-    -- FIXME: how to map a Lens over a Set?
-    return $ S.toList $ S.map (view fcLocation) forecasts
+    fetchers <- asks coFetchers
+    return $ sort $ concatMap fLocations fetchers

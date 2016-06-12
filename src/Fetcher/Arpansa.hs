@@ -27,7 +27,7 @@ import Utils
 
 
 arpansaFetcher :: Fetcher
-arpansaFetcher = Fetcher "ARPANSA" fetchArpansa
+arpansaFetcher = Fetcher "ARPANSA" fetchArpansa (map fst addresses)
 
 addresses :: [(Location, String)]
 addresses = map makeLocation [ (sa, "Adelaide", "adl")
