@@ -16,18 +16,18 @@ import Data.Time.LocalTime
 
 import Network.HTTP.Client
 
-import App
 import Fetcher.Arpansa.Base
 import Fetcher.Arpansa.CharacterRecognizer
 import Fetcher.Base
 import Fetcher.HTTP
 import Types
+import Types.Config
 import Types.Location
 import Utils
 
 
 arpansaFetcher :: Fetcher
-arpansaFetcher = Fetcher "ARPANSA" fetchArpansa
+arpansaFetcher = Fetcher "ARPANSA" fetchArpansa (map fst addresses)
 
 addresses :: [(Location, String)]
 addresses = map makeLocation [ (sa, "Adelaide", "adl")

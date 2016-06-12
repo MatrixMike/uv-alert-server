@@ -10,7 +10,7 @@ import qualified Data.ByteString as BS
 
 import Network.HTTP.Client
 
-import App
+import Types.Config
 
 
 fetchHTTP :: Manager -> String -> AppM BS.ByteString

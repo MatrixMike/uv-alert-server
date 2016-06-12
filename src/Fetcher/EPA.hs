@@ -19,37 +19,38 @@ import Data.Time.LocalTime.TimeZone.Series
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
 
-import App
 import Fetcher.Base
 import Fetcher.EPA.Cities
 import Fetcher.HTTP
 import Types
+import Types.Config
 import Types.Location
 import Types.Location.USA
 import Utils
 
 
 epaFetcher :: Fetcher
-epaFetcher = Fetcher "EPA" fetchEpa
+epaFetcher = Fetcher "EPA" fetchEpa usLocations
 
 fetchEpa :: AppM [Forecast]
 fetchEpa = do
     manager <- liftIO $ newManager tlsManagerSettings
-    liftM concat $ forM usCities $ \(city, state) -> do
-        logStr $ "Fetching forecast for " ++ city ++ ", " ++ state ++ "..."
-        let address = forecastAddress city state
+    liftM concat $ forM usLocations $ \location -> do
+        logStr $ "Fetching forecast for " ++ show location ++ "..."
+        let address = forecastAddress location
         logErrors address $ do
             responseStr <- fetchHTTP manager address
             case decode $ LBS.fromStrict responseStr of
                 Just response -> do
                     time <- liftIO getCurrentTime
-                    return $ maybeToList $ buildForecast city state response time
+                    return $ maybeToList $ buildForecast location response time
                 Nothing -> do
                     logStr $ "Error parsing JSON: " ++ show responseStr
                     return []
 
-forecastAddress city state = "https://iaspub.epa.gov/enviro/efservice/getEnvirofactsUVHOURLY/CITY/" ++ city ++ "/STATE/" ++ abbr ++ "/JSON"
-    where abbr = usStateAbbreviation state
+forecastAddress location = "https://iaspub.epa.gov/enviro/efservice/getEnvirofactsUVHOURLY/CITY/" ++ city ++ "/STATE/" ++ abbr ++ "/JSON"
+    where city = location ^. locCity
+          abbr = location ^. locRegion . to usStateAbbreviation
 
 data ForecastItem = ForecastItem { fiLocalTime :: LocalTime
                                  , fiLevel :: UVLevel
@@ -63,21 +64,22 @@ instance FromJSON ForecastItem where
         where parseLocalTime = parseTimeM False defaultTimeLocale "%b/%d/%Y %I %P"
 
 -- Parse a date from the forecast in a format: MAR/17/2016 11 PM
-fiDateTime :: String -> String -> ForecastItem -> UTCTime
-fiDateTime city state fi = localTimeToUTC' (usTZ city state) (fiLocalTime fi)
+fiDateTime :: Location -> ForecastItem -> UTCTime
+fiDateTime location fi = localTimeToUTC' tz (fiLocalTime fi)
+    where tz = usTZ (location ^. locCity) (location ^. locRegion)
 
-buildForecast :: String -> String -> [ForecastItem] -> UTCTime -> Maybe Forecast
-buildForecast _ _ [] _ = Nothing
-buildForecast city state items@(firstItem:_) updated = do
-    let tz = usTZ city state
+buildForecast :: Location -> [ForecastItem] -> UTCTime -> Maybe Forecast
+buildForecast _ [] _ = Nothing
+buildForecast location items@(firstItem:_) updated = do
+    let tz = usTZ (location ^. locCity) (location ^. locRegion)
     let localDayTime = localTimeOfDay . utcToLocalTime' tz
     let levels = map fiLevel items
     let maxlevel = maximum levels
     guard $ isDangerous maxlevel
-    let firstTime = fiDateTime city state firstItem
+    let firstTime = fiDateTime location firstItem
     astart <- liftM (flip addHours firstTime) (firstAlertTime levels)
     aend <- liftM (flip addHours firstTime) (lastAlertTime levels)
-    return Forecast { _fcLocation = Location "USA" state city
+    return Forecast { _fcLocation = location
                     , _fcDate = utctDay astart
                     , _fcAlertStart = localDayTime astart
                     , _fcAlertEnd = localDayTime aend

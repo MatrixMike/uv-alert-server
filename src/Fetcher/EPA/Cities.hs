@@ -1,11 +1,14 @@
 module Fetcher.EPA.Cities (
-    usCities,
+    usLocations,
     usStateAbbreviation,
 ) where
 
 import qualified Data.Map as M
 
+import Types.Location
 
+
+usCities :: [(String, String)]
 usCities = [ ("New York", "New York")
            , ("Los Angeles", "California")
            , ("Chicago", "Illinois")
@@ -206,6 +209,10 @@ usCities = [ ("New York", "New York")
            , ("Waco", "Texas")
            , ("Charleston", "South Carolina")
            ]
+
+usLocations :: [Location]
+usLocations = map usLocation usCities
+    where usLocation (city, state) = Location "USA" state city
 
 usStateAbbreviations = M.fromList [ ("Alabama", "AL")
                                   , ("Alaska", "AK")

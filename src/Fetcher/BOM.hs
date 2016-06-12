@@ -17,9 +17,9 @@ import Data.Time.LocalTime
 import Network.FTP.Client
 import Network.URI
 
-import App
 import Fetcher.Base
 import Types
+import Types.Config
 import Types.Location
 import Types.Location.Australia
 import Utils
@@ -52,9 +52,10 @@ fetchLines uri = liftIO $ do
 fetchTestContent :: MonadIO m => m String
 fetchTestContent = liftIO $ readFile "src/IDYGP007.txt"
 
+-- FIXME: BOM fetcher doesn't have a list of locations
 bomFetchers :: [Fetcher]
-bomFetchers = [ Fetcher "BOM today" (fetchBOM todayAddress)
-              , Fetcher "BOM forecast" (fetchBOM forecastAddress)
+bomFetchers = [ Fetcher "BOM today" (fetchBOM todayAddress) []
+              , Fetcher "BOM forecast" (fetchBOM forecastAddress) []
               ]
 
 parseDate :: String -> Either String Day

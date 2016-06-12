@@ -8,9 +8,9 @@ import Data.Maybe
 import Data.Time.Calendar
 import qualified Data.Set as S
 
-import App
 import Server
 import Types
+import Types.Config
 import Types.Location
 
 import Integration.Base
@@ -22,18 +22,15 @@ import Test.Hspec.Wai.JSON
 
 spec = do
     config <- runIO testConfig
-    let dummyForecast loc = Forecast { _fcLocation = loc
-                                     , _fcDate = fromJust $ fromGregorianValid 2016 2 1
-                                     , _fcAlertStart = undefined
-                                     , _fcAlertEnd = undefined
-                                     , _fcMaxLevel = UVLevel 10
-                                     , _fcUpdated = undefined
-                                     }
     let locations = [ Location "Australia" "Victoria" "Melbourne"
                     , Location "Australia" "New South Wales" "Sydney"
                     ]
-    runIO $ inApp config $ stateM $ stForecasts .= (S.fromList $ map dummyForecast locations)
-    with (return $ app config) $ do
+    let testFetcher = Fetcher { fName = "test fetcher"
+                              , fFetch = return []
+                              , fLocations = locations
+                              }
+    let testConfig = config { coFetchers = [testFetcher] }
+    with (return $ app testConfig) $ do
 
         describe "GET /locations" $ do
             it "responds with locations JSON" $ do
