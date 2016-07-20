@@ -15,6 +15,6 @@ import Types.Config
 
 fetchHTTP :: Manager -> String -> AppM BS.ByteString
 fetchHTTP manager address = do
-    request <- parseUrl address
+    request <- parseUrlThrow address
     chunks <- liftIO $ withResponse request manager (brConsume . responseBody)
     return $ BS.concat chunks
