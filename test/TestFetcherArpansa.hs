@@ -25,12 +25,12 @@ loadImage imageName = do
     let (Right image) = decodeImage bytes
     return image
 
-morningImage = "mel_rt_morning.gif"
-eveningImage = "mel_rt_evening.gif"
-noActualImage = "mel_rt_no_actual.gif"
-quietImage = "mel_rt_quiet.gif"
-perthMarch08Image = "per_rt_2016-03-08.gif"
-melMarch11Image = "mel_rt_2016-03-11.gif"
+morningImage = "arpansa/mel_rt_morning.gif"
+eveningImage = "arpansa/mel_rt_evening.gif"
+noActualImage = "arpansa/mel_rt_no_actual.gif"
+quietImage = "arpansa/mel_rt_quiet.gif"
+perthMarch08Image = "arpansa/per_rt_2016-03-08.gif"
+melMarch11Image = "arpansa/mel_rt_2016-03-11.gif"
 
 melbourne = Location "Australia" "Victoria" "Melbourne"
 
