@@ -17,12 +17,14 @@ http://www.jma.go.jp/en/uv/imgs/uv_color/forecast/000/201607201800-12.png
 File name format is the time forecast was made (18:00 the previous day) plus
 the index of the forecast hour (00 = 06:00 the next day, 12 = 18:00).
 
-Forecast seems to be updated at 18:00 previous day and 06:00 on the day; the
+Forecast is updated at 18:00 previous day and 06:00 on the day; the
 latter has the following files:
 
 http://www.jma.go.jp/en/uv/imgs/uv_color/forecast/000/201607210600-00.png
 ...
 http://www.jma.go.jp/en/uv/imgs/uv_color/forecast/000/201607210600-12.png
+
+The index is the forecast hour (00 = 06:00 the same day, 12 = 18:00).
 
 The following images contain data for the current day:
 
