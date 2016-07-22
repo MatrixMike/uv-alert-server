@@ -1,5 +1,7 @@
 module TestUtils where
 
+{- Test Utils module -}
+
 import Utils
 
 import Test.Hspec

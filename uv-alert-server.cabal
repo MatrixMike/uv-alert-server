@@ -26,6 +26,7 @@ library
                      , Fetcher.BOM
                      , Fetcher.EPA
                      , Fetcher.EPA.Cities
+                     , Fetcher.JMA
                      , Fetcher.HTTP
                      , Pebble.Client
                      , Pebble.Types
@@ -93,6 +94,7 @@ test-suite uv-alert-server-test
                      , mtl
                      , text
                      , time
+                     , timezone-series
                      , transformers
                      , vector
                      , wai

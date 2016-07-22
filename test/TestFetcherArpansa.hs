@@ -1,10 +1,7 @@
 module TestFetcherArpansa where
 
-import Codec.Picture
-
 import Control.Lens
 
-import qualified Data.ByteString as BS
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Time.Calendar
@@ -19,11 +16,8 @@ import Types.Location
 
 import Test.Hspec
 
+import Images
 
-loadImage imageName = do
-    bytes <- runIO $ BS.readFile $ "test/" ++ imageName
-    let (Right image) = decodeImage bytes
-    return image
 
 morningImage = "arpansa/mel_rt_morning.gif"
 eveningImage = "arpansa/mel_rt_evening.gif"
