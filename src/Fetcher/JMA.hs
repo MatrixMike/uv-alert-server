@@ -3,6 +3,9 @@ module Fetcher.JMA where
 
 {- Fetch UV alert data from Japan Meteorological Agency. -}
 
+import Codec.Picture
+
+import qualified Data.Map as M
 import Data.Time
 import Data.Time.LocalTime.TimeZone.Series
 import Data.Time.LocalTime.TimeZone.Olson.TH
@@ -72,3 +75,22 @@ imageName now index = urlBase ++
                                              else (date, 18)
               (year, month, day) = toGregorian fcDate
               urlBase = "http://www.jma.go.jp/en/uv/imgs/uv_color/forecast/000/"
+
+imageUVLevel :: Int -> Int -> DynamicImage -> Maybe UVLevel
+imageUVLevel x y (ImageRGB8 image) = M.lookup (pixelAt image x y) levels
+    where levels = M.fromList $ zip levelColors $ map UVLevel [0..]
+          levelColors = [ PixelRGB8 255 255 255
+                        , PixelRGB8 217 217 255
+                        , PixelRGB8 153 203 255
+                        , PixelRGB8 255 255 190
+                        , PixelRGB8 250 250 150
+                        , PixelRGB8 250 245   0
+                        , PixelRGB8 255 200   0
+                        , PixelRGB8 255 140   0
+                        , PixelRGB8 250  90   0
+                        , PixelRGB8 255  20   0
+                        , PixelRGB8 165   0  33
+                        , PixelRGB8 181   0  91
+                        , PixelRGB8 204   0 160
+                        , PixelRGB8 204   0 204
+                        ]

@@ -4,16 +4,21 @@ import Data.Time
 import Data.Time.LocalTime.TimeZone.Series
 
 import Fetcher.JMA
+import Types
 
 import Test.Hspec
 
 import Images
 
 
-testImages = mapM loadImage $ map testImageName [0..12]
-    where testImageName i = "jma/201607220600-" ++ padShow i ++ ".png"
-          padShow i | i < 10 = "0" ++ show i
+testImageName i = "jma/201607220600-" ++ padShow i ++ ".png"
+    where padShow i | i < 10 = "0" ++ show i
                     | otherwise = show i
+
+
+testImage = loadImage . testImageName
+
+testImages = mapM loadImage $ map testImageName [0..12]
 
 
 japanTime :: Day -> Int -> Int -> UTCTime
@@ -37,3 +42,23 @@ spec = do
                 imageName (testTime 08 00) 01 `shouldBe` expected "201605200600-01"
             it "returns the evening image name" $ do
                 imageName (testTime 19 00) 01 `shouldBe` expected "201605201800-01"
+    describe "imageUVLevel" $ do
+        img1 <- testImage 1
+        img4 <- testImage 4
+        img6 <- testImage 6
+        img7 <- testImage 7
+        context "on clear pixels" $ do
+            it "returns the correct UV level" $ do
+                imageUVLevel 322 203 img1 `shouldBe` Just (UVLevel 0)
+                imageUVLevel 279 213 img1 `shouldBe` Just (UVLevel 1)
+                imageUVLevel 323 214 img4 `shouldBe` Just (UVLevel 2)
+                imageUVLevel 107 280 img4 `shouldBe` Just (UVLevel 3)
+                imageUVLevel 330 194 img4 `shouldBe` Just (UVLevel 4)
+                imageUVLevel 290 173 img4 `shouldBe` Just (UVLevel 6)
+                imageUVLevel 286 199 img4 `shouldBe` Just (UVLevel 7)
+                imageUVLevel 303 206 img4 `shouldBe` Just (UVLevel 8)
+                imageUVLevel 240 221 img6 `shouldBe` Just (UVLevel 9)
+                imageUVLevel 160 258 img6 `shouldBe` Just (UVLevel 10)
+                imageUVLevel 137 322 img6 `shouldBe` Just (UVLevel 11)
+                imageUVLevel  63 426 img7 `shouldBe` Just (UVLevel 12)
+                -- TODO: No 13 on test images
