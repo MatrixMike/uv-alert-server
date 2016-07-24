@@ -21,6 +21,7 @@ import GHC.Generics
 import Servant
 
 import Types.Location.Australia
+import Types.Location.Japan
 import Types.Location.USA
 
 
@@ -48,5 +49,6 @@ instance ToJSON Location where
 -- FIXME: disallow creating locations if the time zone is unknown
 locTZ :: Location -> TimeZoneSeries
 locTZ (Location "Australia" state _) = auStateTZ state
+locTZ (Location "Japan" _ _) = japanTZ
 locTZ loc@(Location "USA" state city) = usTZ city state
 locTZ loc = error $ "Unknown time zone for location " ++ show loc

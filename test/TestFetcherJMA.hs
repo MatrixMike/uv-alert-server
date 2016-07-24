@@ -5,6 +5,7 @@ import Data.Time.LocalTime.TimeZone.Series
 
 import Fetcher.JMA
 import Types
+import Types.Location.Japan
 
 import Test.Hspec
 
@@ -22,7 +23,7 @@ testImages = mapM loadImage $ map testImageName [0..12]
 
 
 japanTime :: Day -> Int -> Int -> UTCTime
-japanTime date hour minute = localTimeToUTC' jst $ LocalTime date $ TimeOfDay hour minute 0
+japanTime date hour minute = localTimeToUTC' japanTZ $ LocalTime date $ TimeOfDay hour minute 0
 
 
 spec :: Spec

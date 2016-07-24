@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 module Fetcher.JMA where
 
 {- Fetch UV alert data from Japan Meteorological Agency. -}
@@ -8,17 +7,22 @@ import Codec.Picture
 import qualified Data.Map as M
 import Data.Time
 import Data.Time.LocalTime.TimeZone.Series
-import Data.Time.LocalTime.TimeZone.Olson.TH
 
 import Fetcher.Base
 import Types
 import Types.Config
+import Types.Location
+import Types.Location.Japan
 
 
 jmaFetcher :: Fetcher
 jmaFetcher = Fetcher "JMA" fetchJma (map fst cities)
 
-cities = undefined
+-- TODO: Use real city coordinates
+cities :: [(Location, (Int, Int))]
+cities = [ (loc "Tokyo" "Tokyo", (324, 212))
+         ]
+             where loc = Location "Japan"
 
 {-
 JMA UV index page: http://www.jma.go.jp/en/uv/
@@ -59,16 +63,13 @@ TODO: Is live data limited to 08:00-16:00, or does this depend on the UV level?
 fetchJma :: AppM [Forecast]
 fetchJma = undefined
 
-jst :: TimeZoneSeries
-jst = $(loadTZFile "/usr/share/zoneinfo/Asia/Tokyo")
-
 imageName :: UTCTime -> Int -> String
 imageName now index = urlBase ++
     zeroPad 4 year ++ zeroPad 2 month ++ zeroPad 2 day ++
     zeroPad 2 fcHour ++ "00-" ++ zeroPad 2 index ++ ".png"
         where zeroPad n val = take (n - length str) (repeat '0') ++ str
                   where str = show val
-              LocalTime date time = utcToLocalTime' jst now
+              LocalTime date time = utcToLocalTime' japanTZ now
               TimeOfDay hour _ _ = time
               (fcDate, fcHour) = if hour < 6 then (addDays (-1) date, 18)
                                              else if hour < 18 then (date, 6)
