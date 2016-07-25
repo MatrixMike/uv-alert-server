@@ -50,16 +50,20 @@ spec = do
         img7 <- testImage 7
         context "on clear pixels" $ do
             it "returns the correct UV level" $ do
-                imageUVLevel 322 203 img1 `shouldBe` Just (UVLevel 0)
-                imageUVLevel 279 213 img1 `shouldBe` Just (UVLevel 1)
-                imageUVLevel 323 214 img4 `shouldBe` Just (UVLevel 2)
-                imageUVLevel 107 280 img4 `shouldBe` Just (UVLevel 3)
-                imageUVLevel 330 194 img4 `shouldBe` Just (UVLevel 4)
-                imageUVLevel 290 173 img4 `shouldBe` Just (UVLevel 6)
-                imageUVLevel 286 199 img4 `shouldBe` Just (UVLevel 7)
-                imageUVLevel 303 206 img4 `shouldBe` Just (UVLevel 8)
-                imageUVLevel 240 221 img6 `shouldBe` Just (UVLevel 9)
-                imageUVLevel 160 258 img6 `shouldBe` Just (UVLevel 10)
-                imageUVLevel 137 322 img6 `shouldBe` Just (UVLevel 11)
-                imageUVLevel  63 426 img7 `shouldBe` Just (UVLevel 12)
+                imageUVLevel (ImageCoord 322 203) img1 `shouldBe` Just (UVLevel 0)
+                imageUVLevel (ImageCoord 279 213) img1 `shouldBe` Just (UVLevel 1)
+                imageUVLevel (ImageCoord 323 214) img4 `shouldBe` Just (UVLevel 2)
+                imageUVLevel (ImageCoord 107 280) img4 `shouldBe` Just (UVLevel 3)
+                imageUVLevel (ImageCoord 330 194) img4 `shouldBe` Just (UVLevel 4)
+                imageUVLevel (ImageCoord 290 173) img4 `shouldBe` Just (UVLevel 6)
+                imageUVLevel (ImageCoord 286 199) img4 `shouldBe` Just (UVLevel 7)
+                imageUVLevel (ImageCoord 303 206) img4 `shouldBe` Just (UVLevel 8)
+                imageUVLevel (ImageCoord 240 221) img6 `shouldBe` Just (UVLevel 9)
+                imageUVLevel (ImageCoord 160 258) img6 `shouldBe` Just (UVLevel 10)
+                imageUVLevel (ImageCoord 137 322) img6 `shouldBe` Just (UVLevel 11)
+                imageUVLevel (ImageCoord  63 426) img7 `shouldBe` Just (UVLevel 12)
                 -- TODO: No 13 on test images
+        context "on black pixels" $ do
+            it "returns the nearest UV level" $ do
+                imageUVLevel (ImageCoord 211 244) img4 `shouldBe` Just (UVLevel 6)
+                imageUVLevel (ImageCoord 200 242) img6 `shouldBe` Just (UVLevel 5)

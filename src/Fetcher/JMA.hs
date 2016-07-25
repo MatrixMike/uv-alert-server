@@ -3,8 +3,11 @@ module Fetcher.JMA where
 {- Fetch UV alert data from Japan Meteorological Agency. -}
 
 import Codec.Picture
+import Codec.Picture.Types
 
+import Data.List
 import qualified Data.Map as M
+import Data.Maybe
 import Data.Time
 import Data.Time.LocalTime.TimeZone.Series
 
@@ -18,9 +21,12 @@ import Types.Location.Japan
 jmaFetcher :: Fetcher
 jmaFetcher = Fetcher "JMA" fetchJma (map fst cities)
 
+data ImageCoord = ImageCoord { icX :: Int, icY :: Int }
+
 -- TODO: Use real city coordinates
-cities :: [(Location, (Int, Int))]
-cities = [ (loc "Tokyo" "Tokyo", (324, 212))
+cities :: [(Location, ImageCoord)]
+cities = [ (loc "Tokyo" "Tokyo", ImageCoord 324 212)
+         , (loc "Hiroshima" "Hiroshima", ImageCoord 192 238)
          ]
              where loc = Location "Japan"
 
@@ -77,8 +83,8 @@ imageName now index = urlBase ++
               (year, month, day) = toGregorian fcDate
               urlBase = "http://www.jma.go.jp/en/uv/imgs/uv_color/forecast/000/"
 
-imageUVLevel :: Int -> Int -> DynamicImage -> Maybe UVLevel
-imageUVLevel x y (ImageRGB8 image) = M.lookup (pixelAt image x y) levels
+imageUVLevelExact :: ImageCoord -> DynamicImage -> Maybe UVLevel
+imageUVLevelExact (ImageCoord x y) (ImageRGB8 image) = M.lookup (pixelAt image x y) levels
     where levels = M.fromList $ zip levelColors $ map UVLevel [0..]
           levelColors = [ PixelRGB8 255 255 255
                         , PixelRGB8 217 217 255
@@ -95,3 +101,45 @@ imageUVLevel x y (ImageRGB8 image) = M.lookup (pixelAt image x y) levels
                         , PixelRGB8 204   0 160
                         , PixelRGB8 204   0 204
                         ]
+
+maxDist :: Int
+maxDist = 10
+
+firstJust :: [Maybe a] -> Maybe a
+firstJust = listToMaybe . catMaybes
+
+-- Average the UV levels, if there's at least one present
+averageLevel :: [Maybe UVLevel] -> Maybe UVLevel
+averageLevel lvls = case catMaybes lvls of
+                      [] -> Nothing
+                      lvls' -> Just $ UVLevel $ round $ fromIntegral (sum (map _uvValue lvls')) / fromIntegral (length lvls')
+
+-- Some pixels on the map are always black (shorelines). Find the closest pixel
+-- that isn't and return its UV level.
+-- Don't stray too far
+imageUVLevel :: ImageCoord -> DynamicImage -> Maybe UVLevel
+imageUVLevel coo img = firstJust $ map averageLevel levels
+    where circles :: [[ImageCoord]]
+          circles = map (circleAround coo img) [0..maxDist]
+          levels :: [[Maybe UVLevel]]
+          levels = map (map (flip imageUVLevelExact img)) circles
+
+-- All points at most dist pixels away from the given point, sorted by distance
+-- to that point
+circleAround :: ImageCoord -> DynamicImage -> Int -> [ImageCoord]
+circleAround coo img dist = sortOn (distance coo) $ filter ((< (fromIntegral dist)) . distance coo) square
+    where square = [ImageCoord x y
+                   | x <- around (icX coo) dist
+                   , y <- around (icY coo) dist
+                   , x >= 0
+                   , y >= 0
+                   , x < dynamicMap imageWidth img
+                   , y < dynamicMap imageHeight img
+                   ]
+
+around val spread = [val - spread .. val + spread]
+
+distance :: ImageCoord -> ImageCoord -> Float
+distance c1 c2 = sqrt (dx * dx + dy * dy)
+    where dx = fromIntegral $ icX c1 - icX c2
+          dy = fromIntegral $ icY c1 - icY c2
