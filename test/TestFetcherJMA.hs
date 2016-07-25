@@ -67,3 +67,10 @@ spec = do
             it "returns the nearest UV level" $ do
                 imageUVLevel (ImageCoord 211 244) img4 `shouldBe` Just (UVLevel 6)
                 imageUVLevel (ImageCoord 200 242) img6 `shouldBe` Just (UVLevel 5)
+    describe "imageUVLevels" $ do
+        imgs <- testImages
+        it "returns the level series" $ do
+            imageUVLevels (ImageCoord 324 212) imgs `shouldBe`
+                Just (map UVLevel [0, 0, 1, 1, 2, 2, 2, 4, 3, 2, 1, 0, 0])
+            imageUVLevels (ImageCoord 192 238) imgs `shouldBe`
+                Just (map UVLevel [0, 1, 2, 4, 4, 5, 5, 5, 4, 3, 2, 1, 0])

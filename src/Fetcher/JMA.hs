@@ -143,3 +143,6 @@ distance :: ImageCoord -> ImageCoord -> Float
 distance c1 c2 = sqrt (dx * dx + dy * dy)
     where dx = fromIntegral $ icX c1 - icX c2
           dy = fromIntegral $ icY c1 - icY c2
+
+imageUVLevels :: ImageCoord -> [DynamicImage] -> Maybe [UVLevel]
+imageUVLevels coo = mapM (imageUVLevel coo)
