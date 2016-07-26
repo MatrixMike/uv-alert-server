@@ -12,5 +12,9 @@ maybeToEither :: e -> Maybe a -> Either e a
 maybeToEither e Nothing = Left e
 maybeToEither _ (Just a) = Right a
 
+maybeSplitHead :: [a] -> Maybe (a, [a])
+maybeSplitHead [] = Nothing
+maybeSplitHead (a:as) = Just (a, as)
+
 extrapolate :: Fractional a => (a, a) -> (a, a) -> a -> a
 extrapolate (a1, b1) (a2, b2) a = b1 + (b2 - b1) * (a - a1) / (a2 - a1)

@@ -98,8 +98,8 @@ spec = do
         it "calculates the maximum level" $
             fc ^. fcMaxLevel `shouldBe` UVLevel 4
         it "calculates the alert start time" $
-            fc ^. fcAlertStart `shouldSatisfy` (between (TimeOfDay 12 0 0) (TimeOfDay 12 30 0))
+            fc ^. fcAlertStart `shouldSatisfy` (between (TimeOfDay 12 25 0) (TimeOfDay 12 35 0))
         it "calculates the alert end time" $
-            fc ^. fcAlertEnd `shouldSatisfy` (between (TimeOfDay 13 15 0) (TimeOfDay 13 45 0))
+            fc ^. fcAlertEnd `shouldSatisfy` (between (TimeOfDay 13 55 0) (TimeOfDay 14 05 0))
         it "stores the updated time" $
             fc ^. fcUpdated `shouldBe` now

@@ -172,4 +172,7 @@ imageUVLevels :: ImageCoord -> [DynamicImage] -> Maybe [UVLevel]
 imageUVLevels coo = traverse (imageUVLevel coo)
 
 forecast :: UTCTime -> [(DynamicImage, UTCTime)] -> (Location, ImageCoord) -> Maybe Forecast
-forecast = undefined
+forecast time imagesTimes (loc, coo) = buildForecast loc time =<< measurements
+    where (images, times) = unzip imagesTimes
+          measurements :: Maybe [(UTCTime, UVLevel)]
+          measurements = zip times <$> (imageUVLevels coo images)
