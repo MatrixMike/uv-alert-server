@@ -17,6 +17,7 @@ import Types.Location
 import Test.Hspec
 
 import Images
+import Misc
 
 
 morningImage = "arpansa/mel_rt_morning.gif"
@@ -111,9 +112,6 @@ spec = do
         let Just test_date = fromGregorianValid 2016 01 01
         let test_time = secondsToDiffTime 0
         let testTime = UTCTime test_date test_time
-
-        let between :: Ord a => a -> a -> a -> Bool
-            between low high value = value > low && value < high
 
         context "for a morning image" $ do
             img <- loadImage morningImage

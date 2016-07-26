@@ -2,6 +2,7 @@ module Fetcher.Base where
 
 {- Base functions for all the UV level sources -}
 
+import Control.Monad
 import Control.Exception.Lifted
 
 import Network.HTTP.Client (HttpException)
@@ -10,16 +11,16 @@ import Types.Config
 import Types
 
 
-logErrorStr :: (Monoid a, Show c) => c -> String -> AppM a
+logErrorStr :: (MonadPlus m, Show c) => c -> String -> AppM (m a)
 logErrorStr context err = do
     logStr $ "Error fetching " ++ show context ++ ": " ++ err
-    return mempty
+    return mzero
 
-logIOError :: (Monoid a, Show c) => c -> IOError -> AppM a
+logIOError :: (MonadPlus m, Show c) => c -> IOError -> AppM (m a)
 logIOError context err = logErrorStr context (show err)
 
-logHttpError :: (Monoid a, Show c) => c -> HttpException -> AppM a
+logHttpError :: (MonadPlus m, Show c) => c -> HttpException -> AppM (m a)
 logHttpError context err = logErrorStr context (show err)
 
-logErrors :: (Monoid a, Show c) => c -> AppM a -> AppM a
+logErrors :: (MonadPlus m, Show c) => c -> AppM (m a) -> AppM (m a)
 logErrors context = handle (logIOError context) . handle (logHttpError context)

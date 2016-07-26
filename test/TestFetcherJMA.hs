@@ -1,15 +1,19 @@
 module TestFetcherJMA where
 
+import Control.Lens
+
 import Data.Time
 import Data.Time.LocalTime.TimeZone.Series
 
 import Fetcher.JMA
 import Types
+import Types.Location
 import Types.Location.Japan
 
 import Test.Hspec
 
 import Images
+import Misc
 
 
 testImageName i = "jma/201607220600-" ++ padShow i ++ ".png"
@@ -32,17 +36,22 @@ spec = do
         let Just date = fromGregorianValid 2016 05 20
         it "returns the expected UTC time" $ do
             japanTime date 09 30 `shouldBe` UTCTime date (timeOfDayToTime $ TimeOfDay 00 30 00)
-    describe "imageName" $ do
+    describe "imageNameTime" $ do
         let Just date = fromGregorianValid 2016 05 20
             testTime = japanTime date
+            Just yesterday = fromGregorianValid 2016 05 19
+            testTimeYesterday = japanTime yesterday
             expected baseName = "http://www.jma.go.jp/en/uv/imgs/uv_color/forecast/000/" ++ baseName ++ ".png"
         context "in the morning" $ do
             it "returns the last evening image name" $ do
-                imageName (testTime 03 00) 01 `shouldBe` expected "201605191800-01"
+                imageNameTime (testTime 03 11) 01 `shouldBe`
+                    (expected "201605191800-01", testTimeYesterday 18 00)
             it "returns the morning image name" $ do
-                imageName (testTime 08 00) 01 `shouldBe` expected "201605200600-01"
+                imageNameTime (testTime 08 25) 01 `shouldBe`
+                    (expected "201605200600-01", testTime 06 00)
             it "returns the evening image name" $ do
-                imageName (testTime 19 00) 01 `shouldBe` expected "201605201800-01"
+                imageNameTime (testTime 19 31) 01 `shouldBe`
+                    (expected "201605201800-01", testTime 18 00)
     describe "imageUVLevel" $ do
         img1 <- testImage 1
         img4 <- testImage 4
@@ -74,3 +83,23 @@ spec = do
                 Just (map UVLevel [0, 0, 1, 1, 2, 2, 2, 4, 3, 2, 1, 0, 0])
             imageUVLevels (ImageCoord 192 238) imgs `shouldBe`
                 Just (map UVLevel [0, 1, 2, 4, 4, 5, 5, 5, 4, 3, 2, 1, 0])
+    describe "forecast" $ do
+        imgs <- testImages
+        let Just date = fromGregorianValid 2016 05 20
+        let times = map (\hour -> japanTime date hour 00) [6..18]
+        let loc = Location "Japan" "Tokyo" "Tokyo"
+        let coord = ImageCoord 324 212
+        let now = japanTime date 03 04
+        let Just fc = forecast now (zip imgs times) (loc, coord)
+        it "has the specified location" $
+            fc ^. fcLocation `shouldBe` loc
+        it "stores the day" $
+            fc ^. fcDate `shouldBe` date
+        it "calculates the maximum level" $
+            fc ^. fcMaxLevel `shouldBe` UVLevel 4
+        it "calculates the alert start time" $
+            fc ^. fcAlertStart `shouldSatisfy` (between (TimeOfDay 12 0 0) (TimeOfDay 12 30 0))
+        it "calculates the alert end time" $
+            fc ^. fcAlertEnd `shouldSatisfy` (between (TimeOfDay 13 15 0) (TimeOfDay 13 45 0))
+        it "stores the updated time" $
+            fc ^. fcUpdated `shouldBe` now

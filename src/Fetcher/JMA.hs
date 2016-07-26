@@ -5,13 +5,20 @@ module Fetcher.JMA where
 import Codec.Picture
 import Codec.Picture.Types
 
+import Control.Monad
+import Control.Monad.IO.Class
+
 import Data.List
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Time
 import Data.Time.LocalTime.TimeZone.Series
 
+import Network.HTTP.Client
+import Network.HTTP.Client.TLS
+
 import Fetcher.Base
+import Fetcher.HTTP
 import Types
 import Types.Config
 import Types.Location
@@ -67,21 +74,38 @@ TODO: Is live data limited to 08:00-16:00, or does this depend on the UV level?
 -}
 
 fetchJma :: AppM [Forecast]
-fetchJma = undefined
+fetchJma = do
+    manager <- liftIO $ newManager tlsManagerSettings
+    time <- liftIO getCurrentTime
+    images <- forM (map (imageNameTime time) imageRange) $
+        \(address, imgTime) -> logErrors address $ do
+             imgBytes <- fetchHTTP manager address
+             case decodeImage imgBytes of
+               Left err -> do
+                   logStr err
+                   return Nothing
+               Right img -> return $ Just (img, imgTime)
+    case sequence images of
+      Nothing -> return []
+      Just images' -> return $ catMaybes $ map (forecast time images') cities
 
-imageName :: UTCTime -> Int -> String
-imageName now index = urlBase ++
-    zeroPad 4 year ++ zeroPad 2 month ++ zeroPad 2 day ++
-    zeroPad 2 fcHour ++ "00-" ++ zeroPad 2 index ++ ".png"
-        where zeroPad n val = take (n - length str) (repeat '0') ++ str
-                  where str = show val
-              LocalTime date time = utcToLocalTime' japanTZ now
-              TimeOfDay hour _ _ = time
-              (fcDate, fcHour) = if hour < 6 then (addDays (-1) date, 18)
-                                             else if hour < 18 then (date, 6)
-                                             else (date, 18)
-              (year, month, day) = toGregorian fcDate
-              urlBase = "http://www.jma.go.jp/en/uv/imgs/uv_color/forecast/000/"
+imageRange :: [Int]
+imageRange = [0..12]
+
+imageNameTime :: UTCTime -> Int -> (String, UTCTime)
+imageNameTime now index = (url, fcTime)
+    where url = urlBase ++ zeroPad 4 year ++ zp2 month ++ zp2 day ++ zp2 fcHour ++ "00-" ++ zp2 index ++ ".png"
+          zeroPad n val = take (n - length str) (repeat '0') ++ str
+              where str = show val
+          zp2 = zeroPad 2
+          LocalTime date time = utcToLocalTime' japanTZ now
+          TimeOfDay hour _ _ = time
+          (fcDate, fcHour) = if hour < 6 then (addDays (-1) date, 18)
+                                         else if hour < 18 then (date, 6)
+                                         else (date, 18)
+          (year, month, day) = toGregorian fcDate
+          fcTime = localTimeToUTC' japanTZ $ LocalTime fcDate $ TimeOfDay fcHour 0 0
+          urlBase = "http://www.jma.go.jp/en/uv/imgs/uv_color/forecast/000/"
 
 imageUVLevelExact :: ImageCoord -> DynamicImage -> Maybe UVLevel
 imageUVLevelExact (ImageCoord x y) (ImageRGB8 image) = M.lookup (pixelAt image x y) levels
@@ -145,4 +169,7 @@ distance c1 c2 = sqrt (dx * dx + dy * dy)
           dy = fromIntegral $ icY c1 - icY c2
 
 imageUVLevels :: ImageCoord -> [DynamicImage] -> Maybe [UVLevel]
-imageUVLevels coo = mapM (imageUVLevel coo)
+imageUVLevels coo = traverse (imageUVLevel coo)
+
+forecast :: UTCTime -> [(DynamicImage, UTCTime)] -> (Location, ImageCoord) -> Maybe Forecast
+forecast = undefined
