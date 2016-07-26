@@ -99,11 +99,14 @@ test-suite uv-alert-server-test
                      , transformers
                      , vector
                      , wai
-  other-modules:       Integration.Base
+  other-modules:       Images
+                     , Integration.Base
                      , Integration.TestLocations
+                     , Misc
                      , TestFetcher
                      , TestFetcherArpansa
                      , TestFetcherEPA
+                     , TestFetcherJMA
                      , TestUtils
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
