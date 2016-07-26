@@ -87,24 +87,28 @@ fetchJma = do
                Right img -> return $ Just (img, imgTime)
     case sequence images of
       Nothing -> return []
-      Just images' -> return $ catMaybes $ map (forecast time images') cities
+      Just images' -> do
+          return $ catMaybes $ map (forecast time images') cities
 
 imageRange :: [Int]
 imageRange = [0..12]
 
 imageNameTime :: UTCTime -> Int -> (String, UTCTime)
 imageNameTime now index = (url, fcTime)
-    where url = urlBase ++ zeroPad 4 year ++ zp2 month ++ zp2 day ++ zp2 fcHour ++ "00-" ++ zp2 index ++ ".png"
+    where url = urlBase ++ zeroPad 4 year ++ zp2 month ++ zp2 day ++
+                zp2 fcUpdatedHour ++ "00-" ++ zp2 index ++ ".png"
           zeroPad n val = take (n - length str) (repeat '0') ++ str
               where str = show val
           zp2 = zeroPad 2
           LocalTime date time = utcToLocalTime' japanTZ now
           TimeOfDay hour _ _ = time
-          (fcDate, fcHour) = if hour < 6 then (addDays (-1) date, 18)
-                                         else if hour < 18 then (date, 6)
-                                         else (date, 18)
-          (year, month, day) = toGregorian fcDate
-          fcTime = localTimeToUTC' japanTZ $ LocalTime fcDate $ TimeOfDay fcHour 0 0
+          (fcUpdatedDate, fcUpdatedHour) = if hour < 6 then (addDays (-1) date, 18)
+                                                       else if hour < 18 then (date, 6)
+                                                       else (date, 18)
+          (year, month, day) = toGregorian fcUpdatedDate
+          fcEffectiveDate = if hour < 18 then date else addDays 1 date
+          fcEffectiveHour = index + 6
+          fcTime = localTimeToUTC' japanTZ $ LocalTime fcEffectiveDate $ TimeOfDay fcEffectiveHour 0 0
           urlBase = "http://www.jma.go.jp/en/uv/imgs/uv_color/forecast/000/"
 
 imageUVLevelExact :: ImageCoord -> DynamicImage -> Maybe UVLevel

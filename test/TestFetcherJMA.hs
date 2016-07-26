@@ -39,19 +39,19 @@ spec = do
     describe "imageNameTime" $ do
         let Just date = fromGregorianValid 2016 05 20
             testTime = japanTime date
-            Just yesterday = fromGregorianValid 2016 05 19
-            testTimeYesterday = japanTime yesterday
+            Just tomorrow = fromGregorianValid 2016 05 21
+            testTimeTomorrow = japanTime tomorrow
             expected baseName = "http://www.jma.go.jp/en/uv/imgs/uv_color/forecast/000/" ++ baseName ++ ".png"
         context "in the morning" $ do
             it "returns the last evening image name" $ do
                 imageNameTime (testTime 03 11) 01 `shouldBe`
-                    (expected "201605191800-01", testTimeYesterday 18 00)
+                    (expected "201605191800-01", testTime 07 00)
             it "returns the morning image name" $ do
-                imageNameTime (testTime 08 25) 01 `shouldBe`
-                    (expected "201605200600-01", testTime 06 00)
+                imageNameTime (testTime 08 25) 02 `shouldBe`
+                    (expected "201605200600-02", testTime 08 00)
             it "returns the evening image name" $ do
-                imageNameTime (testTime 19 31) 01 `shouldBe`
-                    (expected "201605201800-01", testTime 18 00)
+                imageNameTime (testTime 19 31) 03 `shouldBe`
+                    (expected "201605201800-03", testTimeTomorrow 09 00)
     describe "imageUVLevel" $ do
         img1 <- testImage 1
         img4 <- testImage 4
