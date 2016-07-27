@@ -6,6 +6,7 @@ import Data.Time
 import Data.Time.LocalTime.TimeZone.Series
 
 import Fetcher.JMA
+import Fetcher.JMA.Cities
 import Types
 import Types.Location
 import Types.Location.Japan
@@ -88,7 +89,7 @@ spec = do
         let Just date = fromGregorianValid 2016 05 20
         let times = map (\hour -> japanTime date hour 00) [6..18]
         let loc = Location "Japan" "Tokyo" "Tokyo"
-        let coord = ImageCoord 324 212
+        let coord = latlon 35.683333 139.683333
         let now = japanTime date 03 04
         let Just fc = forecast now (zip imgs times) (loc, coord)
         it "has the specified location" $
@@ -103,3 +104,10 @@ spec = do
             fc ^. fcAlertEnd `shouldSatisfy` (between (TimeOfDay 13 55 0) (TimeOfDay 14 05 0))
         it "stores the updated time" $
             fc ^. fcUpdated `shouldBe` now
+    describe "imageCoord" $ do
+        it "finds Tokyo" $ do
+            let tokyo = latlon 35.683333 139.683333
+            imageCoord tokyo `shouldBe` ImageCoord 324 213
+        it "finds Hiroshima" $ do
+            let hiroshima = latlon 34.385278 132.455278
+            imageCoord hiroshima `shouldBe` ImageCoord 191 239

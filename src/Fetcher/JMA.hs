@@ -19,6 +19,7 @@ import Network.HTTP.Client.TLS
 
 import Fetcher.Base
 import Fetcher.HTTP
+import Fetcher.JMA.Cities
 import Types
 import Types.Config
 import Types.Location
@@ -27,15 +28,6 @@ import Types.Location.Japan
 
 jmaFetcher :: Fetcher
 jmaFetcher = Fetcher "JMA" fetchJma (map fst cities)
-
-data ImageCoord = ImageCoord { icX :: Int, icY :: Int }
-
--- TODO: Use real city coordinates
-cities :: [(Location, ImageCoord)]
-cities = [ (loc "Tokyo" "Tokyo", ImageCoord 324 212)
-         , (loc "Hiroshima" "Hiroshima", ImageCoord 192 238)
-         ]
-             where loc = Location "Japan"
 
 {-
 JMA UV index page: http://www.jma.go.jp/en/uv/
@@ -176,8 +168,9 @@ distance c1 c2 = sqrt (dx * dx + dy * dy)
 imageUVLevels :: ImageCoord -> [DynamicImage] -> Maybe [UVLevel]
 imageUVLevels coo = traverse (imageUVLevel coo)
 
-forecast :: UTCTime -> [(DynamicImage, UTCTime)] -> (Location, ImageCoord) -> Maybe Forecast
-forecast time imagesTimes (loc, coo) = buildForecast loc time =<< measurements
+forecast :: UTCTime -> [(DynamicImage, UTCTime)] -> (Location, LonLat) -> Maybe Forecast
+forecast time imagesTimes (loc, lonlat) = buildForecast loc time =<< measurements
     where (images, times) = unzip imagesTimes
           measurements :: Maybe [(UTCTime, UVLevel)]
           measurements = zip times <$> (imageUVLevels coo images)
+          coo = imageCoord lonlat

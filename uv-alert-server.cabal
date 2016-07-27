@@ -27,6 +27,7 @@ library
                      , Fetcher.EPA
                      , Fetcher.EPA.Cities
                      , Fetcher.JMA
+                     , Fetcher.JMA.Cities
                      , Fetcher.HTTP
                      , Pebble.Client
                      , Pebble.Types
