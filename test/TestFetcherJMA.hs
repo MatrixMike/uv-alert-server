@@ -110,4 +110,7 @@ spec = do
             imageCoord tokyo `shouldBe` ImageCoord 324 213
         it "finds Hiroshima" $ do
             let hiroshima = latlon 34.385278 132.455278
-            imageCoord hiroshima `shouldBe` ImageCoord 191 239
+            imageCoord hiroshima `shouldBe` ImageCoord 191 240
+        it "find Sapporo" $ do
+            let sapporo = latlon 43.066667 141.35
+            imageCoord sapporo `shouldBe` ImageCoord 355 64
