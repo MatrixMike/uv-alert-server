@@ -146,5 +146,6 @@ cities = [ (loc "Tokyo" "Tokyo", latlon 35.683333 139.683333)
          , (loc "Kakogawa" "Hyōgo", latlon 34.756943 134.84138)
          , (loc "Takarazuka" "Hyōgo", latlon 34.8 135.36028)
          -- Cities (市)
+         -- Too many of them and probably close to big cities anyway
          ]
              where loc = Location "Japan"
