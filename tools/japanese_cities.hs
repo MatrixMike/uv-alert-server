@@ -9,6 +9,8 @@
 
 import Network.HTTP.Client
 
+import Control.Monad
+
 import Data.Aeson
 import Data.String
 import qualified Data.Map as M
@@ -125,9 +127,25 @@ city :: QID -> IO City
 city qid = do
     cityEntity <- entity qid
     let [Success location] = map wpParse $ weProperties cityEntity ! "P625"
-    let [Success (LocatedIn prefectureID)] = map wpParse $ weProperties cityEntity ! "P131"
-    prefectureEntity <- entity prefectureID
-    return $ City (weName cityEntity) (weName prefectureEntity) location
+    let areaIDs = [aID | Success (LocatedIn aID) <- map wpParse $ weProperties cityEntity ! "P131"]
+    areaEntities <- mapM entity areaIDs
+    let prefectureName = findPrefecture (map weName areaEntities)
+    return $ City (weName cityEntity) prefectureName location
+
+findPrefecture :: [Text] -> Text
+findPrefecture areas = case filter (isPrefecture . T.toLower) areas of
+                         [prefecture] -> prefecture
+                         _ -> error $ "Cannot choose prefecture among: " ++ (T.unpack $ T.intercalate ", " areas) ++ "."
+    where isPrefecture = T.isInfixOf "prefecture"
+
+cityRepr :: City -> String
+cityRepr city = "         , (loc \"" ++ name ++ "\" \"" ++ pref ++ "\", latlon " ++ show lat ++ " " ++ show lon ++ ")"
+    where
+        name = T.unpack $ cName city
+        pref = T.unpack $ fixPrefecture $ cPrefectureName city
+        lat = lLat $ cLocation city
+        lon = lLon $ cLocation city
+        fixPrefecture = T.replace " Prefecture" "" . T.replace " Subprefecture" ""
 
 governmentOrdnanceCities :: QID
 governmentOrdnanceCities = Q 1749269
@@ -143,6 +161,6 @@ cities = Q 494721
 
 main :: IO ()
 main = do
-    gocs <- inCategory governmentOrdnanceCities
-    cities <- mapM city gocs
-    print cities
+    cityIDs <- inCategory specialCities
+    cities <- mapM city cityIDs
+    forM_ cities $ putStrLn . cityRepr
