@@ -14,7 +14,7 @@ import qualified Data.Vector as V
 import Servant
 
 
-data Pin = Pin { pinId :: String
+data Pin = Pin { pinId :: T.Text
                , pinTime :: UTCTime
                , pinDuration :: Maybe Int  -- minutes
                , pinCreateNotification :: Maybe Notification
@@ -142,10 +142,10 @@ data APIKey = APIKey String
 instance ToHttpApiData APIKey where
     toUrlPiece (APIKey key) = T.pack key
 
-data Topics = Topics [String]
+data Topics = Topics [T.Text]
 
 instance ToHttpApiData Topics where
-    toUrlPiece (Topics topics) = T.pack $ intercalate "," topics
+    toUrlPiece (Topics topics) = T.intercalate "," topics
 
 instance FromJSON Topics where
     parseJSON (Object v) = do
