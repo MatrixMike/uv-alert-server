@@ -88,20 +88,22 @@ forecastPin fc = [ Pin { pinId = pinId `T.append` "start"
         endLayout = baseLayout { layoutTitle = "UV Alert end"
                                , layoutTinyIcon = Just "system://images/TIMELINE_SUN"
                                }
-        pinId = normalizeValue $ T.pack $ fc ^. fcLocation . locCity ++ show (fc ^. fcDate)
+        pinId = normalizeValue $ (fc ^. fcLocation . to locationId) `T.append` (fc ^. fcDate . to show . packed)
 
 -- Initially the application only supported Australia, so city in the topic was
 -- sufficient. Have to maintain for backwards compatibility
 forecastTopics :: Forecast -> Topics
 forecastTopics forecast = Topics $ [locTopic] ++ [legacyTopic | country == "Australia"]
     where legacyTopic = normalizeValue city
-          locTopic = normalizeValue $ T.intercalate "-" [ "v2"
-                                                      , country
-                                                      , region
-                                                      , city
-                                                      ]
+          locTopic = normalizeValue $ "v2-" `T.append` (forecast ^. fcLocation . to locationId)
           loc = forecast ^. fcLocation
-          country = loc ^. locCountry . packed
+          country = loc ^. locCountry . packed :: T.Text
+          city = loc ^. locCity . packed
+
+-- String to identify locations in pin IDs and topic names
+locationId :: Location -> T.Text
+locationId loc = T.intercalate "-" [country, region, city]
+    where country = loc ^. locCountry . packed
           region = loc ^. locRegion . packed
           city = loc ^. locCity . packed
 
