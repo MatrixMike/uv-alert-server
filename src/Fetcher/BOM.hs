@@ -49,9 +49,6 @@ fetchLines uri = liftIO $ do
     (content, _) <- getbinary conn $ uriPath uri
     return content
 
-fetchTestContent :: MonadIO m => m String
-fetchTestContent = liftIO $ readFile "src/IDYGP007.txt"
-
 -- FIXME: BOM fetcher doesn't have a list of locations
 bomFetchers :: [Fetcher]
 bomFetchers = [ Fetcher "BOM today" (fetchBOM todayAddress) []
