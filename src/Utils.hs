@@ -1,5 +1,9 @@
 module Utils where
 
+import Data.Char
+import qualified Data.Text as T
+import Data.Text.ICU.Normalize
+
 readEither :: Read a => e -> String -> Either e a
 readEither err str = case reads str of
     [(res, "")] -> Right res
@@ -18,3 +22,6 @@ maybeSplitHead (a:as) = Just (a, as)
 
 extrapolate :: Fractional a => (a, a) -> (a, a) -> a -> a
 extrapolate (a1, b1) (a2, b2) a = b1 + (b2 - b1) * (a - a1) / (a2 - a1)
+
+removeAccents :: T.Text -> T.Text
+removeAccents = T.filter (not . isMark) . normalize NFD

@@ -60,6 +60,7 @@ library
                      , servant-server
                      , split
                      , text
+                     , text-icu
                      , time
                      , timezone-olson
                      , timezone-olson-th
