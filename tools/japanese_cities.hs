@@ -139,12 +139,13 @@ findPrefecture areas = case filter (isPrefecture . T.toLower) areas of
     where isPrefecture = T.isInfixOf "prefecture"
 
 cityRepr :: City -> String
-cityRepr city = "         , (loc \"" ++ name ++ "\" \"" ++ pref ++ "\", latlon " ++ show lat ++ " " ++ show lon ++ ")"
+cityRepr city = "         , (loc \"" ++ pref ++ "\" \"" ++ name ++ "\", latlon " ++ show lat ++ " " ++ show lon ++ ")"
     where
-        name = T.unpack $ cName city
+        name = fixName $ T.unpack $ cName city
         pref = T.unpack $ fixPrefecture $ cPrefectureName city
         lat = lLat $ cLocation city
         lon = lLon $ cLocation city
+        fixName = T.replace " City" ""
         fixPrefecture = T.replace " Prefecture" "" . T.replace " Subprefecture" ""
 
 governmentOrdnanceCities :: QID
