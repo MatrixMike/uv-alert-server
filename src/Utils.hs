@@ -1,3 +1,4 @@
+{-# Language OverloadedStrings #-}
 module Utils where
 
 import Data.Char
@@ -25,3 +26,7 @@ extrapolate (a1, b1) (a2, b2) a = b1 + (b2 - b1) * (a - a1) / (a2 - a1)
 
 removeAccents :: T.Text -> T.Text
 removeAccents = T.filter (not . isMark) . normalize NFD
+
+-- Replace characters not allowed in Pebble pin IDs and topic names
+normalizeValue :: T.Text -> T.Text
+normalizeValue = T.replace " " "_" . removeAccents

@@ -88,28 +88,17 @@ forecastPin fc = [ Pin { pinId = pinId `T.append` "start"
         endLayout = baseLayout { layoutTitle = "UV Alert end"
                                , layoutTinyIcon = Just "system://images/TIMELINE_SUN"
                                }
-        pinId = normalizeValue $ (fc ^. fcLocation . to locationId) `T.append` (fc ^. fcDate . to show . packed)
+        pinId = normalizeValue $ (fc ^. fcLocation . locId) `T.append` (fc ^. fcDate . to show . packed)
 
 -- Initially the application only supported Australia, so city in the topic was
 -- sufficient. Have to maintain for backwards compatibility
 forecastTopics :: Forecast -> Topics
 forecastTopics forecast = Topics $ [locTopic] ++ [legacyTopic | country == "Australia"]
     where legacyTopic = normalizeValue city
-          locTopic = normalizeValue $ "v2-" `T.append` (forecast ^. fcLocation . to locationId)
+          locTopic = "v2-" `T.append` (forecast ^. fcLocation . locId)
           loc = forecast ^. fcLocation
           country = loc ^. locCountry . packed :: T.Text
           city = loc ^. locCity . packed
-
--- String to identify locations in pin IDs and topic names
-locationId :: Location -> T.Text
-locationId loc = T.intercalate "-" [country, region, city]
-    where country = loc ^. locCountry . packed
-          region = loc ^. locRegion . packed
-          city = loc ^. locCity . packed
-
--- Replace characters not allowed in Pebble pin IDs and topic names
-normalizeValue :: T.Text -> T.Text
-normalizeValue = T.replace " " "_" . removeAccents
 
 showTime :: TimeOfDay -> String
 showTime = take 5 . show
