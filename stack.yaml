@@ -1,6 +1,13 @@
 resolver: lts-6.7
 packages:
 - '.'
+- location:
+    git: https://github.com/koterpillar/hspec-wai.git
+    commit: bcd4fa618473479aae7e5961583419e46f524167
+  subdirs:
+    - .
+    - hspec-wai-json
+  extra-dep: true
 extra-deps:
   - ftphs-1.0.9.1
   - timezone-olson-th-0.1.0.1
