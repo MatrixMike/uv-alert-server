@@ -16,7 +16,6 @@ import System.Environment
 import Fetcher
 import Fetcher.Arpansa
 import Fetcher.EPA
-import Fetcher.JMA
 import Types
 import Types.Config
 
@@ -24,7 +23,7 @@ import Pebble.Types
 
 
 defaultFetchers :: [Fetcher]
-defaultFetchers = [arpansaFetcher, epaFetcher, jmaFetcher]
+defaultFetchers = [arpansaFetcher, epaFetcher]
 
 initConfig :: IO Config
 initConfig = do
