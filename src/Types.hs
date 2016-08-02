@@ -22,6 +22,7 @@ import GHC.Generics (Generic)
 import Servant
 
 import Types.Location
+import Utils
 
 
 -- Supplementary types
@@ -87,6 +88,48 @@ fcAge now fc = fromRational $ toRational $ diffUTCTime now $ fcStartTimeUtc fc
 
 isRecent :: UTCTime -> Forecast -> Bool
 isRecent now fc = fcAge now fc < (60 * 60 * 24)
+
+-- Build a forecast from a number of measurements
+buildForecast :: Location -> UTCTime -> [(UTCTime, UVLevel)] -> Maybe Forecast
+buildForecast _ _ [] = Nothing
+buildForecast location updated items@(firstItem:_) = do
+    let tz = locTZ location
+    let localDayTime = localTimeOfDay . utcToLocalTime' tz
+    let levels = map snd items
+    let maxlevel = maximum levels
+    guard $ isDangerous maxlevel
+    let firstTime = fst firstItem
+    astart <- liftM (flip addHours firstTime) (firstAlertTime levels)
+    aend <- liftM (flip addHours firstTime) (lastAlertTime levels)
+    return Forecast { _fcLocation = location
+                    , _fcDate = utctDay astart
+                    , _fcAlertStart = localDayTime astart
+                    , _fcAlertEnd = localDayTime aend
+                    , _fcMaxLevel = maxlevel
+                    , _fcUpdated = updated
+                    }
+
+addHours :: Float -> UTCTime -> UTCTime
+addHours hours = addUTCTime $ fromRational $ toRational $ hours * 60 * 60
+
+firstAlertTime :: [UVLevel] -> Maybe Float
+firstAlertTime ls = do
+    (l1, ls') <- maybeSplitHead ls
+    if isDangerous l1 then return 0 else do
+        (l2, _) <- maybeSplitHead ls'
+        if isDangerous l2 then return $ extrapolateUV l1 l2
+                            else do
+                                alertTime <- firstAlertTime ls'
+                                return $ alertTime + 1
+
+lastAlertTime :: [UVLevel] -> Maybe Float
+lastAlertTime ls = do
+    alertTime <- firstAlertTime $ reverse ls
+    return $ fromInteger (toInteger (length ls - 1)) - alertTime
+
+extrapolateUV :: UVLevel -> UVLevel -> Float
+extrapolateUV v1 v2 = extrapolate (uvToFloat v1, 0) (uvToFloat v2, 1) (uvToFloat alertLevel)
+    where uvToFloat v = v ^. uvValue . to toInteger . to fromInteger
 
 data AppKey = AppKey { akKey :: String }
 

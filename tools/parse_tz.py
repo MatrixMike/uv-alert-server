@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+"""
+Look up timezones of USA cities.
+"""
 
 import json
 import re

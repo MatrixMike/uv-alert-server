@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# Language RecordWildCards #-}
 module Pusher where
 
@@ -8,6 +9,8 @@ import Control.Monad.Trans.Except
 
 import Data.List
 import Data.List.Utils
+import qualified Data.Text as T
+import Data.Text.Lens
 import Data.Time.LocalTime
 
 import Network.HTTP.Client
@@ -18,6 +21,7 @@ import Types.Config
 import Types.Location
 import Pebble.Client
 import Pebble.Types
+import Utils
 
 
 push :: AppM ()
@@ -43,7 +47,7 @@ putForecastPin manager forecast = do
             Right _ -> return ()
 
 forecastPin :: Forecast -> [Pin]
-forecastPin fc = [ Pin { pinId = pinId ++ "start"
+forecastPin fc = [ Pin { pinId = pinId `T.append` "start"
                        , pinTime = fcStartTimeUtc fc
                        , pinDuration = Nothing
                        , pinCreateNotification = Nothing
@@ -52,7 +56,7 @@ forecastPin fc = [ Pin { pinId = pinId ++ "start"
                        , pinReminders = []
                        , pinActions = []
                        }
-                 , Pin { pinId = pinId ++ "end"
+                 , Pin { pinId = pinId `T.append` "end"
                        , pinTime = fcEndTimeUtc fc
                        , pinDuration = Nothing
                        , pinCreateNotification = Nothing
@@ -84,25 +88,17 @@ forecastPin fc = [ Pin { pinId = pinId ++ "start"
         endLayout = baseLayout { layoutTitle = "UV Alert end"
                                , layoutTinyIcon = Just "system://images/TIMELINE_SUN"
                                }
-        pinId = replaceSpace $ fc ^. fcLocation . locCity ++ show (fc ^. fcDate)
+        pinId = normalizeValue $ (fc ^. fcLocation . locId) `T.append` (fc ^. fcDate . to show . packed)
 
 -- Initially the application only supported Australia, so city in the topic was
 -- sufficient. Have to maintain for backwards compatibility
 forecastTopics :: Forecast -> Topics
 forecastTopics forecast = Topics $ [locTopic] ++ [legacyTopic | country == "Australia"]
-    where legacyTopic = replaceSpace city
-          locTopic = replaceSpace $ intercalate "-" [ "v2"
-                                                    , country
-                                                    , region
-                                                    , city
-                                                    ]
+    where legacyTopic = normalizeValue city
+          locTopic = "v2-" `T.append` (forecast ^. fcLocation . locId)
           loc = forecast ^. fcLocation
-          country = loc ^. locCountry
-          region = loc ^. locRegion
-          city = loc ^. locCity
-
-replaceSpace :: String -> String
-replaceSpace = replace " " "_"
+          country = loc ^. locCountry . packed :: T.Text
+          city = loc ^. locCity . packed
 
 showTime :: TimeOfDay -> String
 showTime = take 5 . show

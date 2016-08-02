@@ -26,6 +26,8 @@ library
                      , Fetcher.BOM
                      , Fetcher.EPA
                      , Fetcher.EPA.Cities
+                     , Fetcher.JMA
+                     , Fetcher.JMA.Cities
                      , Fetcher.HTTP
                      , Pebble.Client
                      , Pebble.Types
@@ -35,6 +37,7 @@ library
                      , Types.Config
                      , Types.Location
                      , Types.Location.Australia
+                     , Types.Location.Japan
                      , Types.Location.USA
                      , Utils
   build-depends:       base >= 4.7 && < 5
@@ -46,6 +49,7 @@ library
                      , JuicyPixels
                      , http-client
                      , http-client-tls
+                     , http-media
                      , lens
                      , lifted-base
                      , MissingH
@@ -57,6 +61,7 @@ library
                      , servant-server
                      , split
                      , text
+                     , text-icu
                      , time
                      , timezone-olson
                      , timezone-olson-th
@@ -93,14 +98,18 @@ test-suite uv-alert-server-test
                      , mtl
                      , text
                      , time
+                     , timezone-series
                      , transformers
                      , vector
                      , wai
-  other-modules:       Integration.Base
+  other-modules:       Images
+                     , Integration.Base
                      , Integration.TestLocations
+                     , Misc
                      , TestFetcher
                      , TestFetcherArpansa
                      , TestFetcherEPA
+                     , TestFetcherJMA
                      , TestUtils
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010

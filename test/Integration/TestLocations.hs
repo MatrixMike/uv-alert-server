@@ -24,6 +24,7 @@ spec = do
     config <- runIO testConfig
     let locations = [ Location "Australia" "Victoria" "Melbourne"
                     , Location "Australia" "New South Wales" "Sydney"
+                    , Location "Japan" "Hyōgo" "Himeji"
                     ]
     let testFetcher = Fetcher { fName = "test fetcher"
                               , fFetch = return []
@@ -34,10 +35,16 @@ spec = do
 
         describe "GET /locations" $ do
             it "responds with locations JSON" $ do
-                get "/locations" `shouldRespondWith` [json|[ { city: "Sydney"
+                get "/locations" `shouldRespondWith` [json|[ { id: "Australia-New_South_Wales-Sydney"
+                                                             , city: "Sydney"
                                                              , region: "New South Wales"
                                                              , country: "Australia"}
-                                                           , { city: "Melbourne"
+                                                           , { id: "Australia-Victoria-Melbourne"
+                                                             , city: "Melbourne"
                                                              , region: "Victoria"
                                                              , country: "Australia"}
+                                                           , { id: "Japan-Hyogo-Himeji"
+                                                             , city: "Himeji"
+                                                             , region: "Hyōgo"
+                                                             , country: "Japan"}
                                                            ]|]

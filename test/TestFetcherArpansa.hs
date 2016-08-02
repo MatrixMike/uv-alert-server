@@ -1,10 +1,7 @@
 module TestFetcherArpansa where
 
-import Codec.Picture
-
 import Control.Lens
 
-import qualified Data.ByteString as BS
 import qualified Data.Map as M
 import qualified Data.Set as S
 import Data.Time.Calendar
@@ -19,18 +16,16 @@ import Types.Location
 
 import Test.Hspec
 
+import Images
+import Misc
 
-loadImage imageName = do
-    bytes <- runIO $ BS.readFile $ "test/" ++ imageName
-    let (Right image) = decodeImage bytes
-    return image
 
-morningImage = "mel_rt_morning.gif"
-eveningImage = "mel_rt_evening.gif"
-noActualImage = "mel_rt_no_actual.gif"
-quietImage = "mel_rt_quiet.gif"
-perthMarch08Image = "per_rt_2016-03-08.gif"
-melMarch11Image = "mel_rt_2016-03-11.gif"
+morningImage = "arpansa/mel_rt_morning.gif"
+eveningImage = "arpansa/mel_rt_evening.gif"
+noActualImage = "arpansa/mel_rt_no_actual.gif"
+quietImage = "arpansa/mel_rt_quiet.gif"
+perthMarch08Image = "arpansa/per_rt_2016-03-08.gif"
+melMarch11Image = "arpansa/mel_rt_2016-03-11.gif"
 
 melbourne = Location "Australia" "Victoria" "Melbourne"
 
@@ -117,9 +112,6 @@ spec = do
         let Just test_date = fromGregorianValid 2016 01 01
         let test_time = secondsToDiffTime 0
         let testTime = UTCTime test_date test_time
-
-        let between :: Ord a => a -> a -> a -> Bool
-            between low high value = value > low && value < high
 
         context "for a morning image" $ do
             img <- loadImage morningImage

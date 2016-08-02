@@ -6,6 +6,7 @@ module Types.Location (
     locCountry,
     locRegion,
     locCity,
+    locId,
     locTZ,
 ) where
 
@@ -14,14 +15,17 @@ import Control.Lens hiding ((.=))
 import Data.Aeson
 import Data.Either
 import qualified Data.Text as T
+import Data.Text.Lens
 import Data.Time.LocalTime.TimeZone.Series
 
-import GHC.Generics
+import GHC.Generics hiding (to)
 
 import Servant
 
 import Types.Location.Australia
+import Types.Location.Japan
 import Types.Location.USA
+import Utils
 
 
 data Location = Location { _locCountry :: String
@@ -39,14 +43,26 @@ instance FromHttpApiData Location where
                                                               _ -> Left ""
         return $ Location country region city
 
+_locId :: Location -> T.Text
+_locId loc = normalizeValue $ T.intercalate "-" [ loc ^. locCountry . packed
+                                                , loc ^. locRegion . packed
+                                                , loc ^. locCity . packed
+                                                ]
+
+-- String to identify locations in pin IDs and topic names
+locId :: Getter Location T.Text
+locId = to _locId
+
 instance ToJSON Location where
     toJSON loc = object [ "country" .= (loc ^. locCountry)
                         , "region" .= (loc ^. locRegion)
                         , "city" .= (loc ^. locCity)
+                        , "id" .= (loc ^. locId . unpacked)
                         ]
 
 -- FIXME: disallow creating locations if the time zone is unknown
 locTZ :: Location -> TimeZoneSeries
 locTZ (Location "Australia" state _) = auStateTZ state
+locTZ (Location "Japan" _ _) = japanTZ
 locTZ loc@(Location "USA" state city) = usTZ city state
 locTZ loc = error $ "Unknown time zone for location " ++ show loc
