@@ -1,7 +1,6 @@
-language: haskell
-
-ghc:
-  - 7.8  # Only used for Cabal
+sudo: required
+dist: trusty
+language: generic
 
 before_install:
   - wget https://www.stackage.org/stack/linux-x86_64 -O stack.tar.gz
@@ -35,5 +34,3 @@ deploy:
   on:
     tags: true
     all_branches: true
-
-sudo: false
