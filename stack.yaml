@@ -3,7 +3,7 @@ packages:
 - '.'
 - location:
     git: https://github.com/koterpillar/hspec-wai.git
-    commit: bcd4fa618473479aae7e5961583419e46f524167
+    commit: f1a8469436bad842762034e2feabee387e9fb4de
   subdirs:
     - .
     - hspec-wai-json
