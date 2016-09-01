@@ -47,9 +47,11 @@ spec = do
             it "returns the last evening image name" $ do
                 imageNameTime (testTime 03 11) 01 `shouldBe`
                     (expected "201605191800-01", testTime 07 00)
+        context "during the day" $ do
             it "returns the morning image name" $ do
                 imageNameTime (testTime 08 25) 02 `shouldBe`
                     (expected "201605200600-02", testTime 08 00)
+        context "in the evening" $ do
             it "returns the evening image name" $ do
                 imageNameTime (testTime 19 31) 03 `shouldBe`
                     (expected "201605201800-03", testTimeTomorrow 09 00)

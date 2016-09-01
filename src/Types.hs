@@ -102,7 +102,7 @@ buildForecast location updated items@(firstItem:_) = do
     astart <- liftM (flip addHours firstTime) (firstAlertTime levels)
     aend <- liftM (flip addHours firstTime) (lastAlertTime levels)
     return Forecast { _fcLocation = location
-                    , _fcDate = utctDay astart
+                    , _fcDate = (localDay . utcToLocalTime' tz) astart
                     , _fcAlertStart = localDayTime astart
                     , _fcAlertEnd = localDayTime aend
                     , _fcMaxLevel = maxlevel

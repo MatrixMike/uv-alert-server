@@ -5,6 +5,7 @@ import qualified TestFetcher
 import qualified TestFetcherArpansa
 import qualified TestFetcherEPA
 import qualified TestFetcherJMA
+import qualified TestTypes
 import qualified TestUtils
 import qualified Integration.TestLocations
 
@@ -16,5 +17,6 @@ spec = do
     describe "TestFetcherArpansa" TestFetcherArpansa.spec
     describe "TestFetcherEPA" TestFetcherEPA.spec
     describe "TestFetcherJMA" TestFetcherJMA.spec
+    describe "TestTypes" TestTypes.spec
     describe "TestUtils" TestUtils.spec
     describe "Integration.TestLocations" Integration.TestLocations.spec
