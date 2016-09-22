@@ -3,12 +3,12 @@ packages:
 - '.'
 - location:
     git: https://github.com/koterpillar/hspec-wai.git
-    commit: f1a8469436bad842762034e2feabee387e9fb4de
+    commit: d54b928e04820b0f4e14a4686cc2838e8db6f980
   subdirs:
     - .
     - hspec-wai-json
   extra-dep: true
 extra-deps:
   - ftphs-1.0.9.1
-  - timezone-olson-th-0.1.0.1
+  - timezone-olson-th-0.1.0.2
 flags: {}
