@@ -83,7 +83,12 @@ parseForecast updated str = do
     tStart <- parseTime $ stringPart 64 5 str
     tEnd <- parseTime $ stringPart 73 5 str
     maxLevel <- liftM UVLevel $ readEither "UV level" $ stringPartT 84 3 str
-    return $ Forecast location date tStart tEnd maxLevel updated
+    return $ Forecast { _fcLocation = location
+                      , _fcDate = date
+                      , _fcAlerts = [Alert tStart tEnd]
+                      , _fcMaxLevel = maxLevel
+                      , _fcUpdated = updated
+                      }
 
 trim :: String -> String
 trim = trimStart . trimEnd

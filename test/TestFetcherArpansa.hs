@@ -123,10 +123,10 @@ spec = do
                 fc ^. fcDate `shouldBe` day
             it "calculates the maximum level" $ do
                 fc ^. fcMaxLevel `shouldBe` UVLevel 10
-            it "calculates the alert start time" $ do
-                fc ^. fcAlertStart `shouldSatisfy` (between (TimeOfDay 9 0 0) (TimeOfDay 9 30 0))
-            it "calculates the alert end time" $ do
-                fc ^. fcAlertEnd `shouldSatisfy` (between (TimeOfDay 17 40 0) (TimeOfDay 18 0 0))
+            it "calculates the alert times" $ do
+                let [alert] = fc ^. fcAlerts
+                alert ^. alertStart `shouldSatisfy` (between (TimeOfDay 9 0 0) (TimeOfDay 9 30 0))
+                alert ^. alertEnd `shouldSatisfy` (between (TimeOfDay 17 40 0) (TimeOfDay 18 0 0))
             it "stores the updated time" $ do
                 fc ^. fcUpdated `shouldBe` testTime
 
@@ -143,10 +143,10 @@ spec = do
                 fc ^. fcDate `shouldBe` day
             it "calculates the maximum level" $ do
                 fc ^. fcMaxLevel `shouldBe` UVLevel 12
-            it "calculates the alert start time" $ do
-                fc ^. fcAlertStart `shouldSatisfy` (between (TimeOfDay 11 0 0) (TimeOfDay 11 20 0))
-            it "calculates the alert end time" $ do
-                fc ^. fcAlertEnd `shouldSatisfy` (between (TimeOfDay 17 30 0) (TimeOfDay 17 50 0))
+            it "calculates the alert times" $ do
+                let [alert] = fc ^. fcAlerts
+                alert ^. alertStart `shouldSatisfy` (between (TimeOfDay 11 0 0) (TimeOfDay 11 20 0))
+                alert ^. alertEnd `shouldSatisfy` (between (TimeOfDay 17 30 0) (TimeOfDay 17 50 0))
             it "stores the updated time" $ do
                 fc ^. fcUpdated `shouldBe` testTime
 

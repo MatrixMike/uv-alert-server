@@ -88,8 +88,7 @@ parseGraph loc image updated = do
     let mlevel = maximum $ map snd graph
     return Forecast { _fcLocation = loc
                     , _fcDate = date
-                    , _fcAlertStart = astart
-                    , _fcAlertEnd = aend
+                    , _fcAlerts = [Alert astart aend]
                     , _fcMaxLevel = mlevel
                     , _fcUpdated = updated
                     }

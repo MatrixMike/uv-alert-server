@@ -26,7 +26,6 @@ import Utils
 
 
 -- Supplementary types
--- TODO: change them to something nicer
 
 data UVLevel = UVLevel { _uvValue :: Int }
     deriving (Eq, Ord, Show, Generic)
@@ -41,16 +40,21 @@ isDangerous = (>= alertLevel)
 instance ToJSON UVLevel where
     toJSON level = toJSON $ level ^. uvValue
 
-{-
-          10        20        30        40        50        60        70       80
-          *         *         *         *         *         *         *        *
-Index BoM    WMO  Location            DayMonYear  UV Alert period (local time)  UVI max
-0009 070014 94926 Canberra            26 09 2015  UV Alert from  8.50 to 15.00  Max:  7
--}
+-- | A single event of UV index exceeding the safe levels.
+data Alert = Alert
+    { _alertStart :: TimeOfDay
+    , _alertEnd :: TimeOfDay
+    } deriving (Eq, Ord, Show, Generic)
+makeLenses ''Alert
+
+instance ToJSON Alert where
+    toJSON alert = object [ "start" .= show (alert ^. alertStart)
+                          , "end" .= show (alert ^. alertEnd) ]
+
+-- | A list of all times the UV index is dangerous for the day.
 data Forecast = Forecast { _fcLocation :: Location
                          , _fcDate :: Day
-                         , _fcAlertStart :: TimeOfDay
-                         , _fcAlertEnd :: TimeOfDay
+                         , _fcAlerts :: [Alert]
                          , _fcMaxLevel :: UVLevel
                          , _fcUpdated :: UTCTime
                          }
@@ -63,28 +67,29 @@ compareUpdated = compare `on` (view fcUpdated)
 fcTZ :: Forecast -> TimeZoneSeries
 fcTZ fc = fc ^. fcLocation . to locTZ
 
-fcStartTimeUtc :: Forecast -> UTCTime
-fcStartTimeUtc fc = localTimeToUTC' (fcTZ fc) $ LocalTime (fc ^. fcDate) (fc ^. fcAlertStart)
+fcTime :: Forecast -> TimeOfDay -> UTCTime
+fcTime fc = localTimeToUTC' (fcTZ fc) . LocalTime (fc ^. fcDate)
 
-fcEndTimeUtc :: Forecast -> UTCTime
-fcEndTimeUtc fc = localTimeToUTC' (fcTZ fc) $ LocalTime (fc ^. fcDate) (fc ^. fcAlertEnd)
+fcAlertStartTime :: Forecast -> Alert -> UTCTime
+fcAlertStartTime fc alert = fcTime fc (alert ^. alertStart)
 
-fcDuration :: Forecast -> Int -- minutes
-fcDuration fc = round (seconds / 60)
-    where seconds = diffUTCTime (fcEndTimeUtc fc) (fcStartTimeUtc fc)
+fcAlertEndTime :: Forecast -> Alert -> UTCTime
+fcAlertEndTime fc alert = fcTime fc (alert ^. alertEnd)
 
 instance ToJSON Forecast where
     toJSON fc = object [ "location" .= (fc ^. fcLocation . locCity)
                        , "date" .= (fc ^. fcDate . to showGregorian)
-                       , "alertStart" .= show (fc ^. fcAlertStart)
-                       , "alertEnd" .= show (fc ^. fcAlertEnd)
+                       , "alerts" .= (fc ^. fcAlerts)
                        , "maxLevel" .= (fc ^. fcMaxLevel)
                        , "updated" .= (fc ^. fcUpdated)
                        ]
 
--- Forecast age
+-- Forecast age, counted from the end time of last alert
 fcAge :: UTCTime -> Forecast -> NominalDiffTime
-fcAge now fc = fromRational $ toRational $ diffUTCTime now $ fcStartTimeUtc fc
+fcAge now fc =
+    fromRational $
+    toRational $
+    diffUTCTime now $ maximum $ map (fcAlertEndTime fc) $ fc ^. fcAlerts
 
 isRecent :: UTCTime -> Forecast -> Bool
 isRecent now fc = fcAge now fc < (60 * 60 * 24)
@@ -103,8 +108,7 @@ buildForecast location updated items@(firstItem:_) = do
     aend <- liftM (flip addHours firstTime) (lastAlertTime levels)
     return Forecast { _fcLocation = location
                     , _fcDate = (localDay . utcToLocalTime' tz) astart
-                    , _fcAlertStart = localDayTime astart
-                    , _fcAlertEnd = localDayTime aend
+                    , _fcAlerts = [Alert (localDayTime astart) (localDayTime aend)]
                     , _fcMaxLevel = maxlevel
                     , _fcUpdated = updated
                     }

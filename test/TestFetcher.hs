@@ -29,8 +29,7 @@ spec = do
 
     where dummyFc loc day updated = Forecast { _fcLocation = dummyLocation loc
                                              , _fcDate = day
-                                             , _fcAlertStart = TimeOfDay 8 0 0
-                                             , _fcAlertEnd = TimeOfDay 16 0 0
+                                             , _fcAlerts = [Alert (TimeOfDay 8 0 0) (TimeOfDay 16 0 0)]
                                              , _fcMaxLevel = UVLevel 10
                                              , _fcUpdated = updated
                                              }

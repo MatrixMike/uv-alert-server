@@ -47,30 +47,14 @@ putForecastPin manager forecast = do
             Right _ -> return ()
 
 forecastPin :: Forecast -> [Pin]
-forecastPin fc = [ Pin { pinId = pinId `T.append` "start"
-                       , pinTime = fcStartTimeUtc fc
-                       , pinDuration = Nothing
-                       , pinCreateNotification = Nothing
-                       , pinUpdateNotification = Nothing
-                       , pinLayout = startLayout
-                       , pinReminders = []
-                       , pinActions = []
-                       }
-                 , Pin { pinId = pinId `T.append` "end"
-                       , pinTime = fcEndTimeUtc fc
-                       , pinDuration = Nothing
-                       , pinCreateNotification = Nothing
-                       , pinUpdateNotification = Nothing
-                       , pinLayout = endLayout
-                       , pinReminders = []
-                       , pinActions = []
-                       }
-                 ]
-    where
-        baseLayout = Layout { layoutType = GenericPin
+forecastPin fc = do
+    alert <- fc ^. fcAlerts
+    let notificationTitle = "Max level: " ++ show (fc ^. fcMaxLevel . uvValue)
+    let notificationText alert = "Alert from " ++ showTime (alert ^. alertStart) ++ " to " ++ showTime (alert ^. alertEnd)
+    let baseLayout = Layout { layoutType = GenericPin
                             , layoutTitle = ""
                             , layoutSubtitle = Just notificationTitle
-                            , layoutBody = Just notificationText
+                            , layoutBody = Just (notificationText alert)
                             , layoutTinyIcon = Nothing
                             , layoutSmallIcon = Nothing
                             , layoutLargeIcon = Nothing
@@ -80,15 +64,32 @@ forecastPin fc = [ Pin { pinId = pinId `T.append` "start"
                             , layoutParagraphs = []
                             , layoutLastUpdated = Nothing
                             }
-        notificationTitle = "Max level: " ++ show (fc ^. fcMaxLevel . uvValue)
-        notificationText = "Alert from " ++ showTime (fc ^. fcAlertStart) ++ " to " ++ showTime (fc ^. fcAlertEnd)
-        startLayout = baseLayout { layoutTitle = "UV Alert start"
+    let startLayout = baseLayout { layoutTitle = "UV Alert start"
                                  , layoutTinyIcon = Just "system://images/TIMELINE_SUN"
                                  }
-        endLayout = baseLayout { layoutTitle = "UV Alert end"
+    let endLayout = baseLayout { layoutTitle = "UV Alert end"
                                , layoutTinyIcon = Just "system://images/TIMELINE_SUN"
                                }
-        pinId = normalizeValue $ (fc ^. fcLocation . locId) `T.append` (fc ^. fcDate . to show . packed)
+    let pinId = normalizeValue $ (fc ^. fcLocation . locId) `T.append` (fc ^. fcDate . to show . packed)
+    [ Pin { pinId = pinId `T.append` "start"
+                       , pinTime = fcAlertStartTime fc alert
+                       , pinDuration = Nothing
+                       , pinCreateNotification = Nothing
+                       , pinUpdateNotification = Nothing
+                       , pinLayout = startLayout
+                       , pinReminders = []
+                       , pinActions = []
+                       }
+                 , Pin { pinId = pinId `T.append` "end"
+                       , pinTime = fcAlertEndTime fc alert
+                       , pinDuration = Nothing
+                       , pinCreateNotification = Nothing
+                       , pinUpdateNotification = Nothing
+                       , pinLayout = endLayout
+                       , pinReminders = []
+                       , pinActions = []
+                       }
+                 ]
 
 -- Initially the application only supported Australia, so city in the topic was
 -- sufficient. Have to maintain for backwards compatibility
