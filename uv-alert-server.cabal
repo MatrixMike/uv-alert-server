@@ -91,6 +91,7 @@ test-suite uv-alert-server-test
                      , containers
                      , JuicyPixels
                      , hspec
+                     , hspec-core
                      , hspec-discover
                      , hspec-wai
                      , hspec-wai-json
