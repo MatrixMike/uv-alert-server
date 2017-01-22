@@ -51,14 +51,14 @@ spec = do
         img <- loadImage eveningImage
         let graphLine = selectBestLine img
         it "selects the actual line point" $ do
-            graphLine `shouldSatisfy` (elem (197, 431))
+            graphLine `shouldSatisfy` (elem (197, 432))
         it "does not select the forecast line where the actual data exists" $ do
             graphLine `shouldSatisfy` (not . elem (197, 411))
         context "when there is no actual line" $ do
             img <- loadImage noActualImage
             let graphLine = selectBestLine img
             it "selects the forecast line" $ do
-                graphLine `shouldSatisfy` (elem (124, 435))
+                graphLine `shouldSatisfy` (elem (124, 436))
 
     describe "graphLevel" $ do
         it "works for level 10" $ do
@@ -130,7 +130,7 @@ spec = do
             it "calculates the alert times" $ do
                 let [alert] = fc ^. fcAlerts
                 alert ^. alertStart `shouldSatisfy` (between (time 9 0) (time 9 30))
-                alert ^. alertEnd `shouldSatisfy` (between (time 17 40) (time 18 0))
+                alert ^. alertEnd `shouldSatisfy` (between (time 17 39) (time 18 0))
             it "stores the updated time" $ do
                 fc ^. fcUpdated `shouldBe` testTime
 
@@ -148,9 +148,9 @@ spec = do
             it "calculates the maximum level" $ do
                 fc ^. fcMaxLevel `shouldBe` UVLevel 12
             it "calculates the alert times" $ do
-                let [alert] = fc ^. fcAlerts
+                let (alert:_) = fc ^. fcAlerts
                 alert ^. alertStart `shouldSatisfy` (between (time 11 0) (time 11 20))
-                alert ^. alertEnd `shouldSatisfy` (between (time 17 30) (time 17 50))
+                alert ^. alertEnd `shouldSatisfy` (between (time 15 20) (time 15 40))
             it "stores the updated time" $ do
                 fc ^. fcUpdated `shouldBe` testTime
 

@@ -10,6 +10,8 @@ import Control.Monad
 import Control.Monad.IO.Class
 
 import qualified Data.ByteString as BS
+import Data.Function
+import Data.List
 import Data.Maybe
 import Data.Time.Clock
 import Data.Time.LocalTime
@@ -102,11 +104,20 @@ selectActualLine :: DynamicImage -> [ImageCoord]
 selectActualLine = filter (not . isLegend) . selectPixels actualLineColor
 
 selectBestLine :: DynamicImage -> [ImageCoord]
-selectBestLine img = filter (\(x, _) -> x > actualEnd) forecastLine ++ actualLine
-    where forecastLine = selectForecastLine img
-          actualLine = selectActualLine img
-          -- take a low value in case no actual line is drawn yet
-          actualEnd = maximum $ map fst actualLine ++ [0]
+selectBestLine img =
+  averageValues $ actualLine ++ filter (\(x, _) -> x > actualEnd) forecastLine
+  where
+    forecastLine = selectForecastLine img
+    actualLine = selectActualLine img
+    -- take a low value in case no actual line is drawn yet
+    actualEnd = fromMaybe 0 $ maybeMaximum $ map fst actualLine
+
+-- | Filter the values to a single (maximum) Y value for every X value
+averageValues :: [ImageCoord] -> [ImageCoord]
+averageValues = map (maximumBy compareY) . groupBy sameX
+  where
+    sameX (x1, _) (x2, _) = x1 == x2
+    compareY = compare `on` snd
 
 graphLevel :: Int -> UVLevel
 graphLevel = UVLevel . round . extrapolateLevel . realToFrac
