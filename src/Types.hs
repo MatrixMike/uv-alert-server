@@ -12,6 +12,7 @@ import Control.Monad
 import Data.Aeson
 import Data.Function
 import qualified Data.Map as M
+import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.Clock
@@ -100,30 +101,36 @@ type Measurement = (UTCTime, UVLevel)
 -- Build a forecast from a number of measurements
 buildForecast :: Location -> UTCTime -> [Measurement] -> Maybe Forecast
 buildForecast location updated measurements = do
-    let tz = locTZ location
-    let localDayTime = localTimeOfDay . utcToLocalTime' tz
-    astart <- firstAlertTime measurements
-    aend <- lastAlertTime measurements
-    maxlevel <- maybeMaximum $ map snd measurements
-    return Forecast { _fcLocation = location
-                    , _fcDate = (localDay . utcToLocalTime' tz) astart
-                    , _fcAlerts = [Alert (localDayTime astart) (localDayTime aend)]
-                    , _fcMaxLevel = maxlevel
-                    , _fcUpdated = updated
-                    }
+  let tz = locTZ location
+  let localDayTime = localTimeOfDay . utcToLocalTime' tz
+  let alertTimes = alertIntervals measurements
+  firstAlert <- fmap fst $ listToMaybe alertTimes
+  maxlevel <- maybeMaximum $ map snd measurements
+  return
+    Forecast
+    { _fcLocation = location
+    , _fcDate = (localDay . utcToLocalTime' tz) firstAlert
+    , _fcAlerts = [Alert (localDayTime astart) (localDayTime aend) | (astart, aend) <- alertTimes]
+    , _fcMaxLevel = maxlevel
+    , _fcUpdated = updated
+    }
 
-firstAlertTime :: [Measurement] -> Maybe UTCTime
-firstAlertTime =
-    fmap diffTimeToTime . findValueMonotonic (uvToFloat alertLevel) .
-    map (second uvToFloat . first timeToDiffTime)
-    where
-        uvToFloat v = v ^. uvValue . to toInteger . to fromInteger
-        timeToDiffTime = flip diffUTCTime tconst
-        diffTimeToTime = flip addUTCTime tconst
-        tconst = UTCTime (fromGregorian 2001 1 1) 0
+timeToDiffTime :: UTCTime -> NominalDiffTime
+timeToDiffTime = flip diffUTCTime tconst
 
-lastAlertTime :: [Measurement] -> Maybe UTCTime
-lastAlertTime = firstAlertTime . reverse
+diffTimeToTime :: NominalDiffTime -> UTCTime
+diffTimeToTime = flip addUTCTime tconst
+
+tconst :: UTCTime
+tconst = UTCTime (fromGregorian 2001 1 1) 0
+
+alertIntervals :: [Measurement] -> [(UTCTime, UTCTime)]
+alertIntervals =
+  fmap (first diffTimeToTime . second diffTimeToTime) .
+  findIntervals (uvToFloat alertLevel) .
+  map (second uvToFloat . first timeToDiffTime)
+  where
+    uvToFloat v = v ^. uvValue . to toInteger . to fromInteger
 
 data AppKey = AppKey { akKey :: String }
 

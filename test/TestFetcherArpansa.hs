@@ -24,6 +24,7 @@ morningImage = "arpansa/mel_rt_morning.gif"
 eveningImage = "arpansa/mel_rt_evening.gif"
 noActualImage = "arpansa/mel_rt_no_actual.gif"
 quietImage = "arpansa/mel_rt_quiet.gif"
+distinctPeriodsImage = "arpansa/mel_rt_distinct_periods.gif"
 perthMarch08Image = "arpansa/per_rt_2016-03-08.gif"
 melMarch11Image = "arpansa/mel_rt_2016-03-11.gif"
 
@@ -159,3 +160,19 @@ spec = do
             let Just day = fromGregorianValid 2016 1 20
             it "does not have an alert forecast" $ do
                 parseGraph melbourne img testTime `shouldBe` Nothing
+
+        context "for an image with several high intervals" $ do
+            -- This image has been altered to have a few intervals of high UV
+            -- index
+            img <- loadImage distinctPeriodsImage
+            let Just day = fromGregorianValid 2016 1 20
+            let (Just fc) = parseGraph melbourne img testTime
+            it "has a range of alerts" $ do
+                length (fc ^. fcAlerts) `shouldBe` 3
+                let [alert1, alert2, alert3] = fc ^. fcAlerts
+                alert1 ^. alertStart `shouldSatisfy` (between (time 9 50) (time 10 10))
+                alert1 ^. alertEnd `shouldSatisfy` (between (time 11 0) (time 11 20))
+                alert2 ^. alertStart `shouldSatisfy` (between (time 14 0) (time 14 20))
+                alert2 ^. alertEnd `shouldSatisfy` (between (time 16 0) (time 16 20))
+                alert3 ^. alertStart `shouldSatisfy` (between (time 16 50) (time 17 10))
+                alert3 ^. alertEnd `shouldSatisfy` (between (time 17 30) (time 17 50))
