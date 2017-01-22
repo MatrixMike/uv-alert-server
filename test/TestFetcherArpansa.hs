@@ -29,6 +29,9 @@ melMarch11Image = "arpansa/mel_rt_2016-03-11.gif"
 
 melbourne = Location "Australia" "Victoria" "Melbourne"
 
+time :: Int -> Int -> TimeOfDay
+time h m = TimeOfDay h m 0
+
 spec :: Spec
 spec = do
     describe "selectForecastLine" $ do
@@ -65,9 +68,9 @@ spec = do
     describe "graphTimeOfDay" $ do
         let roundTime (TimeOfDay h m _) = TimeOfDay h m 0
         it "works for 11:00" $
-            roundTime (graphTimeOfDay 312) `shouldBe` TimeOfDay 11 0 0
+            roundTime (graphTimeOfDay 312) `shouldBe` time 11 0
         it "works for 17:00" $
-            roundTime (graphTimeOfDay 586) `shouldBe` TimeOfDay 17 0 0
+            roundTime (graphTimeOfDay 586) `shouldBe` time 17 0
 
     describe "charAt" $ do
         img_2016_01_19 <- loadImage morningImage
@@ -125,8 +128,8 @@ spec = do
                 fc ^. fcMaxLevel `shouldBe` UVLevel 10
             it "calculates the alert times" $ do
                 let [alert] = fc ^. fcAlerts
-                alert ^. alertStart `shouldSatisfy` (between (TimeOfDay 9 0 0) (TimeOfDay 9 30 0))
-                alert ^. alertEnd `shouldSatisfy` (between (TimeOfDay 17 40 0) (TimeOfDay 18 0 0))
+                alert ^. alertStart `shouldSatisfy` (between (time 9 0) (time 9 30))
+                alert ^. alertEnd `shouldSatisfy` (between (time 17 40) (time 18 0))
             it "stores the updated time" $ do
                 fc ^. fcUpdated `shouldBe` testTime
 
@@ -145,8 +148,8 @@ spec = do
                 fc ^. fcMaxLevel `shouldBe` UVLevel 12
             it "calculates the alert times" $ do
                 let [alert] = fc ^. fcAlerts
-                alert ^. alertStart `shouldSatisfy` (between (TimeOfDay 11 0 0) (TimeOfDay 11 20 0))
-                alert ^. alertEnd `shouldSatisfy` (between (TimeOfDay 17 30 0) (TimeOfDay 17 50 0))
+                alert ^. alertStart `shouldSatisfy` (between (time 11 0) (time 11 20))
+                alert ^. alertEnd `shouldSatisfy` (between (time 17 30) (time 17 50))
             it "stores the updated time" $ do
                 fc ^. fcUpdated `shouldBe` testTime
 
