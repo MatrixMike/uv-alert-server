@@ -6,6 +6,7 @@ module Types where
 
 import Control.Lens hiding ((.=))
 
+import Control.Arrow
 import Control.Monad
 
 import Data.Aeson
@@ -112,25 +113,17 @@ buildForecast location updated measurements = do
                     }
 
 firstAlertTime :: [Measurement] -> Maybe UTCTime
-firstAlertTime ls = do
-    (l1, ls') <- maybeSplitHead ls
-    if isDangerous (snd l1)
-        then return (fst l1)
-        else do
-            (l2, _) <- maybeSplitHead ls'
-            if isDangerous (snd l2)
-                then return $ extrapolateUV l1 l2
-                else firstAlertTime ls'
+firstAlertTime =
+    fmap diffTimeToTime . findValueMonotonic (uvToFloat alertLevel) .
+    map (second uvToFloat . first timeToDiffTime)
+    where
+        uvToFloat v = v ^. uvValue . to toInteger . to fromInteger
+        timeToDiffTime = flip diffUTCTime tconst
+        diffTimeToTime = flip addUTCTime tconst
+        tconst = UTCTime (fromGregorian 2001 1 1) 0
 
 lastAlertTime :: [Measurement] -> Maybe UTCTime
 lastAlertTime = firstAlertTime . reverse
-
-extrapolateUV :: Measurement -> Measurement -> UTCTime
-extrapolateUV (t1, v1) (t2, v2) = addUTCTime extrapolated t1
-    where uvToFloat v = v ^. uvValue . to toInteger . to fromInteger
-          dt1 = diffUTCTime t1 t1
-          dt2 = diffUTCTime t2 t1
-          extrapolated = extrapolate (uvToFloat v1, dt1) (uvToFloat v2, dt2) (uvToFloat alertLevel)
 
 data AppKey = AppKey { akKey :: String }
 

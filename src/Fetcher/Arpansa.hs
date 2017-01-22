@@ -111,10 +111,10 @@ selectBestLine img = filter (\(x, _) -> x > actualEnd) forecastLine ++ actualLin
 graphLevel :: Int -> UVLevel
 graphLevel = UVLevel . round . extrapolateLevel . realToFrac
     where extrapolateLevel :: Double -> Double
-          extrapolateLevel = extrapolate (438, 0) (106, 16)
+          extrapolateLevel = extrapolate (0, 438) (16, 106)
 
 graphTimeOfDay :: Int -> TimeOfDay
-graphTimeOfDay = floatToTod . extrapolate (83, t6) (723, t20) . realToFrac
+graphTimeOfDay = floatToTod . extrapolate (t6, 83) (t20, 723) . realToFrac
     -- TODO: use picosecondsToDiffTime and diffTimeToPicoseconds from time 1.6
     where t6 :: Float
           t6 = todToFloat $ TimeOfDay 6 0 0

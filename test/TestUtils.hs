@@ -11,13 +11,30 @@ import Test.Hspec
 spec :: Spec
 spec = do
     describe "extrapolate" $ do
-        let extrapolateExample = extrapolate (0, 10) (1, 20)
+        let extrapolateExample = extrapolate (10, 0) (20, 1)
         it "works at the left point" $ do
             extrapolateExample 0 `shouldBe` 10
         it "works at the right point" $ do
             extrapolateExample 1 `shouldBe` 20
+        it "works at the middle point" $ do
+            extrapolateExample 0.5 `shouldBe` 15
         it "works at a different point" $ do
             extrapolateExample 2 `shouldBe` 30
+    describe "findValueMonotonic" $ do
+        let series = [(0, 10), (1, 20), (2, 40)]
+        it "works at the left point" $ do
+            findValueMonotonic 10 series `shouldBe` (Just 0)
+        it "works before the left point" $ do
+            findValueMonotonic 5 series `shouldBe` (Just 0)
+        it "works for the middle point" $ do
+            findValueMonotonic 20 series `shouldBe` (Just 1)
+        it "extrapolates midway" $ do
+            findValueMonotonic 15 series `shouldBe` (Just 0.5)
+            findValueMonotonic 25 series `shouldBe` (Just 1.25)
+        it "works at the right point" $ do
+            findValueMonotonic 40 series `shouldBe` (Just 2)
+        it "is Nothing beyond the right point" $ do
+            findValueMonotonic 50 series `shouldBe` Nothing
     describe "removeAccents" $ do
         it "removes accents from Ōsaka" $
             removeAccents "Ōsaka" `shouldBe` "Osaka"
