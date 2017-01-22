@@ -19,22 +19,53 @@ maybeToEither _ (Just a) = Right a
 
 -- | Extrapolate assuming a linear dependency.
 extrapolate
-    :: (Fractional b, Real b, Fractional a)
-    => (a, b) -> (a, b) -> b -> a
-extrapolate (a1, b1) (a2, b2) b = a1 + (a2 - a1) * percentage
+    :: (Fractional a, Real a, Fractional b)
+    => (b, a) -> (b, a) -> a -> b
+extrapolate (b1, a1) (b2, a2) a = b1 + (b2 - b1) * percentage
     where
-        percentage = fromRational $ toRational $ (b - b1) / (b2 - b1)
+        percentage = fromRational $ toRational $ (a - a1) / (a2 - a1)
 
--- | Find the first value where the corresponding value is greater than the given one.
+-- | Extrapolate inside the interval only.
+extrapolateClipped
+    :: (Fractional a, Real a, Fractional b)
+    => (b, a) -> (b, a) -> a -> b
+extrapolateClipped p1@(b1, a1) p2@(b2, a2) a | (a <= a1) && (a1 <= a2) = b1
+                                             | (a <= a2) && (a2 <= a1) = b2
+                                             | (a >= a1) && (a1 >= a2) = b1
+                                             | (a >= a2) && (a2 >= a1) = b2
+                                             | otherwise = extrapolate p1 p2 a
+
+-- | Find the first value where the corresponding value is greater or equal than the given one.
 findValueMonotonic
     :: (Fractional a, Real a, Fractional b)
     => a -> [(b, a)] -> Maybe b
-findValueMonotonic _ [] = Nothing
-findValueMonotonic _ [_] = Nothing
-findValueMonotonic a (p1:ps@(p2:_))
-    | snd p1 >= a = Just $ fst p1
-    | snd p2 >= a = Just $ extrapolate p1 p2 a
-    | otherwise = findValueMonotonic a ps
+findValueMonotonic a ps =
+    case findIntervals a ps of
+        [] -> Nothing
+        (b, _):_ -> Just b
+
+findIntervals
+    :: (Fractional a, Real a, Fractional b)
+    => a -> [(b, a)] -> [(b, b)]
+findIntervals a ps =
+  case break good ps of
+    (_, []) -> []
+    (low, rest) ->
+      let (high, nextRound) = break bad rest
+          lastLow =
+            case low of
+              [] -> head high
+              _ -> last low
+          firstLow =
+            case nextRound of
+              [] -> last high
+              _ -> head nextRound
+          b1 = extrapolateClipped lastLow (head high) a
+          b2 = extrapolateClipped (last high) firstLow a
+      in (b1, b2) : findIntervals a nextRound
+  where
+    good (_, v) = v >= a
+    bad = not . good
 
 removeAccents :: T.Text -> T.Text
 removeAccents = T.filter (not . isMark) . normalize NFD
