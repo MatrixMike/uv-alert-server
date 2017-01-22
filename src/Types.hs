@@ -94,18 +94,16 @@ fcAge now fc =
 isRecent :: UTCTime -> Forecast -> Bool
 isRecent now fc = fcAge now fc < (60 * 60 * 24)
 
+type Measurement = (UTCTime, UVLevel)
+
 -- Build a forecast from a number of measurements
-buildForecast :: Location -> UTCTime -> [(UTCTime, UVLevel)] -> Maybe Forecast
-buildForecast _ _ [] = Nothing
-buildForecast location updated items@(firstItem:_) = do
+buildForecast :: Location -> UTCTime -> [Measurement] -> Maybe Forecast
+buildForecast location updated measurements = do
     let tz = locTZ location
     let localDayTime = localTimeOfDay . utcToLocalTime' tz
-    let levels = map snd items
-    let maxlevel = maximum levels
-    guard $ isDangerous maxlevel
-    let firstTime = fst firstItem
-    astart <- liftM (flip addHours firstTime) (firstAlertTime levels)
-    aend <- liftM (flip addHours firstTime) (lastAlertTime levels)
+    astart <- firstAlertTime measurements
+    aend <- lastAlertTime measurements
+    maxlevel <- maybeMaximum $ map snd measurements
     return Forecast { _fcLocation = location
                     , _fcDate = (localDay . utcToLocalTime' tz) astart
                     , _fcAlerts = [Alert (localDayTime astart) (localDayTime aend)]
@@ -113,27 +111,26 @@ buildForecast location updated items@(firstItem:_) = do
                     , _fcUpdated = updated
                     }
 
-addHours :: Float -> UTCTime -> UTCTime
-addHours hours = addUTCTime $ fromRational $ toRational $ hours * 60 * 60
-
-firstAlertTime :: [UVLevel] -> Maybe Float
+firstAlertTime :: [Measurement] -> Maybe UTCTime
 firstAlertTime ls = do
     (l1, ls') <- maybeSplitHead ls
-    if isDangerous l1 then return 0 else do
-        (l2, _) <- maybeSplitHead ls'
-        if isDangerous l2 then return $ extrapolateUV l1 l2
-                            else do
-                                alertTime <- firstAlertTime ls'
-                                return $ alertTime + 1
+    if isDangerous (snd l1)
+        then return (fst l1)
+        else do
+            (l2, _) <- maybeSplitHead ls'
+            if isDangerous (snd l2)
+                then return $ extrapolateUV l1 l2
+                else firstAlertTime ls'
 
-lastAlertTime :: [UVLevel] -> Maybe Float
-lastAlertTime ls = do
-    alertTime <- firstAlertTime $ reverse ls
-    return $ fromInteger (toInteger (length ls - 1)) - alertTime
+lastAlertTime :: [Measurement] -> Maybe UTCTime
+lastAlertTime = firstAlertTime . reverse
 
-extrapolateUV :: UVLevel -> UVLevel -> Float
-extrapolateUV v1 v2 = extrapolate (uvToFloat v1, 0) (uvToFloat v2, 1) (uvToFloat alertLevel)
+extrapolateUV :: Measurement -> Measurement -> UTCTime
+extrapolateUV (t1, v1) (t2, v2) = addUTCTime extrapolated t1
     where uvToFloat v = v ^. uvValue . to toInteger . to fromInteger
+          dt1 = diffUTCTime t1 t1
+          dt2 = diffUTCTime t2 t1
+          extrapolated = extrapolate (uvToFloat v1, dt1) (uvToFloat v2, dt2) (uvToFloat alertLevel)
 
 data AppKey = AppKey { akKey :: String }
 

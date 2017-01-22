@@ -3,7 +3,6 @@ import Test.Hspec
 
 import qualified TestFetcher
 import qualified TestFetcherArpansa
-import qualified TestFetcherEPA
 import qualified TestFetcherJMA
 import qualified TestTypes
 import qualified TestUtils
@@ -15,7 +14,6 @@ main = hspec spec
 spec = do
     describe "TestFetcher" TestFetcher.spec
     describe "TestFetcherArpansa" TestFetcherArpansa.spec
-    describe "TestFetcherEPA" TestFetcherEPA.spec
     describe "TestFetcherJMA" TestFetcherJMA.spec
     describe "TestTypes" TestTypes.spec
     describe "TestUtils" TestUtils.spec

@@ -108,7 +108,6 @@ test-suite uv-alert-server-test
                      , Misc
                      , TestFetcher
                      , TestFetcherArpansa
-                     , TestFetcherEPA
                      , TestFetcherJMA
                      , TestTypes
                      , TestUtils

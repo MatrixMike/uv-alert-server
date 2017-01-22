@@ -13,6 +13,7 @@ import qualified Data.ByteString as BS
 import Data.Maybe
 import Data.Time.Clock
 import Data.Time.LocalTime
+import Data.Time.LocalTime.TimeZone.Series
 
 import Network.HTTP.Client
 
@@ -69,29 +70,14 @@ fetchArpansa = do
                     let forecast = parseGraph loc graphImage time
                     return $ maybeToList forecast
 
-maybeMinimum :: Ord a => [a] -> Maybe a
-maybeMinimum [] = Nothing
-maybeMinimum xs = Just $ minimum xs
-
-maybeMaximum :: Ord a => [a] -> Maybe a
-maybeMaximum [] = Nothing
-maybeMaximum xs = Just $ maximum xs
-
 parseGraph :: Location -> DynamicImage -> UTCTime -> Maybe Forecast
 parseGraph loc image updated = do
     let uvLine = selectBestLine image
     let graph = map graphCoordinates uvLine
-    let alertTimes = map fst $ filter (isDangerous . snd) graph
-    astart <- maybeMinimum alertTimes
-    aend <- maybeMaximum alertTimes
     date <- eitherToMaybe $ parseDate image
-    let mlevel = maximum $ map snd graph
-    return Forecast { _fcLocation = loc
-                    , _fcDate = date
-                    , _fcAlerts = [Alert astart aend]
-                    , _fcMaxLevel = mlevel
-                    , _fcUpdated = updated
-                    }
+    let timeToUtc = localTimeToUTC' (locTZ loc) . LocalTime date
+    let alertTimes = map (first timeToUtc) graph
+    buildForecast loc updated alertTimes
 
 forecastLineColor :: PixelRGB8
 forecastLineColor = PixelRGB8 248 135 0
