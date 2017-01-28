@@ -28,10 +28,17 @@ defaultFetchers = [arpansaFetcher, epaFetcher, jmaFetcher]
 
 initConfig :: IO Config
 initConfig = do
-    store <- newMVar emptyStore
-    apiKey <- liftM APIKey $ do
-        key <- getEnv "PEBBLE_API_KEY"
-        when (key == "") $ error "Pebble API key must be provided."
-        return key
-    listenPort <- liftM (read . fromMaybe "8000") $ lookupEnv "LISTEN_PORT"
-    return $ Config store apiKey listenPort defaultFetchers
+  store <- newMVar emptyStore
+  apiKey <-
+    liftM APIKey $ do
+      key <- getEnv "PEBBLE_API_KEY"
+      when (key == "") $ error "Pebble API key must be provided."
+      return key
+  listenPort <- liftM (read . fromMaybe "8000") $ lookupEnv "LISTEN_PORT"
+  return $
+    Config
+    { coStore = store
+    , coApiKey = apiKey
+    , coListenPort = listenPort
+    , coFetchers = defaultFetchers
+    }
