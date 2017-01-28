@@ -22,10 +22,12 @@ spec = do
                         ]
 
         it "should remove old forecasts" $ do
-            (removeOld (evening day1) $ S.fromList forecasts) `shouldBe`
+            (removeOld (morning day1) $ S.fromList forecasts) `shouldBe`
                 (S.fromList [ forecasts !! 1, forecasts !! 3 ])
-            (removeOld (evening day2) $ S.fromList forecasts) `shouldBe`
+            (removeOld (evening day1) $ S.fromList forecasts) `shouldBe`
                 (S.fromList [ forecasts !! 3 ])
+            (removeOld (evening day2) $ S.fromList forecasts) `shouldBe`
+                (S.fromList [])
 
     where dummyFc loc day updated = Forecast { _fcLocation = dummyLocation loc
                                              , _fcDate = day

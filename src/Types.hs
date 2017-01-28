@@ -94,7 +94,7 @@ fcAge now fc =
     diffUTCTime now $ maximum $ map (fcAlertEndTime fc) $ fc ^. fcAlerts
 
 isRecent :: UTCTime -> Forecast -> Bool
-isRecent now fc = fcAge now fc < (60 * 60 * 24)
+isRecent now fc = fcAge now fc < (60 * 60 * 12)
 
 type Measurement = (UTCTime, UVLevel)
 
