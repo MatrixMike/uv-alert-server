@@ -1,4 +1,4 @@
-module TestFetcherJMA where
+module Fetcher.JMASpec where
 
 import Control.Lens
 

@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module TestTypes where
+module TypesSpec where
 
 {- Test Types module -}
 

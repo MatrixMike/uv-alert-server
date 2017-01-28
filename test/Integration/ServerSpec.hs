@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
-module Integration.TestServer where
+module Integration.ServerSpec where
 
 import Control.Lens
 
