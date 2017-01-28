@@ -100,10 +100,10 @@ spec = do
             fc ^. fcDate `shouldBe` date
         it "calculates the maximum level" $
             fc ^. fcMaxLevel `shouldBe` UVLevel 4
-        it "calculates the alert start time" $
-            fc ^. fcAlertStart `shouldSatisfy` (between (TimeOfDay 12 25 0) (TimeOfDay 12 35 0))
-        it "calculates the alert end time" $
-            fc ^. fcAlertEnd `shouldSatisfy` (between (TimeOfDay 13 55 0) (TimeOfDay 14 05 0))
+        it "calculates the alert times" $ do
+            let [alert] = fc ^. fcAlerts
+            alert ^. alertStart `shouldSatisfy` (between (TimeOfDay 12 25 0) (TimeOfDay 12 35 0))
+            alert ^. alertEnd `shouldSatisfy` (between (TimeOfDay 13 55 0) (TimeOfDay 14 05 0))
         it "stores the updated time" $
             fc ^. fcUpdated `shouldBe` now
     describe "imageCoord" $ do

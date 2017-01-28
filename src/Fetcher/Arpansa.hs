@@ -10,9 +10,12 @@ import Control.Monad
 import Control.Monad.IO.Class
 
 import qualified Data.ByteString as BS
+import Data.Function
+import Data.List
 import Data.Maybe
 import Data.Time.Clock
 import Data.Time.LocalTime
+import Data.Time.LocalTime.TimeZone.Series
 
 import Network.HTTP.Client
 
@@ -69,30 +72,14 @@ fetchArpansa = do
                     let forecast = parseGraph loc graphImage time
                     return $ maybeToList forecast
 
-maybeMinimum :: Ord a => [a] -> Maybe a
-maybeMinimum [] = Nothing
-maybeMinimum xs = Just $ minimum xs
-
-maybeMaximum :: Ord a => [a] -> Maybe a
-maybeMaximum [] = Nothing
-maybeMaximum xs = Just $ maximum xs
-
 parseGraph :: Location -> DynamicImage -> UTCTime -> Maybe Forecast
 parseGraph loc image updated = do
     let uvLine = selectBestLine image
     let graph = map graphCoordinates uvLine
-    let alertTimes = map fst $ filter (isDangerous . snd) graph
-    astart <- maybeMinimum alertTimes
-    aend <- maybeMaximum alertTimes
     date <- eitherToMaybe $ parseDate image
-    let mlevel = maximum $ map snd graph
-    return Forecast { _fcLocation = loc
-                    , _fcDate = date
-                    , _fcAlertStart = astart
-                    , _fcAlertEnd = aend
-                    , _fcMaxLevel = mlevel
-                    , _fcUpdated = updated
-                    }
+    let timeToUtc = localTimeToUTC' (locTZ loc) . LocalTime date
+    let alertTimes = map (first timeToUtc) graph
+    buildForecast loc updated alertTimes
 
 forecastLineColor :: PixelRGB8
 forecastLineColor = PixelRGB8 248 135 0
@@ -117,19 +104,28 @@ selectActualLine :: DynamicImage -> [ImageCoord]
 selectActualLine = filter (not . isLegend) . selectPixels actualLineColor
 
 selectBestLine :: DynamicImage -> [ImageCoord]
-selectBestLine img = filter (\(x, _) -> x > actualEnd) forecastLine ++ actualLine
-    where forecastLine = selectForecastLine img
-          actualLine = selectActualLine img
-          -- take a low value in case no actual line is drawn yet
-          actualEnd = maximum $ map fst actualLine ++ [0]
+selectBestLine img =
+  averageValues $ actualLine ++ filter (\(x, _) -> x > actualEnd) forecastLine
+  where
+    forecastLine = selectForecastLine img
+    actualLine = selectActualLine img
+    -- take a low value in case no actual line is drawn yet
+    actualEnd = fromMaybe 0 $ maybeMaximum $ map fst actualLine
+
+-- | Filter the values to a single (maximum) Y value for every X value
+averageValues :: [ImageCoord] -> [ImageCoord]
+averageValues = map (maximumBy compareY) . groupBy sameX
+  where
+    sameX (x1, _) (x2, _) = x1 == x2
+    compareY = compare `on` snd
 
 graphLevel :: Int -> UVLevel
 graphLevel = UVLevel . round . extrapolateLevel . realToFrac
     where extrapolateLevel :: Double -> Double
-          extrapolateLevel = extrapolate (438, 0) (106, 16)
+          extrapolateLevel = extrapolate (0, 438) (16, 106)
 
 graphTimeOfDay :: Int -> TimeOfDay
-graphTimeOfDay = floatToTod . extrapolate (83, t6) (723, t20) . realToFrac
+graphTimeOfDay = floatToTod . extrapolate (t6, 83) (t20, 723) . realToFrac
     -- TODO: use picosecondsToDiffTime and diffTimeToPicoseconds from time 1.6
     where t6 :: Float
           t6 = todToFloat $ TimeOfDay 6 0 0

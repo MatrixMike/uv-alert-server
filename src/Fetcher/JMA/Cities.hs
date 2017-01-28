@@ -30,8 +30,8 @@ yakushimaCoo = ImageCoord 154 323
 
 imageCoord :: LonLat -> ImageCoord
 imageCoord (LonLat lo la) = ImageCoord (round x) (round y)
-    where x = extrapolate (lo1, fromIntegral x1) (lo2, fromIntegral x2) lo
-          y = extrapolate (la1, fromIntegral y1) (la2, fromIntegral y2) la
+    where x = extrapolate (fromIntegral x1, lo1) (fromIntegral x2, lo2) lo
+          y = extrapolate (fromIntegral y1, la1) (fromIntegral y2, la2) la
           (LonLat lo1 la1) = iturupLatLon
           (ImageCoord x1 y1) = iturupCoo
           (LonLat lo2 la2) = yakushimaLatLon

@@ -24,10 +24,14 @@ morningImage = "arpansa/mel_rt_morning.gif"
 eveningImage = "arpansa/mel_rt_evening.gif"
 noActualImage = "arpansa/mel_rt_no_actual.gif"
 quietImage = "arpansa/mel_rt_quiet.gif"
+distinctPeriodsImage = "arpansa/mel_rt_distinct_periods.gif"
 perthMarch08Image = "arpansa/per_rt_2016-03-08.gif"
 melMarch11Image = "arpansa/mel_rt_2016-03-11.gif"
 
 melbourne = Location "Australia" "Victoria" "Melbourne"
+
+time :: Int -> Int -> TimeOfDay
+time h m = TimeOfDay h m 0
 
 spec :: Spec
 spec = do
@@ -47,14 +51,14 @@ spec = do
         img <- loadImage eveningImage
         let graphLine = selectBestLine img
         it "selects the actual line point" $ do
-            graphLine `shouldSatisfy` (elem (197, 431))
+            graphLine `shouldSatisfy` (elem (197, 432))
         it "does not select the forecast line where the actual data exists" $ do
             graphLine `shouldSatisfy` (not . elem (197, 411))
         context "when there is no actual line" $ do
             img <- loadImage noActualImage
             let graphLine = selectBestLine img
             it "selects the forecast line" $ do
-                graphLine `shouldSatisfy` (elem (124, 435))
+                graphLine `shouldSatisfy` (elem (124, 436))
 
     describe "graphLevel" $ do
         it "works for level 10" $ do
@@ -65,9 +69,9 @@ spec = do
     describe "graphTimeOfDay" $ do
         let roundTime (TimeOfDay h m _) = TimeOfDay h m 0
         it "works for 11:00" $
-            roundTime (graphTimeOfDay 312) `shouldBe` TimeOfDay 11 0 0
+            roundTime (graphTimeOfDay 312) `shouldBe` time 11 0
         it "works for 17:00" $
-            roundTime (graphTimeOfDay 586) `shouldBe` TimeOfDay 17 0 0
+            roundTime (graphTimeOfDay 586) `shouldBe` time 17 0
 
     describe "charAt" $ do
         img_2016_01_19 <- loadImage morningImage
@@ -123,10 +127,10 @@ spec = do
                 fc ^. fcDate `shouldBe` day
             it "calculates the maximum level" $ do
                 fc ^. fcMaxLevel `shouldBe` UVLevel 10
-            it "calculates the alert start time" $ do
-                fc ^. fcAlertStart `shouldSatisfy` (between (TimeOfDay 9 0 0) (TimeOfDay 9 30 0))
-            it "calculates the alert end time" $ do
-                fc ^. fcAlertEnd `shouldSatisfy` (between (TimeOfDay 17 40 0) (TimeOfDay 18 0 0))
+            it "calculates the alert times" $ do
+                let [alert] = fc ^. fcAlerts
+                alert ^. alertStart `shouldSatisfy` (between (time 9 0) (time 9 30))
+                alert ^. alertEnd `shouldSatisfy` (between (time 17 39) (time 18 0))
             it "stores the updated time" $ do
                 fc ^. fcUpdated `shouldBe` testTime
 
@@ -143,10 +147,10 @@ spec = do
                 fc ^. fcDate `shouldBe` day
             it "calculates the maximum level" $ do
                 fc ^. fcMaxLevel `shouldBe` UVLevel 12
-            it "calculates the alert start time" $ do
-                fc ^. fcAlertStart `shouldSatisfy` (between (TimeOfDay 11 0 0) (TimeOfDay 11 20 0))
-            it "calculates the alert end time" $ do
-                fc ^. fcAlertEnd `shouldSatisfy` (between (TimeOfDay 17 30 0) (TimeOfDay 17 50 0))
+            it "calculates the alert times" $ do
+                let (alert:_) = fc ^. fcAlerts
+                alert ^. alertStart `shouldSatisfy` (between (time 11 0) (time 11 20))
+                alert ^. alertEnd `shouldSatisfy` (between (time 15 20) (time 15 40))
             it "stores the updated time" $ do
                 fc ^. fcUpdated `shouldBe` testTime
 
@@ -156,3 +160,19 @@ spec = do
             let Just day = fromGregorianValid 2016 1 20
             it "does not have an alert forecast" $ do
                 parseGraph melbourne img testTime `shouldBe` Nothing
+
+        context "for an image with several high intervals" $ do
+            -- This image has been altered to have a few intervals of high UV
+            -- index
+            img <- loadImage distinctPeriodsImage
+            let Just day = fromGregorianValid 2016 1 20
+            let (Just fc) = parseGraph melbourne img testTime
+            it "has a range of alerts" $ do
+                length (fc ^. fcAlerts) `shouldBe` 3
+                let [alert1, alert2, alert3] = fc ^. fcAlerts
+                alert1 ^. alertStart `shouldSatisfy` (between (time 9 50) (time 10 10))
+                alert1 ^. alertEnd `shouldSatisfy` (between (time 11 0) (time 11 20))
+                alert2 ^. alertStart `shouldSatisfy` (between (time 14 0) (time 14 20))
+                alert2 ^. alertEnd `shouldSatisfy` (between (time 16 0) (time 16 20))
+                alert3 ^. alertStart `shouldSatisfy` (between (time 16 50) (time 17 10))
+                alert3 ^. alertEnd `shouldSatisfy` (between (time 17 30) (time 17 50))

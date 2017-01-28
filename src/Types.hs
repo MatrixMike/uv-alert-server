@@ -6,11 +6,13 @@ module Types where
 
 import Control.Lens hiding ((.=))
 
+import Control.Arrow
 import Control.Monad
 
 import Data.Aeson
 import Data.Function
 import qualified Data.Map as M
+import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.Clock
@@ -26,7 +28,6 @@ import Utils
 
 
 -- Supplementary types
--- TODO: change them to something nicer
 
 data UVLevel = UVLevel { _uvValue :: Int }
     deriving (Eq, Ord, Show, Generic)
@@ -41,16 +42,21 @@ isDangerous = (>= alertLevel)
 instance ToJSON UVLevel where
     toJSON level = toJSON $ level ^. uvValue
 
-{-
-          10        20        30        40        50        60        70       80
-          *         *         *         *         *         *         *        *
-Index BoM    WMO  Location            DayMonYear  UV Alert period (local time)  UVI max
-0009 070014 94926 Canberra            26 09 2015  UV Alert from  8.50 to 15.00  Max:  7
--}
+-- | A single event of UV index exceeding the safe levels.
+data Alert = Alert
+    { _alertStart :: TimeOfDay
+    , _alertEnd :: TimeOfDay
+    } deriving (Eq, Ord, Show, Generic)
+makeLenses ''Alert
+
+instance ToJSON Alert where
+    toJSON alert = object [ "start" .= show (alert ^. alertStart)
+                          , "end" .= show (alert ^. alertEnd) ]
+
+-- | A list of all times the UV index is dangerous for the day.
 data Forecast = Forecast { _fcLocation :: Location
                          , _fcDate :: Day
-                         , _fcAlertStart :: TimeOfDay
-                         , _fcAlertEnd :: TimeOfDay
+                         , _fcAlerts :: [Alert]
                          , _fcMaxLevel :: UVLevel
                          , _fcUpdated :: UTCTime
                          }
@@ -63,73 +69,68 @@ compareUpdated = compare `on` (view fcUpdated)
 fcTZ :: Forecast -> TimeZoneSeries
 fcTZ fc = fc ^. fcLocation . to locTZ
 
-fcStartTimeUtc :: Forecast -> UTCTime
-fcStartTimeUtc fc = localTimeToUTC' (fcTZ fc) $ LocalTime (fc ^. fcDate) (fc ^. fcAlertStart)
+fcTime :: Forecast -> TimeOfDay -> UTCTime
+fcTime fc = localTimeToUTC' (fcTZ fc) . LocalTime (fc ^. fcDate)
 
-fcEndTimeUtc :: Forecast -> UTCTime
-fcEndTimeUtc fc = localTimeToUTC' (fcTZ fc) $ LocalTime (fc ^. fcDate) (fc ^. fcAlertEnd)
+fcAlertStartTime :: Forecast -> Alert -> UTCTime
+fcAlertStartTime fc alert = fcTime fc (alert ^. alertStart)
 
-fcDuration :: Forecast -> Int -- minutes
-fcDuration fc = round (seconds / 60)
-    where seconds = diffUTCTime (fcEndTimeUtc fc) (fcStartTimeUtc fc)
+fcAlertEndTime :: Forecast -> Alert -> UTCTime
+fcAlertEndTime fc alert = fcTime fc (alert ^. alertEnd)
 
 instance ToJSON Forecast where
     toJSON fc = object [ "location" .= (fc ^. fcLocation . locCity)
                        , "date" .= (fc ^. fcDate . to showGregorian)
-                       , "alertStart" .= show (fc ^. fcAlertStart)
-                       , "alertEnd" .= show (fc ^. fcAlertEnd)
+                       , "alerts" .= (fc ^. fcAlerts)
                        , "maxLevel" .= (fc ^. fcMaxLevel)
                        , "updated" .= (fc ^. fcUpdated)
                        ]
 
--- Forecast age
+-- Forecast age, counted from the end time of last alert
 fcAge :: UTCTime -> Forecast -> NominalDiffTime
-fcAge now fc = fromRational $ toRational $ diffUTCTime now $ fcStartTimeUtc fc
+fcAge now fc =
+    fromRational $
+    toRational $
+    diffUTCTime now $ maximum $ map (fcAlertEndTime fc) $ fc ^. fcAlerts
 
 isRecent :: UTCTime -> Forecast -> Bool
-isRecent now fc = fcAge now fc < (60 * 60 * 24)
+isRecent now fc = fcAge now fc < (60 * 60 * 12)
+
+type Measurement = (UTCTime, UVLevel)
 
 -- Build a forecast from a number of measurements
-buildForecast :: Location -> UTCTime -> [(UTCTime, UVLevel)] -> Maybe Forecast
-buildForecast _ _ [] = Nothing
-buildForecast location updated items@(firstItem:_) = do
-    let tz = locTZ location
-    let localDayTime = localTimeOfDay . utcToLocalTime' tz
-    let levels = map snd items
-    let maxlevel = maximum levels
-    guard $ isDangerous maxlevel
-    let firstTime = fst firstItem
-    astart <- liftM (flip addHours firstTime) (firstAlertTime levels)
-    aend <- liftM (flip addHours firstTime) (lastAlertTime levels)
-    return Forecast { _fcLocation = location
-                    , _fcDate = (localDay . utcToLocalTime' tz) astart
-                    , _fcAlertStart = localDayTime astart
-                    , _fcAlertEnd = localDayTime aend
-                    , _fcMaxLevel = maxlevel
-                    , _fcUpdated = updated
-                    }
+buildForecast :: Location -> UTCTime -> [Measurement] -> Maybe Forecast
+buildForecast location updated measurements = do
+  let tz = locTZ location
+  let localDayTime = localTimeOfDay . utcToLocalTime' tz
+  let alertTimes = alertIntervals measurements
+  firstAlert <- fmap fst $ listToMaybe alertTimes
+  maxlevel <- maybeMaximum $ map snd measurements
+  return
+    Forecast
+    { _fcLocation = location
+    , _fcDate = (localDay . utcToLocalTime' tz) firstAlert
+    , _fcAlerts = [Alert (localDayTime astart) (localDayTime aend) | (astart, aend) <- alertTimes]
+    , _fcMaxLevel = maxlevel
+    , _fcUpdated = updated
+    }
 
-addHours :: Float -> UTCTime -> UTCTime
-addHours hours = addUTCTime $ fromRational $ toRational $ hours * 60 * 60
+timeToDiffTime :: UTCTime -> NominalDiffTime
+timeToDiffTime = flip diffUTCTime tconst
 
-firstAlertTime :: [UVLevel] -> Maybe Float
-firstAlertTime ls = do
-    (l1, ls') <- maybeSplitHead ls
-    if isDangerous l1 then return 0 else do
-        (l2, _) <- maybeSplitHead ls'
-        if isDangerous l2 then return $ extrapolateUV l1 l2
-                            else do
-                                alertTime <- firstAlertTime ls'
-                                return $ alertTime + 1
+diffTimeToTime :: NominalDiffTime -> UTCTime
+diffTimeToTime = flip addUTCTime tconst
 
-lastAlertTime :: [UVLevel] -> Maybe Float
-lastAlertTime ls = do
-    alertTime <- firstAlertTime $ reverse ls
-    return $ fromInteger (toInteger (length ls - 1)) - alertTime
+tconst :: UTCTime
+tconst = UTCTime (fromGregorian 2001 1 1) 0
 
-extrapolateUV :: UVLevel -> UVLevel -> Float
-extrapolateUV v1 v2 = extrapolate (uvToFloat v1, 0) (uvToFloat v2, 1) (uvToFloat alertLevel)
-    where uvToFloat v = v ^. uvValue . to toInteger . to fromInteger
+alertIntervals :: [Measurement] -> [(UTCTime, UTCTime)]
+alertIntervals =
+  fmap (first diffTimeToTime . second diffTimeToTime) .
+  findIntervals (uvToFloat alertLevel) .
+  map (second uvToFloat . first timeToDiffTime)
+  where
+    uvToFloat v = v ^. uvValue . to toInteger . to fromInteger
 
 data AppKey = AppKey { akKey :: String }
 

@@ -7,7 +7,7 @@ import Codec.Picture
 import qualified Data.ByteString as BS
 
 import Test.Hspec
-import Test.Hspec.Core
+import Test.Hspec.Core.Spec
 
 
 loadImage :: String -> SpecM a DynamicImage
