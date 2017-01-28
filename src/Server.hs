@@ -38,15 +38,18 @@ app cfg = serve api (readerServer cfg)
 registerApp :: AppKey -> AppSM ()
 registerApp key = stateM $ stAppKeys %= (++ [key])
 
+allLocations :: AppSM [Location]
+allLocations = asks $ concatMap fLocations . coFetchers
+
 getForecast :: Location -> AppSM [Forecast]
 getForecast loc = do
-    forecasts <- stateM $ use stForecasts
-    let locForecasts = sortBy compareUpdated $ S.toList $ S.filter ((== loc) . view fcLocation) forecasts
-    case locForecasts of
-        [] -> lift $ throwError $ err404 { errBody = "Location not found" }
-        _ -> return locForecasts
+  locations <- allLocations
+  when (not $ elem loc locations) $
+    lift $ throwError $ err404 {errBody = "Location not found"}
+  forecasts <- stateM $ use stForecasts
+  return $
+    sortBy compareUpdated $
+    S.toList $ S.filter ((== loc) . view fcLocation) forecasts
 
 getLocations :: AppSM [Location]
-getLocations = do
-    fetchers <- asks coFetchers
-    return $ sort $ concatMap fLocations fetchers
+getLocations = fmap sort allLocations

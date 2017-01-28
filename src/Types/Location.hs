@@ -36,12 +36,24 @@ data Location = Location { _locCountry :: String
 makeLenses ''Location
 
 instance FromHttpApiData Location where
+  parseQueryParam txt
     -- Parse locations like "city, region, country"
-    parseQueryParam txt = do
-        [city, region, country] <- mapM parseQueryParam =<< case T.splitOn ", " txt of
-                                                              lst@[_, _, _] -> return lst
-                                                              _ -> Left ""
-        return $ Location country region city
+   = do
+    [city, region, country] <-
+      mapM parseQueryParam =<<
+      case T.splitOn ", " txt of
+        lst@[_, _, _] -> return lst
+        _ -> Left ""
+    return $ Location country region city
+
+instance ToHttpApiData Location where
+  toQueryParam loc =
+    T.intercalate
+      ", "
+      [ loc ^. locCity . packed
+      , loc ^. locRegion . packed
+      , loc ^. locCountry . packed
+      ]
 
 _locId :: Location -> T.Text
 _locId loc = normalizeValue $ T.intercalate "-" [ loc ^. locCountry . packed
