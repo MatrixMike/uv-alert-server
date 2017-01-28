@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module TestUtils where
+module UtilsSpec where
 
 {- Test Utils module -}
 

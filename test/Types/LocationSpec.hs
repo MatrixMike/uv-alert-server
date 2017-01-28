@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module TestTypesLocation where
+module Types.LocationSpec where
 
 {- Test Types.Location module -}
 

@@ -1,4 +1,4 @@
-module TestFetcher where
+module FetcherSpec where
 
 import Control.Lens
 

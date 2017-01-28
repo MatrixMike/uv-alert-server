@@ -1,4 +1,4 @@
-module TestFetcherArpansa where
+module Fetcher.ArpansaSpec where
 
 import Control.Lens
 
