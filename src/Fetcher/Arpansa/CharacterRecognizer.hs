@@ -88,7 +88,7 @@ parseDate img = do
     let dateString = stringAt dateStringCoord img
     [_, dayString, monthString, yearString] <- case splitWhenChanges isDigit dateString of
                                                     res@[_, _, _, _] -> return res
-                                                    _ -> error $ "Invalid date parsed: " ++ dateString
+                                                    _ -> Left $ "Invalid date parsed: " ++ dateString
     day <- readEither "day" dayString
     month <- maybeToEither "month" $ M.lookup (drop 2 monthString) months
     year <- readEither "year" yearString

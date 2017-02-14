@@ -63,7 +63,7 @@ parseDate str = do
     let maybeDate = fromGregorianValid year month day
     case maybeDate of
         Just date -> return date
-        Nothing -> error "Invalid date"
+        Nothing -> Left $ "Invalid date: " ++ str
 
 parseTime :: String -> Either String TimeOfDay
 parseTime str = do
