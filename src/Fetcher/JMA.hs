@@ -73,11 +73,7 @@ fetchJma = do
         \(address, imgTime) -> logErrors address $ do
              logStr $ "Fetching JMA forecast for " ++ show (utcToLocalTime' japanTZ imgTime) ++ "..."
              imgBytes <- fetchHTTP manager address
-             case decodeImage imgBytes of
-               Left err -> do
-                   logStr err
-                   return Nothing
-               Right img -> return $ Just (img, imgTime)
+             logEither (decodeImage imgBytes) $ \img -> return $ Just (img, imgTime)
     case sequence images of
       Nothing -> return []
       Just images' -> do

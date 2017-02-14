@@ -60,10 +60,7 @@ parseDate str = do
     day <- readEither "day" $ stringPartT 0 2 str
     month <- readEither "month" $ stringPartT 3 2 str
     year <- readEither "year" $ stringPartT 6 4 str
-    let maybeDate = fromGregorianValid year month day
-    case maybeDate of
-        Just date -> return date
-        Nothing -> Left $ "Invalid date: " ++ str
+    maybeToEither ("Invalid date: " ++ str) $ fromGregorianValid year month day
 
 parseTime :: String -> Either String TimeOfDay
 parseTime str = do
