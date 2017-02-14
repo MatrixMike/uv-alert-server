@@ -20,7 +20,7 @@ script:
 cache:
   directories:
     - $HOME/.stack
-    - .stack-work
+    - .stack-work/install
 
 before_deploy:
   - cp $(stack path --local-install-root)/bin/uv-alert-server .
