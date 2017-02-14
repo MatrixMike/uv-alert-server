@@ -119,7 +119,7 @@ spec = do
 
         context "for a morning image" $ do
             img <- loadImage morningImage
-            let (Just fc) = parseGraph melbourne img testTime
+            let (Right (Just fc)) = parseGraph melbourne img testTime
             it "stores the city" $
                 fc ^. fcLocation . locCity `shouldBe` "Melbourne"
             it "stores the day" $ do
@@ -139,7 +139,7 @@ spec = do
             -- The real UV index was low in the morning, so the alert should be
             -- adjusted
             img <- loadImage eveningImage
-            let (Just fc) = parseGraph melbourne img testTime
+            let (Right (Just fc)) = parseGraph melbourne img testTime
             it "stores the city" $
                 fc ^. fcLocation . locCity `shouldBe` "Melbourne"
             it "stores the day" $ do
@@ -159,14 +159,14 @@ spec = do
             img <- loadImage quietImage
             let Just day = fromGregorianValid 2016 1 20
             it "does not have an alert forecast" $ do
-                parseGraph melbourne img testTime `shouldBe` Nothing
+                parseGraph melbourne img testTime `shouldBe` Right Nothing
 
         context "for an image with several high intervals" $ do
             -- This image has been altered to have a few intervals of high UV
             -- index
             img <- loadImage distinctPeriodsImage
             let Just day = fromGregorianValid 2016 1 20
-            let (Just fc) = parseGraph melbourne img testTime
+            let (Right (Just fc)) = parseGraph melbourne img testTime
             it "has a range of alerts" $ do
                 length (fc ^. fcAlerts) `shouldBe` 3
                 let [alert1, alert2, alert3] = fc ^. fcAlerts

@@ -59,27 +59,22 @@ addresses = map makeLocation [ (sa, "Adelaide", "adl")
 fetchArpansa :: AppM [Forecast]
 fetchArpansa = do
     manager <- liftIO $ newManager defaultManagerSettings
-    liftM concat $ forM addresses $ \(loc, address) -> do
+    fmap catMaybes $ forM addresses $ \(loc, address) -> do
         logStr $ "Fetching graph for " ++ loc ^. locCity ++ "..."
         logErrors address $ do
             graphBytes <- fetchHTTP manager address
-            case decodeImage graphBytes of
-                Left err -> do
-                    logStr err
-                    return []
-                Right graphImage -> do
-                    time <- liftIO getCurrentTime
-                    let forecast = parseGraph loc graphImage time
-                    return $ maybeToList forecast
+            logEither (decodeImage graphBytes) $ \graphImage -> do
+                time <- liftIO getCurrentTime
+                logEither (parseGraph loc graphImage time) $ return
 
-parseGraph :: Location -> DynamicImage -> UTCTime -> Maybe Forecast
+parseGraph :: Location -> DynamicImage -> UTCTime -> Either String (Maybe Forecast)
 parseGraph loc image updated = do
     let uvLine = selectBestLine image
     let graph = map graphCoordinates uvLine
-    date <- eitherToMaybe $ parseDate image
+    date <- parseDate image
     let timeToUtc = localTimeToUTC' (locTZ loc) . LocalTime date
     let alertTimes = map (first timeToUtc) graph
-    buildForecast loc updated alertTimes
+    return $ buildForecast loc updated alertTimes
 
 forecastLineColor :: PixelRGB8
 forecastLineColor = PixelRGB8 248 135 0
