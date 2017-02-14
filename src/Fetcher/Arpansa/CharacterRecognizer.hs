@@ -85,11 +85,16 @@ splitWhenChanges fn (a:as) = (a:start):splitWhenChanges fn rest
 -- Parse the date on the graph
 parseDate :: DynamicImage -> Either String Day
 parseDate img = do
-    let dateString = stringAt dateStringCoord img
-    [_, dayString, monthString, yearString] <- case splitWhenChanges isDigit dateString of
-                                                    res@[_, _, _, _] -> return res
-                                                    _ -> error $ "Invalid date parsed: " ++ dateString
-    day <- readEither "day" dayString
-    month <- maybeToEither "month" $ M.lookup (drop 2 monthString) months
-    year <- readEither "year" yearString
-    maybeToEither "invalid date" $ fromGregorianValid year month day
+  let dateString = stringAt dateStringCoord img
+  [_, dayString, monthString, yearString] <-
+    case splitWhenChanges isDigit dateString of
+      res@[_, _, _, _] -> return res
+      _ -> Left $ "Invalid date parsed: " ++ dateString
+  day <- readEither ("Invalid day: " ++ dayString) dayString
+  month <-
+    maybeToEither ("Invalid month: " ++ monthString) $
+    M.lookup (drop 2 monthString) months
+  year <- readEither ("Invalid year: " ++ yearString) yearString
+  maybeToEither
+    ("Invalid date: " ++ show year ++ "-" ++ show month ++ "-" ++ show day) $
+    fromGregorianValid year month day
