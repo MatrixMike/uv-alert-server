@@ -67,12 +67,11 @@ TODO: Is live data limited to 08:00-16:00, or does this depend on the UV level?
 
 fetchJma :: AppM [Forecast]
 fetchJma = do
-    manager <- liftIO $ newManager tlsManagerSettings
     time <- liftIO getCurrentTime
     images <- forM (map (imageNameTime time) imageRange) $
         \(address, imgTime) -> logErrors address $ do
              logStr $ "Fetching JMA forecast for " ++ show (utcToLocalTime' japanTZ imgTime) ++ "..."
-             imgBytes <- fetchHTTP manager address
+             imgBytes <- fetchHTTP address
              logEither (decodeImage imgBytes) $ \img -> return $ Just (img, imgTime)
     case sequence images of
       Nothing -> return []

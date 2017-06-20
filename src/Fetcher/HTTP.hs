@@ -7,14 +7,16 @@ module Fetcher.HTTP (
 import Control.Monad.IO.Class
 
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy as LBS
 
-import Network.HTTP.Client
+import Network.HTTP.Client (responseBody)
+import Network.HTTP.Simple (httpLBS, parseRequest)
 
 import Types.Config
 
 
-fetchHTTP :: Manager -> String -> AppM BS.ByteString
-fetchHTTP manager address = do
-    request <- parseUrlThrow address
-    chunks <- liftIO $ withResponse request manager (brConsume . responseBody)
-    return $ BS.concat chunks
+fetchHTTP :: String -> AppM BS.ByteString
+fetchHTTP address = do
+    request <- parseRequest address
+    chunks <- liftIO $ responseBody <$> httpLBS request
+    return $ LBS.toStrict chunks

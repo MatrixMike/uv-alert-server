@@ -34,12 +34,11 @@ epaFetcher = Fetcher "EPA" fetchEpa usLocations
 
 fetchEpa :: AppM [Forecast]
 fetchEpa = do
-    manager <- liftIO $ newManager tlsManagerSettings
     liftM concat $ forM usLocations $ \location -> do
         logStr $ "Fetching forecast for " ++ show location ++ "..."
         let address = forecastAddress location
         logErrors address $ do
-            responseStr <- fetchHTTP manager address
+            responseStr <- fetchHTTP address
             case decode $ LBS.fromStrict responseStr of
                 Just response -> do
                     time <- liftIO getCurrentTime

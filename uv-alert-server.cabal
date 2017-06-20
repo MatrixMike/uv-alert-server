@@ -49,6 +49,7 @@ library
                      , JuicyPixels
                      , http-client
                      , http-client-tls
+                     , http-conduit
                      , http-media
                      , lens
                      , lifted-base

@@ -58,11 +58,10 @@ addresses = map makeLocation [ (sa, "Adelaide", "adl")
 
 fetchArpansa :: AppM [Forecast]
 fetchArpansa = do
-    manager <- liftIO $ newManager defaultManagerSettings
     fmap catMaybes $ forM addresses $ \(loc, address) -> do
         logStr $ "Fetching graph for " ++ loc ^. locCity ++ "..."
         logErrors address $ do
-            graphBytes <- fetchHTTP manager address
+            graphBytes <- fetchHTTP address
             logEither (decodeImage graphBytes) $ \graphImage -> do
                 time <- liftIO getCurrentTime
                 logEither (parseGraph loc graphImage time) $ return
