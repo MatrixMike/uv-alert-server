@@ -8,6 +8,7 @@ import Codec.Picture.Types
 import Control.Monad
 import Control.Monad.IO.Class
 
+import qualified Data.ByteString.Lazy as LBS
 import Data.List
 import qualified Data.Map as M
 import Data.Maybe
@@ -15,10 +16,9 @@ import Data.Time
 import Data.Time.LocalTime.TimeZone.Series
 
 import Network.HTTP.Client
-import Network.HTTP.Client.TLS
+import Network.HTTP.Simple
 
 import Fetcher.Base
-import Fetcher.HTTP
 import Fetcher.JMA.Cities
 import Types
 import Types.Config
@@ -71,8 +71,8 @@ fetchJma = do
     images <- forM (map (imageNameTime time) imageRange) $
         \(address, imgTime) -> logErrors address $ do
              logStr $ "Fetching JMA forecast for " ++ show (utcToLocalTime' japanTZ imgTime) ++ "..."
-             imgBytes <- fetchHTTP address
-             logEither (decodeImage imgBytes) $ \img -> return $ Just (img, imgTime)
+             imgBytes <- responseBody <$> (parseRequest address >>= httpLBS)
+             logEither (decodeImage $ LBS.toStrict imgBytes) $ \img -> return $ Just (img, imgTime)
     case sequence images of
       Nothing -> return []
       Just images' -> do
