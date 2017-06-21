@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# OPTIONS_GHC -fmax-pmcheck-iterations=6000000 #-}
 module Types.Location.USA (
     usTZ,
 ) where

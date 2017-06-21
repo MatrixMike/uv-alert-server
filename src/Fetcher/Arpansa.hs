@@ -11,7 +11,6 @@ import Control.Lens
 import Control.Monad.IO.Class
 
 import Data.Aeson
-import qualified Data.ByteString as BS
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T

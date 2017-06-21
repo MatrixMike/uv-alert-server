@@ -2,14 +2,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 module Integration.ServerSpec where
 
-import Control.Lens
-
-import Data.Maybe
-import Data.Time.Calendar
-import qualified Data.Set as S
-
 import Server
-import Types
 import Types.Config
 import Types.Location
 
@@ -20,6 +13,7 @@ import Test.Hspec.Wai
 import Test.Hspec.Wai.JSON
 
 
+spec :: Spec
 spec = do
   config <- runIO testConfig
   let locations =
@@ -30,8 +24,8 @@ spec = do
   let testFetcher =
         Fetcher
         {fName = "test fetcher", fFetch = return [], fLocations = locations}
-  let testConfig = config {coFetchers = [testFetcher]}
-  with (return $ app testConfig) $ do
+  let testCfg = config {coFetchers = [testFetcher]}
+  with (return $ app testCfg) $ do
     describe "GET /locations" $ do
       it "responds with locations JSON" $ do
         get "/locations" `shouldRespondWith`

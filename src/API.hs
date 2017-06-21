@@ -5,10 +5,6 @@
 {-# LANGUAGE TypeOperators #-}
 module API where
 
-import Data.Aeson (encode, ToJSON)
-
-import Network.HTTP.Media hiding (Accept)
-
 import Servant
 
 import Types

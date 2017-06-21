@@ -5,15 +5,11 @@ import Control.Concurrent.MVar
 
 import Control.Lens
 
-import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.State
 import Control.Monad.Trans.Reader
 
-import Data.Maybe
 import qualified Data.Set as S
-
-import System.Environment
 
 import Types
 import Types.Location

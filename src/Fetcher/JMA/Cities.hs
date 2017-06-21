@@ -16,22 +16,27 @@ data ImageCoord = ImageCoord { icX :: Int, icY :: Int }
 data LonLat = LonLat { lon :: Float, lat :: Float }
     deriving (Show, Eq)
 
+latlon :: Float -> Float -> LonLat
 latlon = flip LonLat
 
 -- Reference points for converting the latitude and longitude
 
--- Iturup island northeast of Japan, northeastern point
+-- | Iturup island northeast of Japan, northeastern point
+iturupLatLon :: LonLat
 iturupLatLon = latlon 45.529597 148.863393
+iturupCoo :: ImageCoord
 iturupCoo = ImageCoord 493 14
 
--- Yakushima island, southwestern point
+-- | Yakushima island, southwestern point
+yakushimaLatLon :: LonLat
 yakushimaLatLon = latlon 30.262214 130.430049
+yakushimaCoo :: ImageCoord
 yakushimaCoo = ImageCoord 154 323
 
 imageCoord :: LonLat -> ImageCoord
 imageCoord (LonLat lo la) = ImageCoord (round x) (round y)
-    where x = extrapolate (fromIntegral x1, lo1) (fromIntegral x2, lo2) lo
-          y = extrapolate (fromIntegral y1, la1) (fromIntegral y2, la2) la
+    where x = extrapolate (fromIntegral x1 :: Double, lo1) (fromIntegral x2, lo2) lo
+          y = extrapolate (fromIntegral y1 :: Double, la1) (fromIntegral y2, la2) la
           (LonLat lo1 la1) = iturupLatLon
           (ImageCoord x1 y1) = iturupCoo
           (LonLat lo2 la2) = yakushimaLatLon

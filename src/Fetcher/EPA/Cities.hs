@@ -214,6 +214,7 @@ usLocations :: [Location]
 usLocations = map usLocation usCities
     where usLocation (city, state) = Location "USA" state city
 
+usStateAbbreviations :: M.Map String String
 usStateAbbreviations = M.fromList [ ("Alabama", "AL")
                                   , ("Alaska", "AK")
                                   , ("Arizona", "AZ")
@@ -275,6 +276,7 @@ usStateAbbreviations = M.fromList [ ("Alabama", "AL")
                                   , ("Virgin Islands", "VI")
                                   ]
 
+usStateAbbreviation :: String -> String
 usStateAbbreviation state = case M.lookup state usStateAbbreviations of
                               Just abbr -> abbr
                               Nothing -> error $ "Invalid state " ++ state

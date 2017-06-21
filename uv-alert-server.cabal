@@ -67,11 +67,12 @@ library
                      , vector
                      , wai
   default-language:    Haskell2010
+  ghc-options:         -Wall -Werror
 
 executable uv-alert-server
   hs-source-dirs:      app
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall -Werror
   build-depends:       base
                      , uv-alert-server
                      , warp
@@ -111,7 +112,7 @@ test-suite uv-alert-server-test
                      , Types.LocationSpec
                      , TypesSpec
                      , UtilsSpec
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall -Werror
   default-language:    Haskell2010
 
 source-repository head

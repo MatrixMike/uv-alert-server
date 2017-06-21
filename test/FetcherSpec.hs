@@ -1,7 +1,5 @@
 module FetcherSpec where
 
-import Control.Lens
-
 import qualified Data.Set as S
 import Data.Time.Calendar
 import Data.Time.Clock
@@ -13,6 +11,7 @@ import Types.Location
 
 import Test.Hspec
 
+spec :: Spec
 spec = do
     describe "removeOld" $ do
         let forecasts = [ dummyFc "Melbourne" day1 (morning day1)
@@ -38,6 +37,5 @@ spec = do
           dummyLocation city = Location "Australia" "Victoria" city
           Just day1 = fromGregorianValid 2016 01 14
           Just day2 = fromGregorianValid 2016 01 15
-          Just day3 = fromGregorianValid 2016 01 16
           morning day = UTCTime day (timeOfDayToTime $ TimeOfDay 7 0 0)
           evening day = UTCTime day (timeOfDayToTime $ TimeOfDay 18 0 0)
