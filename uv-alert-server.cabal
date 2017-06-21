@@ -19,16 +19,12 @@ library
                      , App
                      , Fetcher
                      , Fetcher.Arpansa
-                     , Fetcher.Arpansa.CharacterRecognizer
-                     , Fetcher.Arpansa.Characters
-                     , Fetcher.Arpansa.Base
                      , Fetcher.Base
                      , Fetcher.BOM
                      , Fetcher.EPA
                      , Fetcher.EPA.Cities
                      , Fetcher.JMA
                      , Fetcher.JMA.Cities
-                     , Fetcher.HTTP
                      , Pebble.Client
                      , Pebble.Types
                      , Pusher
@@ -49,6 +45,7 @@ library
                      , JuicyPixels
                      , http-client
                      , http-client-tls
+                     , http-conduit
                      , http-media
                      , lens
                      , lifted-base
@@ -105,8 +102,7 @@ test-suite uv-alert-server-test
                      , transformers
                      , vector
                      , wai
-  other-modules:       Fetcher.ArpansaSpec
-                     , Fetcher.JMASpec
+  other-modules:       Fetcher.JMASpec
                      , FetcherSpec
                      , Images
                      , Integration.Base
