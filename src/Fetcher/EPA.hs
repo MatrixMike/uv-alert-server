@@ -22,8 +22,6 @@ import Fetcher.EPA.Cities
 import Types
 import Types.Config
 import Types.Location
-import Utils
-
 
 epaFetcher :: Fetcher
 epaFetcher = Fetcher "EPA" fetchEpa usLocations
@@ -39,6 +37,7 @@ fetchEpa = do
             let measurements = map (\fi -> (fiDateTime location fi, fiLevel fi)) (responseBody response)
             return $ maybeToList $ buildForecast location time measurements
 
+forecastAddress :: Location -> String
 forecastAddress location = "https://iaspub.epa.gov/enviro/efservice/getEnvirofactsUVHOURLY/CITY/" ++ city ++ "/STATE/" ++ abbr ++ "/JSON"
     where city = location ^. locCity
           abbr = location ^. locRegion . to usStateAbbreviation
@@ -48,11 +47,13 @@ data ForecastItem = ForecastItem { fiLocalTime :: LocalTime
                                  }
 
 instance FromJSON ForecastItem where
-    parseJSON (Object v) = do
-            level <- liftM UVLevel $ v .: "UV_VALUE"
-            time <- (v .: "DATE_TIME") >>= parseLocalTime
-            return $ ForecastItem time level
-        where parseLocalTime = parseTimeM False defaultTimeLocale "%b/%d/%Y %I %P"
+  parseJSON =
+    withObject "forecast item" $ \v -> do
+      level <- liftM UVLevel $ v .: "UV_VALUE"
+      time <- (v .: "DATE_TIME") >>= parseLocalTime
+      return $ ForecastItem time level
+    where
+      parseLocalTime = parseTimeM False defaultTimeLocale "%b/%d/%Y %I %P"
 
 -- Parse a date from the forecast in a format: MAR/17/2016 11 PM
 fiDateTime :: Location -> ForecastItem -> UTCTime

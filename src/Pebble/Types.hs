@@ -6,7 +6,6 @@ import Control.Monad
 
 import Data.Aeson
 import Data.Aeson.Types
-import Data.List
 import Data.Time.Clock
 import qualified Data.Text as T
 import qualified Data.Vector as V

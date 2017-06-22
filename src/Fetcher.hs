@@ -14,9 +14,6 @@ import Data.Time.Clock
 
 import GHC.Exts (groupWith)
 
-import Fetcher.Arpansa
-import Fetcher.Base
-import Fetcher.EPA
 import Pusher
 import Types
 import Types.Config

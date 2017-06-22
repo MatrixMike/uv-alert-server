@@ -1,5 +1,7 @@
 module Fetcher.JMASpec where
 
+import Codec.Picture.Types
+
 import Control.Lens
 
 import Data.Time
@@ -12,19 +14,23 @@ import Types.Location
 import Types.Location.Japan
 
 import Test.Hspec
+import Test.Hspec.Core.Spec (SpecM)
 
 import Images
 import Misc
 
 
-testImageName i = "jma/201607220600-" ++ padShow i ++ ".png"
+testImageName :: (Show a, Ord a, Num a) => a -> [Char]
+testImageName i' = "jma/201607220600-" ++ padShow i' ++ ".png"
     where padShow i | i < 10 = "0" ++ show i
                     | otherwise = show i
 
 
+testImage :: Integer -> SpecM a DynamicImage
 testImage = loadImage . testImageName
 
-testImages = mapM loadImage $ map testImageName [0..12]
+testImages :: SpecM a [DynamicImage]
+testImages = mapM loadImage $ map testImageName [0 .. 12 :: Int]
 
 
 japanTime :: Day -> Int -> Int -> UTCTime

@@ -7,8 +7,6 @@ import Control.Lens
 import Control.Monad.Reader
 import Control.Monad.Trans.Except
 
-import Data.List
-import Data.List.Utils
 import qualified Data.Text as T
 import Data.Text.Lens
 import Data.Time.LocalTime
@@ -50,11 +48,11 @@ forecastPin :: Forecast -> [Pin]
 forecastPin fc = do
     alert <- fc ^. fcAlerts
     let notificationTitle = "Max level: " ++ show (fc ^. fcMaxLevel . uvValue)
-    let notificationText alert = "Alert from " ++ showTime (alert ^. alertStart) ++ " to " ++ showTime (alert ^. alertEnd)
+    let notificationText = "Alert from " ++ showTime (alert ^. alertStart) ++ " to " ++ showTime (alert ^. alertEnd)
     let baseLayout = Layout { layoutType = GenericPin
                             , layoutTitle = ""
                             , layoutSubtitle = Just notificationTitle
-                            , layoutBody = Just (notificationText alert)
+                            , layoutBody = Just notificationText
                             , layoutTinyIcon = Nothing
                             , layoutSmallIcon = Nothing
                             , layoutLargeIcon = Nothing

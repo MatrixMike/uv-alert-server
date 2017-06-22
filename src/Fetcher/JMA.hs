@@ -82,21 +82,20 @@ imageRange :: [Int]
 imageRange = [0..12]
 
 imageNameTime :: UTCTime -> Int -> (String, UTCTime)
-imageNameTime now index = (url, fcTime)
+imageNameTime now index = (url, time)
     where url = urlBase ++ zeroPad 4 year ++ zp2 month ++ zp2 day ++
                 zp2 fcUpdatedHour ++ "00-" ++ zp2 index ++ ".png"
           zeroPad n val = take (n - length str) (repeat '0') ++ str
               where str = show val
           zp2 = zeroPad 2
-          LocalTime date time = utcToLocalTime' japanTZ now
-          TimeOfDay hour _ _ = time
+          LocalTime date (TimeOfDay hour _ _) = utcToLocalTime' japanTZ now
           (fcUpdatedDate, fcUpdatedHour) = if hour < 6 then (addDays (-1) date, 18)
                                                        else if hour < 18 then (date, 6)
                                                        else (date, 18)
           (year, month, day) = toGregorian fcUpdatedDate
           fcEffectiveDate = if hour < 18 then date else addDays 1 date
           fcEffectiveHour = index + 6
-          fcTime = localTimeToUTC' japanTZ $ LocalTime fcEffectiveDate $ TimeOfDay fcEffectiveHour 0 0
+          time = localTimeToUTC' japanTZ $ LocalTime fcEffectiveDate $ TimeOfDay fcEffectiveHour 0 0
           urlBase = "http://www.jma.go.jp/en/uv/imgs/uv_color/forecast/000/"
 
 imageUVLevelExact :: ImageCoord -> DynamicImage -> Maybe UVLevel
@@ -117,6 +116,7 @@ imageUVLevelExact (ImageCoord x y) (ImageRGB8 image) = M.lookup (pixelAt image x
                         , PixelRGB8 204   0 160
                         , PixelRGB8 204   0 204
                         ]
+imageUVLevelExact _ _ = error "Unexpected image format"
 
 maxDist :: Int
 maxDist = 10
@@ -128,7 +128,7 @@ firstJust = listToMaybe . catMaybes
 averageLevel :: [Maybe UVLevel] -> Maybe UVLevel
 averageLevel lvls = case catMaybes lvls of
                       [] -> Nothing
-                      lvls' -> Just $ UVLevel $ round $ fromIntegral (sum (map _uvValue lvls')) / fromIntegral (length lvls')
+                      lvls' -> Just $ UVLevel $ round $ fromIntegral (sum (map _uvValue lvls')) / (fromIntegral (length lvls') :: Double)
 
 -- Some pixels on the map are always black (shorelines). Find the closest pixel
 -- that isn't and return its UV level.
@@ -153,6 +153,7 @@ circleAround coo img dist = sortOn (distance coo) $ filter ((< (fromIntegral dis
                    , y < dynamicMap imageHeight img
                    ]
 
+around :: (Num a, Enum a) => a -> a -> [a]
 around val spread = [val - spread .. val + spread]
 
 distance :: ImageCoord -> ImageCoord -> Float

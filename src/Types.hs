@@ -130,11 +130,10 @@ alertIntervals =
   findIntervals (uvToFloat alertLevel) .
   map (second uvToFloat . first timeToDiffTime)
   where
+    uvToFloat :: UVLevel -> Double
     uvToFloat v = v ^. uvValue . to toInteger . to fromInteger
 
 data AppKey = AppKey { akKey :: String }
 
 instance FromFormUrlEncoded AppKey where
     fromFormUrlEncoded = liftM (AppKey . T.unpack) . maybeToEither "key not found" . M.lookup "key" . M.fromList
-        where maybeToEither _ (Just x) = Right x
-              maybeToEither err Nothing = Left err

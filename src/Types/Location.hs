@@ -1,6 +1,7 @@
 {-# Language DeriveGeneric #-}
 {-# Language OverloadedStrings #-}
 {-# Language TemplateHaskell #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 module Types.Location (
     Location(..),
     locCountry,
@@ -13,7 +14,6 @@ module Types.Location (
 import Control.Lens hiding ((.=))
 
 import Data.Aeson
-import Data.Either
 import qualified Data.Text as T
 import Data.Text.Lens
 import Data.Time.LocalTime.TimeZone.Series
@@ -61,7 +61,7 @@ _locId loc = normalizeValue $ T.intercalate "-" [ loc ^. locCountry . packed
                                                 , loc ^. locCity . packed
                                                 ]
 
--- String to identify locations in pin IDs and topic names
+-- | String to identify locations in pin IDs and topic names
 locId :: Getter Location T.Text
 locId = to _locId
 
@@ -76,5 +76,5 @@ instance ToJSON Location where
 locTZ :: Location -> TimeZoneSeries
 locTZ (Location "Australia" state _) = auStateTZ state
 locTZ (Location "Japan" _ _) = japanTZ
-locTZ loc@(Location "USA" state city) = usTZ city state
+locTZ (Location "USA" state city) = usTZ city state
 locTZ loc = error $ "Unknown time zone for location " ++ show loc

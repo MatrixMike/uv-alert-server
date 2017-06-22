@@ -2,22 +2,15 @@ module App where
 
 import Control.Concurrent.MVar
 
-import Control.Lens
-
 import Control.Monad
-import Control.Monad.IO.Class
-import Control.Monad.State
-import Control.Monad.Trans.Reader
 
 import Data.Maybe
 
 import System.Environment
 
-import Fetcher
 import Fetcher.Arpansa
 import Fetcher.EPA
 import Fetcher.JMA
-import Types
 import Types.Config
 
 import Pebble.Types
