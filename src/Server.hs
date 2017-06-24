@@ -1,5 +1,6 @@
-{-# Language OverloadedStrings #-}
-{-# Language TypeOperators #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators #-}
+
 module Server where
 
 import Control.Lens
@@ -19,7 +20,6 @@ import API
 import Types
 import Types.Config
 import Types.Location
-
 
 type AppSM = AppT (ExceptT ServantErr IO)
 

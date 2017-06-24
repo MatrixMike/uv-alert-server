@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module TypesSpec where
 
 {- Test Types module -}
-
 import Control.Lens
 
 import Data.Maybe
@@ -15,10 +15,9 @@ import Types.Location.Japan
 
 import Test.Hspec
 
-
 japanTime :: Day -> Int -> Int -> UTCTime
-japanTime date hour minute = localTimeToUTC' japanTZ $ LocalTime date $ TimeOfDay hour minute 0
-
+japanTime date hour minute =
+  localTimeToUTC' japanTZ $ LocalTime date $ TimeOfDay hour minute 0
 
 spec :: Spec
 spec = do

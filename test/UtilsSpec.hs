@@ -1,14 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module UtilsSpec where
 
 {- Test Utils module -}
-
 import Utils
 
 import Test.Hspec
 
 type DSeries = [(Double, Double)]
-
 
 spec :: Spec
 spec = do

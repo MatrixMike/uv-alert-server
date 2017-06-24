@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Fetcher.EPA where
 
 {- Fetch USA data from EPA API. -}
-
 import Control.Lens
 import Control.Monad
 import Control.Monad.IO.Class
@@ -28,23 +28,32 @@ epaFetcher = Fetcher "EPA" fetchEpa usLocations
 
 fetchEpa :: AppM [Forecast]
 fetchEpa = do
-    liftM concat $ forM usLocations $ \location -> do
-        logStr $ "Fetching forecast for " ++ show location ++ "..."
-        let address = forecastAddress location
-        logErrors address $ do
-            response <- parseRequest address >>= httpJSON
-            time <- liftIO getCurrentTime
-            let measurements = map (\fi -> (fiDateTime location fi, fiLevel fi)) (responseBody response)
-            return $ maybeToList $ buildForecast location time measurements
+  liftM concat $ forM usLocations $ \location -> do
+    logStr $ "Fetching forecast for " ++ show location ++ "..."
+    let address = forecastAddress location
+    logErrors address $ do
+      response <- parseRequest address >>= httpJSON
+      time <- liftIO getCurrentTime
+      let measurements =
+            map
+              (\fi -> (fiDateTime location fi, fiLevel fi))
+              (responseBody response)
+      return $ maybeToList $ buildForecast location time measurements
 
 forecastAddress :: Location -> String
-forecastAddress location = "https://iaspub.epa.gov/enviro/efservice/getEnvirofactsUVHOURLY/CITY/" ++ city ++ "/STATE/" ++ abbr ++ "/JSON"
-    where city = location ^. locCity
-          abbr = location ^. locRegion . to usStateAbbreviation
+forecastAddress location =
+  "https://iaspub.epa.gov/enviro/efservice/getEnvirofactsUVHOURLY/CITY/" ++ city ++
+  "/STATE/" ++
+  abbr ++
+  "/JSON"
+  where
+    city = location ^. locCity
+    abbr = location ^. locRegion . to usStateAbbreviation
 
-data ForecastItem = ForecastItem { fiLocalTime :: LocalTime
-                                 , fiLevel :: UVLevel
-                                 }
+data ForecastItem = ForecastItem
+  { fiLocalTime :: LocalTime
+  , fiLevel :: UVLevel
+  }
 
 instance FromJSON ForecastItem where
   parseJSON =
@@ -58,4 +67,5 @@ instance FromJSON ForecastItem where
 -- Parse a date from the forecast in a format: MAR/17/2016 11 PM
 fiDateTime :: Location -> ForecastItem -> UTCTime
 fiDateTime location fi = localTimeToUTC' tz (fiLocalTime fi)
-    where tz = locTZ location
+  where
+    tz = locTZ location

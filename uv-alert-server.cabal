@@ -43,6 +43,7 @@ library
                      , either
                      , ftphs
                      , JuicyPixels
+                     , http-api-data
                      , http-client
                      , http-client-tls
                      , http-conduit

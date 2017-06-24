@@ -1,4 +1,5 @@
-{-# Language OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Utils where
 
 import Data.Char
@@ -6,7 +7,8 @@ import qualified Data.Text as T
 import Data.Text.ICU.Normalize
 
 readEither :: Read a => e -> String -> Either e a
-readEither err str = case reads str of
+readEither err str =
+  case reads str of
     [(res, "")] -> Right res
     _ -> Left err
 
@@ -15,35 +17,32 @@ maybeToEither e Nothing = Left e
 maybeToEither _ (Just a) = Right a
 
 -- | Extrapolate assuming a linear dependency.
-extrapolate
-    :: (Fractional a, Real a, Fractional b)
-    => (b, a) -> (b, a) -> a -> b
+extrapolate ::
+     (Fractional a, Real a, Fractional b) => (b, a) -> (b, a) -> a -> b
 extrapolate (b1, a1) (b2, a2) a = b1 + (b2 - b1) * percentage
-    where
-        percentage = fromRational $ toRational $ (a - a1) / (a2 - a1)
+  where
+    percentage = fromRational $ toRational $ (a - a1) / (a2 - a1)
 
 -- | Extrapolate inside the interval only.
-extrapolateClipped
-    :: (Fractional a, Real a, Fractional b)
-    => (b, a) -> (b, a) -> a -> b
-extrapolateClipped p1@(b1, a1) p2@(b2, a2) a | (a <= a1) && (a1 <= a2) = b1
-                                             | (a <= a2) && (a2 <= a1) = b2
-                                             | (a >= a1) && (a1 >= a2) = b1
-                                             | (a >= a2) && (a2 >= a1) = b2
-                                             | otherwise = extrapolate p1 p2 a
+extrapolateClipped ::
+     (Fractional a, Real a, Fractional b) => (b, a) -> (b, a) -> a -> b
+extrapolateClipped p1@(b1, a1) p2@(b2, a2) a
+  | (a <= a1) && (a1 <= a2) = b1
+  | (a <= a2) && (a2 <= a1) = b2
+  | (a >= a1) && (a1 >= a2) = b1
+  | (a >= a2) && (a2 >= a1) = b2
+  | otherwise = extrapolate p1 p2 a
 
 -- | Find the first value where the corresponding value is greater or equal than the given one.
-findValueMonotonic
-    :: (Fractional a, Real a, Fractional b)
-    => a -> [(b, a)] -> Maybe b
+findValueMonotonic ::
+     (Fractional a, Real a, Fractional b) => a -> [(b, a)] -> Maybe b
 findValueMonotonic a ps =
-    case findIntervals a ps of
-        [] -> Nothing
-        (b, _):_ -> Just b
+  case findIntervals a ps of
+    [] -> Nothing
+    (b, _):_ -> Just b
 
-findIntervals
-    :: (Fractional a, Real a, Fractional b)
-    => a -> [(b, a)] -> [(b, b)]
+findIntervals ::
+     (Fractional a, Real a, Fractional b) => a -> [(b, a)] -> [(b, b)]
 findIntervals a ps =
   case break good ps of
     (_, []) -> []

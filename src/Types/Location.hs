@@ -1,15 +1,16 @@
-{-# Language DeriveGeneric #-}
-{-# Language OverloadedStrings #-}
-{-# Language TemplateHaskell #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
-module Types.Location (
-    Location(..),
-    locCountry,
-    locRegion,
-    locCity,
-    locId,
-    locTZ,
-) where
+
+module Types.Location
+  ( Location(..)
+  , locCountry
+  , locRegion
+  , locCity
+  , locId
+  , locTZ
+  ) where
 
 import Control.Lens hiding ((.=))
 
@@ -27,12 +28,12 @@ import Types.Location.Japan
 import Types.Location.USA
 import Utils
 
+data Location = Location
+  { _locCountry :: String
+  , _locRegion :: String
+  , _locCity :: String
+  } deriving (Eq, Show, Generic, Ord)
 
-data Location = Location { _locCountry :: String
-                         , _locRegion :: String
-                         , _locCity :: String
-                         }
-    deriving (Eq, Show, Generic, Ord)
 makeLenses ''Location
 
 instance FromHttpApiData Location where
@@ -56,21 +57,27 @@ instance ToHttpApiData Location where
       ]
 
 _locId :: Location -> T.Text
-_locId loc = normalizeValue $ T.intercalate "-" [ loc ^. locCountry . packed
-                                                , loc ^. locRegion . packed
-                                                , loc ^. locCity . packed
-                                                ]
+_locId loc =
+  normalizeValue $
+  T.intercalate
+    "-"
+    [ loc ^. locCountry . packed
+    , loc ^. locRegion . packed
+    , loc ^. locCity . packed
+    ]
 
 -- | String to identify locations in pin IDs and topic names
 locId :: Getter Location T.Text
 locId = to _locId
 
 instance ToJSON Location where
-    toJSON loc = object [ "country" .= (loc ^. locCountry)
-                        , "region" .= (loc ^. locRegion)
-                        , "city" .= (loc ^. locCity)
-                        , "id" .= (loc ^. locId . unpacked)
-                        ]
+  toJSON loc =
+    object
+      [ "country" .= (loc ^. locCountry)
+      , "region" .= (loc ^. locRegion)
+      , "city" .= (loc ^. locCity)
+      , "id" .= (loc ^. locId . unpacked)
+      ]
 
 -- FIXME: disallow creating locations if the time zone is unknown
 locTZ :: Location -> TimeZoneSeries

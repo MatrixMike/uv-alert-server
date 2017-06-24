@@ -1,6 +1,7 @@
-sudo: required
-dist: trusty
-language: generic
+addons:
+  apt:
+    packages:
+      - libgmp-dev
 
 before_install:
   - wget https://www.stackage.org/stack/linux-x86_64 -O stack.tar.gz
