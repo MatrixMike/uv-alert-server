@@ -5,14 +5,14 @@ module Pusher where
 import Control.Lens
 
 import Control.Monad.Reader
-import Control.Monad.Trans.Except
-
 import qualified Data.Text as T
 import Data.Text.Lens
 import Data.Time.LocalTime
 
 import Network.HTTP.Client
 import Network.HTTP.Client.TLS
+
+import Servant.Client
 
 import Types
 import Types.Config
@@ -36,8 +36,9 @@ putForecastPin manager forecast = do
     apiKey <- asks coApiKey
     let topics = forecastTopics forecast
     let pins = forecastPin forecast
+    let env = ClientEnv manager pebbleUrl
     forM_ pins $ \pin -> do
-        result <- liftIO $ runExceptT $ putSharedPin (Just apiKey) (Just topics) (pinId pin) pin manager pebbleUrl
+        result <- liftIO $ flip runClientM env $ putSharedPin (Just apiKey) (Just topics) (pinId pin) pin
         case result of
             Left err -> do
                 logStr $ "Error pushing forecast: " ++ show err

@@ -7,13 +7,10 @@ module Types where
 import Control.Lens hiding ((.=))
 
 import Control.Arrow
-import Control.Monad
 
 import Data.Aeson
 import Data.Function
-import qualified Data.Map as M
 import Data.Maybe
-import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.LocalTime
@@ -21,7 +18,7 @@ import Data.Time.LocalTime.TimeZone.Series
 
 import GHC.Generics (Generic)
 
-import Servant
+import Web.FormUrlEncoded
 
 import Types.Location
 import Utils
@@ -135,5 +132,5 @@ alertIntervals =
 
 data AppKey = AppKey { akKey :: String }
 
-instance FromFormUrlEncoded AppKey where
-    fromFormUrlEncoded = liftM (AppKey . T.unpack) . maybeToEither "key not found" . M.lookup "key" . M.fromList
+instance FromForm AppKey where
+    fromForm f = AppKey <$> parseUnique "key" f
