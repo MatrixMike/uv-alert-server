@@ -15,7 +15,6 @@ import Types.Config
 
 import Pebble.Types
 
-
 defaultFetchers :: [Fetcher]
 defaultFetchers = [arpansaFetcher, epaFetcher, jmaFetcher]
 

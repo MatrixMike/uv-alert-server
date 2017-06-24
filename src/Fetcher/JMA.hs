@@ -1,7 +1,6 @@
 module Fetcher.JMA where
 
 {- Fetch UV alert data from Japan Meteorological Agency. -}
-
 import Codec.Picture
 import Codec.Picture.Types
 
@@ -24,7 +23,6 @@ import Types
 import Types.Config
 import Types.Location
 import Types.Location.Japan
-
 
 jmaFetcher :: Fetcher
 jmaFetcher = Fetcher "JMA" fetchJma (map fst cities)
@@ -64,58 +62,76 @@ time).
 
 TODO: Is live data limited to 08:00-16:00, or does this depend on the UV level?
 -}
-
 fetchJma :: AppM [Forecast]
 fetchJma = do
-    time <- liftIO getCurrentTime
-    images <- forM (map (imageNameTime time) imageRange) $
-        \(address, imgTime) -> logErrors address $ do
-             logStr $ "Fetching JMA forecast for " ++ show (utcToLocalTime' japanTZ imgTime) ++ "..."
-             imgBytes <- responseBody <$> (parseRequest address >>= httpLBS)
-             logEither (decodeImage $ LBS.toStrict imgBytes) $ \img -> return $ Just (img, imgTime)
-    case sequence images of
-      Nothing -> return []
-      Just images' -> do
-          return $ catMaybes $ map (forecast time images') cities
+  time <- liftIO getCurrentTime
+  images <-
+    forM (map (imageNameTime time) imageRange) $ \(address, imgTime) ->
+      logErrors address $ do
+        logStr $
+          "Fetching JMA forecast for " ++
+          show (utcToLocalTime' japanTZ imgTime) ++ "..."
+        imgBytes <- responseBody <$> (parseRequest address >>= httpLBS)
+        logEither (decodeImage $ LBS.toStrict imgBytes) $ \img ->
+          return $ Just (img, imgTime)
+  case sequence images of
+    Nothing -> return []
+    Just images' -> do
+      return $ catMaybes $ map (forecast time images') cities
 
 imageRange :: [Int]
-imageRange = [0..12]
+imageRange = [0 .. 12]
 
 imageNameTime :: UTCTime -> Int -> (String, UTCTime)
 imageNameTime now index = (url, time)
-    where url = urlBase ++ zeroPad 4 year ++ zp2 month ++ zp2 day ++
-                zp2 fcUpdatedHour ++ "00-" ++ zp2 index ++ ".png"
-          zeroPad n val = take (n - length str) (repeat '0') ++ str
-              where str = show val
-          zp2 = zeroPad 2
-          LocalTime date (TimeOfDay hour _ _) = utcToLocalTime' japanTZ now
-          (fcUpdatedDate, fcUpdatedHour) = if hour < 6 then (addDays (-1) date, 18)
-                                                       else if hour < 18 then (date, 6)
-                                                       else (date, 18)
-          (year, month, day) = toGregorian fcUpdatedDate
-          fcEffectiveDate = if hour < 18 then date else addDays 1 date
-          fcEffectiveHour = index + 6
-          time = localTimeToUTC' japanTZ $ LocalTime fcEffectiveDate $ TimeOfDay fcEffectiveHour 0 0
-          urlBase = "http://www.jma.go.jp/en/uv/imgs/uv_color/forecast/000/"
+  where
+    url =
+      urlBase ++
+      zeroPad 4 year ++
+      zp2 month ++ zp2 day ++ zp2 fcUpdatedHour ++ "00-" ++ zp2 index ++ ".png"
+    zeroPad n val = take (n - length str) (repeat '0') ++ str
+      where
+        str = show val
+    zp2 = zeroPad 2
+    LocalTime date (TimeOfDay hour _ _) = utcToLocalTime' japanTZ now
+    (fcUpdatedDate, fcUpdatedHour) =
+      if hour < 6
+        then (addDays (-1) date, 18)
+        else if hour < 18
+               then (date, 6)
+               else (date, 18)
+    (year, month, day) = toGregorian fcUpdatedDate
+    fcEffectiveDate =
+      if hour < 18
+        then date
+        else addDays 1 date
+    fcEffectiveHour = index + 6
+    time =
+      localTimeToUTC' japanTZ $
+      LocalTime fcEffectiveDate $ TimeOfDay fcEffectiveHour 0 0
+    urlBase = "http://www.jma.go.jp/en/uv/imgs/uv_color/forecast/000/"
 
 imageUVLevelExact :: ImageCoord -> DynamicImage -> Maybe UVLevel
-imageUVLevelExact (ImageCoord x y) (ImageRGB8 image) = M.lookup (pixelAt image x y) levels
-    where levels = M.fromList $ zip levelColors $ map UVLevel [0..]
-          levelColors = [ PixelRGB8 255 255 255
-                        , PixelRGB8 217 217 255
-                        , PixelRGB8 153 203 255
-                        , PixelRGB8 255 255 190
-                        , PixelRGB8 250 250 150
-                        , PixelRGB8 250 245   0
-                        , PixelRGB8 255 200   0
-                        , PixelRGB8 255 140   0
-                        , PixelRGB8 250  90   0
-                        , PixelRGB8 255  20   0
-                        , PixelRGB8 165   0  33
-                        , PixelRGB8 181   0  91
-                        , PixelRGB8 204   0 160
-                        , PixelRGB8 204   0 204
-                        ]
+imageUVLevelExact (ImageCoord x y) (ImageRGB8 image) =
+  M.lookup (pixelAt image x y) levels
+  where
+    levels = M.fromList $ zip levelColors $ map UVLevel [0 ..]
+    levelColors =
+      [ PixelRGB8 255 255 255
+      , PixelRGB8 217 217 255
+      , PixelRGB8 153 203 255
+      , PixelRGB8 255 255 190
+      , PixelRGB8 250 250 150
+      , PixelRGB8 250 245 0
+      , PixelRGB8 255 200 0
+      , PixelRGB8 255 140 0
+      , PixelRGB8 250 90 0
+      , PixelRGB8 255 20 0
+      , PixelRGB8 165 0 33
+      , PixelRGB8 181 0 91
+      , PixelRGB8 204 0 160
+      , PixelRGB8 204 0 204
+      ]
 imageUVLevelExact _ _ = error "Unexpected image format"
 
 maxDist :: Int
@@ -126,47 +142,64 @@ firstJust = listToMaybe . catMaybes
 
 -- Average the UV levels, if there's at least one present
 averageLevel :: [Maybe UVLevel] -> Maybe UVLevel
-averageLevel lvls = case catMaybes lvls of
-                      [] -> Nothing
-                      lvls' -> Just $ UVLevel $ round $ fromIntegral (sum (map _uvValue lvls')) / (fromIntegral (length lvls') :: Double)
+averageLevel lvls =
+  case catMaybes lvls of
+    [] -> Nothing
+    lvls' ->
+      Just $
+      UVLevel $
+      round $
+      fromIntegral (sum (map _uvValue lvls')) /
+      (fromIntegral (length lvls') :: Double)
 
 -- Some pixels on the map are always black (shorelines). Find the closest pixel
 -- that isn't and return its UV level.
 -- Don't stray too far
 imageUVLevel :: ImageCoord -> DynamicImage -> Maybe UVLevel
 imageUVLevel coo img = firstJust $ map averageLevel levels
-    where circles :: [[ImageCoord]]
-          circles = map (circleAround coo img) [0..maxDist]
-          levels :: [[Maybe UVLevel]]
-          levels = map (map (flip imageUVLevelExact img)) circles
+  where
+    circles :: [[ImageCoord]]
+    circles = map (circleAround coo img) [0 .. maxDist]
+    levels :: [[Maybe UVLevel]]
+    levels = map (map (flip imageUVLevelExact img)) circles
 
 -- All points at most dist pixels away from the given point, sorted by distance
 -- to that point
 circleAround :: ImageCoord -> DynamicImage -> Int -> [ImageCoord]
-circleAround coo img dist = sortOn (distance coo) $ filter ((< (fromIntegral dist)) . distance coo) square
-    where square = [ImageCoord x y
-                   | x <- around (icX coo) dist
-                   , y <- around (icY coo) dist
-                   , x >= 0
-                   , y >= 0
-                   , x < dynamicMap imageWidth img
-                   , y < dynamicMap imageHeight img
-                   ]
+circleAround coo img dist =
+  sortOn (distance coo) $ filter ((< (fromIntegral dist)) . distance coo) square
+  where
+    square =
+      [ ImageCoord x y
+      | x <- around (icX coo) dist
+      , y <- around (icY coo) dist
+      , x >= 0
+      , y >= 0
+      , x < dynamicMap imageWidth img
+      , y < dynamicMap imageHeight img
+      ]
 
 around :: (Num a, Enum a) => a -> a -> [a]
 around val spread = [val - spread .. val + spread]
 
 distance :: ImageCoord -> ImageCoord -> Float
 distance c1 c2 = sqrt (dx * dx + dy * dy)
-    where dx = fromIntegral $ icX c1 - icX c2
-          dy = fromIntegral $ icY c1 - icY c2
+  where
+    dx = fromIntegral $ icX c1 - icX c2
+    dy = fromIntegral $ icY c1 - icY c2
 
 imageUVLevels :: ImageCoord -> [DynamicImage] -> Maybe [UVLevel]
 imageUVLevels coo = traverse (imageUVLevel coo)
 
-forecast :: UTCTime -> [(DynamicImage, UTCTime)] -> (Location, LonLat) -> Maybe Forecast
-forecast time imagesTimes (loc, lonlat) = buildForecast loc time =<< measurements
-    where (images, times) = unzip imagesTimes
-          measurements :: Maybe [Measurement]
-          measurements = zip times <$> (imageUVLevels coo images)
-          coo = imageCoord lonlat
+forecast ::
+     UTCTime
+  -> [(DynamicImage, UTCTime)]
+  -> (Location, LonLat)
+  -> Maybe Forecast
+forecast time imagesTimes (loc, lonlat) =
+  buildForecast loc time =<< measurements
+  where
+    (images, times) = unzip imagesTimes
+    measurements :: Maybe [Measurement]
+    measurements = zip times <$> (imageUVLevels coo images)
+    coo = imageCoord lonlat

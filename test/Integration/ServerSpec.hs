@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+
 module Integration.ServerSpec where
 
 import Server
@@ -11,7 +12,6 @@ import Integration.Base
 import Test.Hspec
 import Test.Hspec.Wai
 import Test.Hspec.Wai.JSON
-
 
 spec :: Spec
 spec = do

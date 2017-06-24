@@ -2,10 +2,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
+
 module Fetcher.Arpansa where
 
 {- Fetch UV alert data from ARPANSA. -}
-
 import Control.Applicative
 import Control.Lens
 import Control.Monad.IO.Class
@@ -27,44 +27,56 @@ import Types
 import Types.Config
 import Types.Location
 
+data ArpansaLocation = ArpansaLocation
+  { _alLocation :: Location
+  , _alLongitude :: T.Text
+  , _alLatitude :: T.Text
+  } deriving (Eq, Ord)
 
-data ArpansaLocation = ArpansaLocation { _alLocation :: Location
-                                       , _alLongitude :: T.Text
-                                       , _alLatitude :: T.Text
-                                       } deriving (Eq, Ord)
 makeLenses ''ArpansaLocation
 
 instance Show ArpansaLocation where
-  show l = "ArpansaLocation (" ++ l ^. alLocation . locCity ++ ", " ++ show (l ^. alLatitude) ++ ", " ++ show (l ^. alLongitude) ++ ")"
+  show l =
+    "ArpansaLocation (" ++ l ^. alLocation . locCity ++ ", " ++
+    show (l ^. alLatitude) ++
+    ", " ++
+    show (l ^. alLongitude) ++
+    ")"
 
 addresses :: [ArpansaLocation]
-addresses = map makeLocation [ (sa, "Adelaide", "-34.92", "138.62")
-                             , (nt, "Alice Springs", "-23.7", "133.8")
-                             , (qld, "Brisbane", "-27.45", "153.03")
-                             , (act, "Canberra", "-35.31", "149.2")
-                             , (nt, "Darwin", "-12.43", "130.89")
-                             , (tas, "Kingston", "-42.99", "147.29")
-                             , (vic, "Melbourne", "-37.73", "145.1")
-                             , (nsw, "Newcastle", "-32.9", "151.72")
-                             , (wa, "Perth", "-31.92", "115.96")
-                             , (nsw, "Sydney", "-34.04", "151.1")
-                             , (qld, "Townsville", "-19.33", "146.76")
-                             ]
-    where makeLocation (state, town, lat, lon) = ArpansaLocation (Location "Australia" state town) lon lat
-          act = "Australian Capital Territory"
-          nsw = "New South Wales"
-          nt = "Northern Territory"
-          qld = "Queensland"
-          sa = "South Australia"
-          tas = "Tasmania"
-          vic = "Victoria"
-          wa = "Western Australia"
+addresses =
+  map
+    makeLocation
+    [ (sa, "Adelaide", "-34.92", "138.62")
+    , (nt, "Alice Springs", "-23.7", "133.8")
+    , (qld, "Brisbane", "-27.45", "153.03")
+    , (act, "Canberra", "-35.31", "149.2")
+    , (nt, "Darwin", "-12.43", "130.89")
+    , (tas, "Kingston", "-42.99", "147.29")
+    , (vic, "Melbourne", "-37.73", "145.1")
+    , (nsw, "Newcastle", "-32.9", "151.72")
+    , (wa, "Perth", "-31.92", "115.96")
+    , (nsw, "Sydney", "-34.04", "151.1")
+    , (qld, "Townsville", "-19.33", "146.76")
+    ]
+  where
+    makeLocation (state, town, lat, lon) =
+      ArpansaLocation (Location "Australia" state town) lon lat
+    act = "Australian Capital Territory"
+    nsw = "New South Wales"
+    nt = "Northern Territory"
+    qld = "Queensland"
+    sa = "South Australia"
+    tas = "Tasmania"
+    vic = "Victoria"
+    wa = "Western Australia"
 
 data ForecastPointT time = ForecastPointT
   { _fpTime :: time
   , _fpForecast :: Maybe UVLevel
   , _fpMeasured :: Maybe UVLevel
   } deriving (Show, Functor)
+
 makeLenses ''ForecastPointT
 
 fpMeasurement :: ForecastPointT time -> (time, UVLevel)
@@ -85,6 +97,7 @@ instance FromJSON (ForecastPointT LocalTime) where
 data ArpansaForecastT time = ArpansaForecastT
   { _afPoints :: [ForecastPointT time]
   } deriving (Show, Functor)
+
 makeLenses ''ArpansaForecastT
 
 instance FromJSON (ArpansaForecastT LocalTime) where
@@ -116,4 +129,5 @@ fetchArpansa = do
         map fpMeasurement graphPoints
 
 arpansaFetcher :: Fetcher
-arpansaFetcher = Fetcher "ARPANSA" fetchArpansa $ map (view alLocation) addresses
+arpansaFetcher =
+  Fetcher "ARPANSA" fetchArpansa $ map (view alLocation) addresses

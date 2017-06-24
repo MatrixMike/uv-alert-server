@@ -18,7 +18,6 @@ import Pusher
 import Types
 import Types.Config
 
-
 updateInterval :: Int -- microseconds
 updateInterval = 3600 * 1000000
 
@@ -26,7 +25,8 @@ runFetcher :: Config -> IO ()
 runFetcher = runReaderT fetcher
 
 fetcher :: AppM ()
-fetcher = forever $ do
+fetcher =
+  forever $ do
     fetchers <- asks coFetchers
     fetchAll fetchers
     removeOldM
@@ -35,25 +35,28 @@ fetcher = forever $ do
 
 fetchAll :: [Fetcher] -> AppM ()
 fetchAll fs = do
-    forM_ fs $ \f -> do
-        logStr $ "Fetching from " ++ fName f ++ "..."
-        newForecasts <- fFetch f
-        logStr $ "Added " ++ show (length newForecasts) ++ " forecasts."
-        stateM $ stForecasts %= S.union (S.fromList newForecasts)
+  forM_ fs $ \f -> do
+    logStr $ "Fetching from " ++ fName f ++ "..."
+    newForecasts <- fFetch f
+    logStr $ "Added " ++ show (length newForecasts) ++ " forecasts."
+    stateM $ stForecasts %= S.union (S.fromList newForecasts)
 
 removeOldM :: AppM ()
 removeOldM = do
-    oldCount <- stateM $ uses stForecasts length
-    now <- liftIO getCurrentTime
-    stateM $ stForecasts %= removeOld now
-    newCount <- stateM $ uses stForecasts length
-    logStr $ "Removed " ++ show (oldCount - newCount) ++ " forecasts, " ++
-        show newCount ++ " remain."
+  oldCount <- stateM $ uses stForecasts length
+  now <- liftIO getCurrentTime
+  stateM $ stForecasts %= removeOld now
+  newCount <- stateM $ uses stForecasts length
+  logStr $
+    "Removed " ++
+    show (oldCount - newCount) ++ " forecasts, " ++ show newCount ++ " remain."
 
 removeOld :: UTCTime -> S.Set Forecast -> S.Set Forecast
-removeOld now = S.fromList . filterBestEachDay . filter (isRecent now) . S.toList
+removeOld now =
+  S.fromList . filterBestEachDay . filter (isRecent now) . S.toList
 
 -- Leave only the latest forecast for each day
 filterBestEachDay :: [Forecast] -> [Forecast]
 filterBestEachDay = map (maximumBy compareUpdated) . groupWith forecastKey
-    where forecastKey fc = (fc ^. fcLocation, fc ^. fcDate)
+  where
+    forecastKey fc = (fc ^. fcLocation, fc ^. fcDate)

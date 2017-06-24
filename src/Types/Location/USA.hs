@@ -1,12 +1,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fmax-pmcheck-iterations=6000000 #-}
-module Types.Location.USA (
-    usTZ,
-) where
 
-import Data.Time.LocalTime.TimeZone.Series
+module Types.Location.USA
+  ( usTZ
+  ) where
+
 import Data.Time.LocalTime.TimeZone.Olson.TH
-
+import Data.Time.LocalTime.TimeZone.Series
 
 central :: TimeZoneSeries
 central = $(loadTZFile "/usr/share/zoneinfo/US/Central")

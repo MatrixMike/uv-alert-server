@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module Types.LocationSpec where
 
 {- Test Types.Location module -}
-
 import Servant
 
 import Test.Hspec
