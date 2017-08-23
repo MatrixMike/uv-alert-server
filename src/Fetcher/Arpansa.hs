@@ -74,15 +74,18 @@ addresses =
 
 data ForecastPointT time = ForecastPointT
   { _fpTime :: time
-  , _fpForecast :: Maybe UVLevel
-  , _fpMeasured :: Maybe UVLevel
+  , _fpForecast :: Maybe Double
+  , _fpMeasured :: Maybe Double
   } deriving (Show, Functor)
 
 makeLenses ''ForecastPointT
 
+fpUVLevel :: ForecastPointT time -> Maybe UVLevel
+fpUVLevel pt = fmap (UVLevel . round) (pt ^. fpMeasured <|> pt ^. fpForecast)
+
 fpMeasurement :: ForecastPointT time -> (time, UVLevel)
 fpMeasurement pt =
-  (pt ^. fpTime, fromMaybe (UVLevel 0) (pt ^. fpMeasured <|> pt ^. fpForecast))
+  (pt ^. fpTime, fromMaybe (UVLevel 0) (fpUVLevel pt))
 
 parseArpansaTime :: Monad m => String -> m LocalTime
 parseArpansaTime = parseTimeM False defaultTimeLocale "%F %R"
@@ -91,8 +94,8 @@ instance FromJSON (ForecastPointT LocalTime) where
   parseJSON =
     withObject "forecast point" $ \o -> do
       date <- o .: "Date" >>= parseArpansaTime
-      forecast <- fmap UVLevel <$> o .:? "Forecast"
-      measured <- fmap UVLevel <$> o .:? "Measured"
+      forecast <- o .:? "Forecast"
+      measured <- o .:? "Measured"
       return $ ForecastPointT date forecast measured
 
 newtype ArpansaForecastT time = ArpansaForecastT
