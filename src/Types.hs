@@ -10,7 +10,7 @@ import Control.Lens hiding ((.=))
 import Control.Arrow
 
 import Data.Aeson
-import Data.Function
+import Data.Ord
 import Data.Maybe
 import Data.Time.Calendar
 import Data.Time.Clock
@@ -25,7 +25,7 @@ import Types.Location
 import Utils
 
 -- Supplementary types
-data UVLevel = UVLevel
+newtype UVLevel = UVLevel
   { _uvValue :: Int
   } deriving (Eq, Ord, Show, Generic)
 
@@ -65,7 +65,7 @@ data Forecast = Forecast
 makeLenses ''Forecast
 
 compareUpdated :: Forecast -> Forecast -> Ordering
-compareUpdated = compare `on` (view fcUpdated)
+compareUpdated = comparing $ view fcUpdated
 
 fcTZ :: Forecast -> TimeZoneSeries
 fcTZ fc = fc ^. fcLocation . to locTZ
@@ -108,7 +108,7 @@ buildForecast location updated measurements = do
   let tz = locTZ location
   let localDayTime = localTimeOfDay . utcToLocalTime' tz
   let alertTimes = alertIntervals measurements
-  firstAlert <- fmap fst $ listToMaybe alertTimes
+  firstAlert <- fst <$> listToMaybe alertTimes
   maxlevel <- maybeMaximum $ map snd measurements
   return
     Forecast
@@ -140,7 +140,7 @@ alertIntervals =
     uvToFloat :: UVLevel -> Double
     uvToFloat v = v ^. uvValue . to toInteger . to fromInteger
 
-data AppKey = AppKey
+newtype AppKey = AppKey
   { akKey :: String
   }
 

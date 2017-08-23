@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 
 module Pusher where
 
@@ -79,11 +78,11 @@ forecastPin fc = do
         { layoutTitle = "UV Alert end"
         , layoutTinyIcon = Just "system://images/TIMELINE_SUN"
         }
-  let pinId =
+  let pinId_ =
         normalizeValue $ (fc ^. fcLocation . locId) `T.append`
         (fc ^. fcDate . to show . packed)
   [ Pin
-    { pinId = pinId `T.append` "start"
+    { pinId = pinId_ `T.append` "start"
     , pinTime = fcAlertStartTime fc alert
     , pinDuration = Nothing
     , pinCreateNotification = Nothing
@@ -93,7 +92,7 @@ forecastPin fc = do
     , pinActions = []
     }
     , Pin
-      { pinId = pinId `T.append` "end"
+      { pinId = pinId_ `T.append` "end"
       , pinTime = fcAlertEndTime fc alert
       , pinDuration = Nothing
       , pinCreateNotification = Nothing
@@ -108,7 +107,7 @@ forecastPin fc = do
 -- sufficient. Have to maintain for backwards compatibility
 forecastTopics :: Forecast -> Topics
 forecastTopics forecast =
-  Topics $ [locTopic] ++ [legacyTopic | country == "Australia"]
+  Topics $ locTopic : [legacyTopic | country == "Australia"]
   where
     legacyTopic = normalizeValue city
     locTopic = "v2-" `T.append` (forecast ^. fcLocation . locId)

@@ -3,9 +3,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+{-| Fetch UV alert data from ARPANSA. -}
 module Fetcher.Arpansa where
 
-{- Fetch UV alert data from ARPANSA. -}
 import Control.Applicative
 import Control.Lens
 import Control.Monad.IO.Class
@@ -18,6 +18,7 @@ import Data.Time.Clock
 import Data.Time.Format
 import Data.Time.LocalTime
 import Data.Time.LocalTime.TimeZone.Series
+import Data.Traversable
 
 import Network.HTTP.Client
 import Network.HTTP.Simple
@@ -94,7 +95,7 @@ instance FromJSON (ForecastPointT LocalTime) where
       measured <- fmap UVLevel <$> o .:? "Measured"
       return $ ForecastPointT date forecast measured
 
-data ArpansaForecastT time = ArpansaForecastT
+newtype ArpansaForecastT time = ArpansaForecastT
   { _afPoints :: [ForecastPointT time]
   } deriving (Show, Functor)
 
@@ -107,7 +108,7 @@ instance FromJSON (ArpansaForecastT LocalTime) where
 fetchArpansa :: AppM [Forecast]
 fetchArpansa = do
   baseRequest <- parseRequest "https://uvdata.arpansa.gov.au/api/uvlevel/"
-  fmap catMaybes $ flip traverse addresses $ \loc -> do
+  fmap catMaybes $ for addresses $ \loc -> do
     logStr $ "Fetching graph for " ++ loc ^. alLocation . locCity ++ "..."
     time <- liftIO getCurrentTime
     let tz = loc ^. alLocation . to locTZ
