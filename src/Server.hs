@@ -44,7 +44,7 @@ allLocations = asks $ concatMap fLocations . coFetchers
 getForecast :: Location -> AppSM [Forecast]
 getForecast loc = do
   locations <- allLocations
-  when (not $ elem loc locations) $
+  when (loc `notElem` locations) $
     lift $ throwError $ err404 {errBody = "Location not found"}
   forecasts <- stateM $ use stForecasts
   return $

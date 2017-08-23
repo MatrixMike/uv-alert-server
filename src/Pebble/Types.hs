@@ -84,8 +84,8 @@ instance ToJSON Layout where
       , maybePair "paragraphs" paragraphTexts
       ]
     where
-      paragraphHeadings = liftM (map paragraphHeading) maybeParagraphs
-      paragraphTexts = liftM (map paragraphText) maybeParagraphs
+      paragraphHeadings = map paragraphHeading <$> maybeParagraphs
+      paragraphTexts = map paragraphText <$> maybeParagraphs
       maybeParagraphs =
         case layoutParagraphs of
           [] -> Nothing
@@ -108,7 +108,7 @@ pinTypeJSON WeatherPin {..} =
 pinTypeJSON GenericReminder = ["type" .= ("genericReminder" :: String)]
 pinTypeJSON GenericNotification = ["type" .= ("genericNotification" :: String)]
 
-data Color =
+newtype Color =
   Color Int -- Hex
 
 instance ToJSON Color where
@@ -145,19 +145,19 @@ data ActionType
   = OpenWatchAppAction
   | HttpAction
 
-data UserToken =
+newtype UserToken =
   UserToken String
 
 instance ToHttpApiData UserToken where
   toUrlPiece (UserToken token) = T.pack token
 
-data APIKey =
+newtype APIKey =
   APIKey String
 
 instance ToHttpApiData APIKey where
   toUrlPiece (APIKey key) = T.pack key
 
-data Topics =
+newtype Topics =
   Topics [T.Text]
 
 instance ToHttpApiData Topics where

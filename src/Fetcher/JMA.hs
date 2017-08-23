@@ -76,8 +76,7 @@ fetchJma = do
           return $ Just (img, imgTime)
   case sequence images of
     Nothing -> return []
-    Just images' -> do
-      return $ catMaybes $ map (forecast time images') cities
+    Just images' -> return $ mapMaybe (forecast time images') cities
 
 imageRange :: [Int]
 imageRange = [0 .. 12]
@@ -89,17 +88,15 @@ imageNameTime now index = (url, time)
       urlBase ++
       zeroPad 4 year ++
       zp2 month ++ zp2 day ++ zp2 fcUpdatedHour ++ "00-" ++ zp2 index ++ ".png"
-    zeroPad n val = take (n - length str) (repeat '0') ++ str
+    zeroPad n val = replicate (n - length str) '0' ++ str
       where
         str = show val
     zp2 = zeroPad 2
     LocalTime date (TimeOfDay hour _ _) = utcToLocalTime' japanTZ now
-    (fcUpdatedDate, fcUpdatedHour) =
-      if hour < 6
-        then (addDays (-1) date, 18)
-        else if hour < 18
-               then (date, 6)
-               else (date, 18)
+    (fcUpdatedDate, fcUpdatedHour)
+      | hour < 6 = (addDays (-1) date, 18)
+      | hour < 18 = (date, 6)
+      | otherwise = (date, 18)
     (year, month, day) = toGregorian fcUpdatedDate
     fcEffectiveDate =
       if hour < 18
@@ -161,13 +158,13 @@ imageUVLevel coo img = firstJust $ map averageLevel levels
     circles :: [[ImageCoord]]
     circles = map (circleAround coo img) [0 .. maxDist]
     levels :: [[Maybe UVLevel]]
-    levels = map (map (flip imageUVLevelExact img)) circles
+    levels = map (map (`imageUVLevelExact` img)) circles
 
 -- All points at most dist pixels away from the given point, sorted by distance
 -- to that point
 circleAround :: ImageCoord -> DynamicImage -> Int -> [ImageCoord]
 circleAround coo img dist =
-  sortOn (distance coo) $ filter ((< (fromIntegral dist)) . distance coo) square
+  sortOn (distance coo) $ filter ((< fromIntegral dist) . distance coo) square
   where
     square =
       [ ImageCoord x y
@@ -201,5 +198,5 @@ forecast time imagesTimes (loc, lonlat) =
   where
     (images, times) = unzip imagesTimes
     measurements :: Maybe [Measurement]
-    measurements = zip times <$> (imageUVLevels coo images)
+    measurements = zip times <$> imageUVLevels coo images
     coo = imageCoord lonlat

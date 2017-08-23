@@ -1,11 +1,10 @@
 module Fetcher.BOM where
 
-{-
+{-|
 Fetch UV forecast from Buerau of Meteorology.
 
 Unfortunately, this data is free for personal use but not for redistribution.
 -}
-import Control.Monad
 import Control.Monad.IO.Class
 
 import Data.Either
@@ -43,7 +42,7 @@ fetchBOM address = do
 fetchLines :: MonadIO m => URI -> m String
 fetchLines uri =
   liftIO $ do
-    let (Just host) = liftM uriRegName $ uriAuthority uri
+    let (Just host) = uriRegName <$> uriAuthority uri
     conn <- easyConnectFTP host
     _ <- loginAnon conn
     (content, _) <- getbinary conn $ uriPath uri
@@ -81,8 +80,8 @@ parseForecast updated str = do
   date <- parseDate $ stringPart 38 10 str
   tStart <- parseTime $ stringPart 64 5 str
   tEnd <- parseTime $ stringPart 73 5 str
-  maxLevel <- liftM UVLevel $ readEither "UV level" $ stringPartT 84 3 str
-  return $
+  maxLevel <- fmap UVLevel $ readEither "UV level" $ stringPartT 84 3 str
+  return
     Forecast
     { _fcLocation = location
     , _fcDate = date

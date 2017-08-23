@@ -1,8 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+{-| Fetch USA data from EPA API. -}
 module Fetcher.EPA where
 
-{- Fetch USA data from EPA API. -}
+import Control.Arrow
 import Control.Lens
 import Control.Monad
 import Control.Monad.IO.Class
@@ -27,17 +28,16 @@ epaFetcher :: Fetcher
 epaFetcher = Fetcher "EPA" fetchEpa usLocations
 
 fetchEpa :: AppM [Forecast]
-fetchEpa = do
-  liftM concat $ forM usLocations $ \location -> do
+fetchEpa =
+  fmap concat $
+  forM usLocations $ \location -> do
     logStr $ "Fetching forecast for " ++ show location ++ "..."
     let address = forecastAddress location
     logErrors address $ do
       response <- parseRequest address >>= httpJSON
       time <- liftIO getCurrentTime
       let measurements =
-            map
-              (\fi -> (fiDateTime location fi, fiLevel fi))
-              (responseBody response)
+            map (fiDateTime location &&& fiLevel) (responseBody response)
       return $ maybeToList $ buildForecast location time measurements
 
 forecastAddress :: Location -> String
@@ -58,7 +58,7 @@ data ForecastItem = ForecastItem
 instance FromJSON ForecastItem where
   parseJSON =
     withObject "forecast item" $ \v -> do
-      level <- liftM UVLevel $ v .: "UV_VALUE"
+      level <- UVLevel <$> v .: "UV_VALUE"
       time <- (v .: "DATE_TIME") >>= parseLocalTime
       return $ ForecastItem time level
     where

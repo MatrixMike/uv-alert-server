@@ -3,9 +3,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
+{-| Fetch UV alert data from ARPANSA. -}
 module Fetcher.Arpansa where
 
-{- Fetch UV alert data from ARPANSA. -}
 import Control.Applicative
 import Control.Lens
 import Control.Monad.IO.Class
@@ -18,6 +18,7 @@ import Data.Time.Clock
 import Data.Time.Format
 import Data.Time.LocalTime
 import Data.Time.LocalTime.TimeZone.Series
+import Data.Traversable
 
 import Network.HTTP.Client
 import Network.HTTP.Simple
@@ -73,15 +74,18 @@ addresses =
 
 data ForecastPointT time = ForecastPointT
   { _fpTime :: time
-  , _fpForecast :: Maybe UVLevel
-  , _fpMeasured :: Maybe UVLevel
+  , _fpForecast :: Maybe Double
+  , _fpMeasured :: Maybe Double
   } deriving (Show, Functor)
 
 makeLenses ''ForecastPointT
 
+fpUVLevel :: ForecastPointT time -> Maybe UVLevel
+fpUVLevel pt = fmap (UVLevel . round) (pt ^. fpMeasured <|> pt ^. fpForecast)
+
 fpMeasurement :: ForecastPointT time -> (time, UVLevel)
 fpMeasurement pt =
-  (pt ^. fpTime, fromMaybe (UVLevel 0) (pt ^. fpMeasured <|> pt ^. fpForecast))
+  (pt ^. fpTime, fromMaybe (UVLevel 0) (fpUVLevel pt))
 
 parseArpansaTime :: Monad m => String -> m LocalTime
 parseArpansaTime = parseTimeM False defaultTimeLocale "%F %R"
@@ -90,11 +94,11 @@ instance FromJSON (ForecastPointT LocalTime) where
   parseJSON =
     withObject "forecast point" $ \o -> do
       date <- o .: "Date" >>= parseArpansaTime
-      forecast <- fmap UVLevel <$> o .:? "Forecast"
-      measured <- fmap UVLevel <$> o .:? "Measured"
+      forecast <- o .:? "Forecast"
+      measured <- o .:? "Measured"
       return $ ForecastPointT date forecast measured
 
-data ArpansaForecastT time = ArpansaForecastT
+newtype ArpansaForecastT time = ArpansaForecastT
   { _afPoints :: [ForecastPointT time]
   } deriving (Show, Functor)
 
@@ -107,7 +111,7 @@ instance FromJSON (ArpansaForecastT LocalTime) where
 fetchArpansa :: AppM [Forecast]
 fetchArpansa = do
   baseRequest <- parseRequest "https://uvdata.arpansa.gov.au/api/uvlevel/"
-  fmap catMaybes $ flip traverse addresses $ \loc -> do
+  fmap catMaybes $ for addresses $ \loc -> do
     logStr $ "Fetching graph for " ++ loc ^. alLocation . locCity ++ "..."
     time <- liftIO getCurrentTime
     let tz = loc ^. alLocation . to locTZ

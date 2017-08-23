@@ -34,7 +34,7 @@ fetcher =
     liftIO $ threadDelay updateInterval
 
 fetchAll :: [Fetcher] -> AppM ()
-fetchAll fs = do
+fetchAll fs =
   forM_ fs $ \f -> do
     logStr $ "Fetching from " ++ fName f ++ "..."
     newForecasts <- fFetch f
