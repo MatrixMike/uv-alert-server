@@ -1,7 +1,7 @@
 UV Alert server
 ===============
 
-This is a server for the [UV Alert application][uv-alert-client].
+This is a server for [UV Alert application][uvalert-android].
 
 License
 -------
@@ -23,4 +23,4 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-[uv-alert-client]: https://github.com/koterpillar/uv-alert-client
+[uvalert-android]: https://github.com/koterpillar/uvalert-android
