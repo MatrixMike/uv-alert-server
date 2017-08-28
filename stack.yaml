@@ -1,13 +1,6 @@
-resolver: lts-8.20
+resolver: lts-9.2
 packages:
 - '.'
 extra-deps:
-  - ftphs-1.0.9.1
-  - hspec-2.3.2
-  - hspec-core-2.3.2
-  - hspec-discover-2.3.2
-  - hspec-expectations-0.8.2
-  - hspec-wai-0.8.0
-  - hspec-wai-json-0.8.0
-  - timezone-olson-th-0.1.0.2
-flags: {}
+- ftphs-1.0.9.2
+- timezone-olson-th-0.1.0.3

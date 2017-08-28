@@ -45,7 +45,9 @@ spec = do
                  , country: "Japan"}
                ]
                |]
+          {matchHeaders = ["Content-Type" <:> "application/json;charset=utf-8"]}
     describe "GET /forecast/Melbourne, Victoria, Australia" $ do
       it "should respond with the found forecasts" $ do
         get "/forecast/Melbourne, Victoria, Australia" `shouldRespondWith`
           [json| [] |]
+          {matchHeaders = ["Content-Type" <:> "application/json;charset=utf-8"]}

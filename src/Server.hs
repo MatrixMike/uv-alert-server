@@ -6,7 +6,6 @@ module Server where
 import Control.Lens
 
 import Control.Monad.State
-import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
 
 import Data.List
@@ -21,13 +20,13 @@ import Types
 import Types.Config
 import Types.Location
 
-type AppSM = AppT (ExceptT ServantErr IO)
+type AppSM = AppT Handler
 
 server :: ServerT API AppSM
 server = registerApp :<|> getForecast :<|> getLocations
 
-readerToExcept :: Config -> AppSM :~> ExceptT ServantErr IO
-readerToExcept cfg = Nat $ \x -> runReaderT x cfg
+readerToExcept :: Config -> AppSM :~> Handler
+readerToExcept cfg = NT $ \x -> runReaderT x cfg
 
 readerServer :: Config -> Server API
 readerServer cfg = enter (readerToExcept cfg) server

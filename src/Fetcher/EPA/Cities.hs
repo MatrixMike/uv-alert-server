@@ -4,6 +4,7 @@ module Fetcher.EPA.Cities
   ) where
 
 import qualified Data.Map as M
+import Data.Maybe
 
 import Types.Location
 
@@ -281,6 +282,5 @@ usStateAbbreviations =
 
 usStateAbbreviation :: String -> String
 usStateAbbreviation state =
-  case M.lookup state usStateAbbreviations of
-    Just abbr -> abbr
-    Nothing -> error $ "Invalid state " ++ state
+  fromMaybe (error $ "Invalid state " ++ state) $
+  M.lookup state usStateAbbreviations
