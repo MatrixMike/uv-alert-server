@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -17,8 +16,6 @@ import Data.Time.Clock
 import Data.Time.LocalTime
 import Data.Time.LocalTime.TimeZone.Series
 
-import GHC.Generics (Generic)
-
 import Web.FormUrlEncoded
 
 import Types.Location
@@ -27,7 +24,7 @@ import Utils
 -- Supplementary types
 newtype UVLevel = UVLevel
   { _uvValue :: Int
-  } deriving (Eq, Ord, Show, Generic)
+  } deriving (Eq, Ord, Show)
 
 makeLenses ''UVLevel
 
@@ -44,7 +41,7 @@ instance ToJSON UVLevel where
 data Alert = Alert
   { _alertStart :: TimeOfDay
   , _alertEnd :: TimeOfDay
-  } deriving (Eq, Ord, Show, Generic)
+  } deriving (Eq, Ord, Show)
 
 makeLenses ''Alert
 
@@ -60,7 +57,7 @@ data Forecast = Forecast
   , _fcAlerts :: [Alert]
   , _fcMaxLevel :: UVLevel
   , _fcUpdated :: UTCTime
-  } deriving (Eq, Ord, Show, Generic)
+  } deriving (Eq, Ord, Show)
 
 makeLenses ''Forecast
 

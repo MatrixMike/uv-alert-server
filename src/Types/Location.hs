@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
@@ -19,8 +18,6 @@ import qualified Data.Text as T
 import Data.Text.Lens
 import Data.Time.LocalTime.TimeZone.Series
 
-import GHC.Generics hiding (to)
-
 import Servant
 
 import Types.Location.Australia
@@ -32,7 +29,7 @@ data Location = Location
   { _locCountry :: String
   , _locRegion :: String
   , _locCity :: String
-  } deriving (Eq, Show, Generic, Ord)
+  } deriving (Eq, Show, Ord)
 
 makeLenses ''Location
 
