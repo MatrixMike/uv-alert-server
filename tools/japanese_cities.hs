@@ -1,12 +1,10 @@
 #!/usr/bin/env stack
--- stack --resolver lts-6.9 runghc --package http-conduit
+-- stack --resolver lts-9.2 runghc --package http-conduit --package here
 -- Tool to find Japanese cities, their prefectures and locations from Wikidata
 -- Only used to dump the list to be used in the actual fetcher, so a lot of
 -- error checking is omitted.
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
-
-import Network.HTTP.Client
 
 import Control.Monad
 
@@ -14,15 +12,17 @@ import Data.Aeson
 import qualified Data.Map as M
 import Data.Map ((!))
 import Data.Maybe
+import Data.Monoid
 import Data.String
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import Data.Text (Text)
 
 import Network.HTTP.Simple
 
 import Text.Read (readMaybe)
 
-data QID = Q
+newtype QID = Q
   { unQ :: Int
   } deriving (Eq, Ord)
 
@@ -44,13 +44,13 @@ instance FromJSON QID where
            Just qid -> pure qid
            Nothing -> fail $ "Not a QID: " ++ s
 
-instance FromJSON v => FromJSON (M.Map QID v) where
-  parseJSON v = M.mapKeys (fromJust . readMaybe) <$> parseJSON v
+instance FromJSONKey QID where
+  fromJSONKey = FromJSONKeyText $ fromJust . readMaybe . T.unpack
 
-data CategoryResponse =
+newtype CategoryResponse =
   CategoryResponse [QID]
 
-data CategoryResponseItem = CategoryResponseItem
+newtype CategoryResponseItem = CategoryResponseItem
   { criQID :: QID
   }
 
@@ -77,7 +77,7 @@ inCategory catid = do
   let CategoryResponse ids = getResponseBody response
   return ids
 
-data WikidataResponse =
+newtype WikidataResponse =
   WikidataResponse (M.Map QID WikidataEntity)
   deriving (Show)
 
@@ -87,7 +87,7 @@ data WikidataEntity = WikidataEntity
   } deriving (Show)
 
 -- Purposefully incomplete and lax typed
-data WikidataProperty = WikidataProperty
+newtype WikidataProperty = WikidataProperty
   { wpValue :: Value
   } deriving (Show)
 
@@ -130,7 +130,7 @@ instance FromJSON Location where
     withObject "Location" $ \o ->
       Location <$> o .: "longitude" <*> o .: "latitude"
 
-data LocatedIn =
+newtype LocatedIn =
   LocatedIn QID
   deriving (Show)
 
@@ -164,19 +164,19 @@ findPrefecture areas =
     _ ->
       error $
       "Cannot choose prefecture among: " ++
-      (T.unpack $ T.intercalate ", " areas) ++ "."
+      T.unpack (T.intercalate ", " areas) ++ "."
   where
     isPrefecture = T.isInfixOf "prefecture"
 
-cityRepr :: City -> String
-cityRepr city =
-  "         , (loc \"" ++
-  pref ++ "\" \"" ++ name ++ "\", latlon " ++ show lat ++ " " ++ show lon ++ ")"
+cityRepr :: City -> Text
+cityRepr city_ =
+  "         , loc \"" <>
+  pref <> "\" \"" <> name <> "\" $ latlon " <> T.pack (show lat) <> " " <> T.pack (show lon)
   where
-    name = fixName $ T.unpack $ cName city
-    pref = T.unpack $ fixPrefecture $ cPrefectureName city
-    lat = lLat $ cLocation city
-    lon = lLon $ cLocation city
+    name = fixName $ cName city_
+    pref = fixPrefecture $ cPrefectureName city_
+    lat = lLat $ cLocation city_
+    lon = lLon $ cLocation city_
     fixName = T.replace " City" ""
     fixPrefecture = T.replace " Prefecture" "" . T.replace " Subprefecture" ""
 
@@ -195,5 +195,5 @@ cities = Q 494721
 main :: IO ()
 main = do
   cityIDs <- inCategory specialCities
-  cities <- mapM city cityIDs
-  forM_ cities $ putStrLn . cityRepr
+  cities_ <- traverse city cityIDs
+  forM_ cities_ $ T.putStrLn . cityRepr
