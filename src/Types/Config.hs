@@ -20,7 +20,7 @@ import Pebble.Types
 data Fetcher = Fetcher
   { fName :: String
   , fFetch :: AppM [Forecast]
-  , fLocations :: [Location]
+  , fLocations :: [LocationCoordinates]
   }
 
 data Config = Config

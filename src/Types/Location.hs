@@ -1,14 +1,23 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 module Types.Location
-  ( Location(..)
+  ( Coordinates(..)
+  , latitude
+  , longitude
+  , latlon
+  , LocationT(..)
+  , Location
+  , LocationCoordinates
   , locCountry
   , locRegion
   , locCity
+  , locExtra
   , locId
   , locTZ
+  , withoutCoordinates
   ) where
 
 import Control.Lens hiding ((.=))
@@ -25,13 +34,34 @@ import Types.Location.Japan
 import Types.Location.USA
 import Utils
 
-data Location = Location
+data Coordinates = Coordinates
+  { _latitude :: Double
+  , _longitude :: Double
+  } deriving (Eq, Ord, Show)
+
+makeLenses ''Coordinates
+
+latlon :: Double -> Double -> Coordinates
+latlon lat lon = Coordinates { _latitude = lat, _longitude = lon }
+
+instance ToJSON Coordinates where
+  toJSON coo = object ["lat" .= (coo ^. latitude), "lon" .= (coo ^. longitude)]
+
+data LocationT extra = Location
   { _locCountry :: String
   , _locRegion :: String
   , _locCity :: String
-  } deriving (Eq, Show, Ord)
+  , _locExtra :: extra
+  } deriving (Eq, Ord, Show)
 
-makeLenses ''Location
+makeLenses ''LocationT
+
+type Location = LocationT ()
+
+type LocationCoordinates = LocationT Coordinates
+
+withoutCoordinates :: LocationT extra -> Location
+withoutCoordinates loc = loc & locExtra .~ ()
 
 instance FromHttpApiData Location where
   parseQueryParam txt
@@ -42,7 +72,7 @@ instance FromHttpApiData Location where
       case T.splitOn ", " txt of
         lst@[_, _, _] -> return lst
         _ -> Left ""
-    return $ Location country region city
+    return $ Location country region city ()
 
 instance ToHttpApiData Location where
   toQueryParam loc =
@@ -53,7 +83,7 @@ instance ToHttpApiData Location where
       , loc ^. locCountry . packed
       ]
 
-_locId :: Location -> T.Text
+_locId :: LocationT extra -> T.Text
 _locId loc =
   normalizeValue $
   T.intercalate
@@ -64,21 +94,28 @@ _locId loc =
     ]
 
 -- | String to identify locations in pin IDs and topic names
-locId :: Getter Location T.Text
+locId :: Getter (LocationT extra) T.Text
 locId = to _locId
 
+locToJSON :: KeyValue t => LocationT extra -> [t]
+locToJSON loc =
+  [ "country" .= (loc ^. locCountry)
+  , "region" .= (loc ^. locRegion)
+  , "city" .= (loc ^. locCity)
+  , "id" .= (loc ^. locId . unpacked)
+  ]
+
 instance ToJSON Location where
-  toJSON loc =
-    object
-      [ "country" .= (loc ^. locCountry)
-      , "region" .= (loc ^. locRegion)
-      , "city" .= (loc ^. locCity)
-      , "id" .= (loc ^. locId . unpacked)
-      ]
+  toJSON loc = object $ locToJSON loc
+
+instance ToJSON LocationCoordinates where
+  toJSON loc = object $ locToJSON loc ++ ["location" .= (loc ^. locExtra)]
 
 -- FIXME: disallow creating locations if the time zone is unknown
-locTZ :: Location -> TimeZoneSeries
-locTZ (Location "Australia" state _) = auStateTZ state
-locTZ (Location "Japan" _ _) = japanTZ
-locTZ (Location "USA" state city) = usTZ city state
-locTZ loc = error $ "Unknown time zone for location " ++ show loc
+locTZ :: LocationT extra -> TimeZoneSeries
+locTZ loc =
+  case loc ^. locCountry of
+    "Australia" -> loc ^. locRegion . to auStateTZ
+    "Japan" -> japanTZ
+    "USA" -> usTZ (loc ^. locCity) (loc ^. locRegion)
+    _ -> error $ "Unknown time zone for location " ++ show (withoutCoordinates loc)

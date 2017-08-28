@@ -25,7 +25,9 @@ import Types.Config
 import Types.Location
 
 epaFetcher :: Fetcher
-epaFetcher = Fetcher "EPA" fetchEpa usLocations
+epaFetcher = Fetcher "EPA" fetchEpa $ map fakeLoc usLocations
+  where
+    fakeLoc loc = loc & locExtra .~ Coordinates undefined undefined
 
 fetchEpa :: AppM [Forecast]
 fetchEpa =

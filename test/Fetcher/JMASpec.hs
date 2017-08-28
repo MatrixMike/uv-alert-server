@@ -98,11 +98,10 @@ spec = do
     imgs <- testImages
     let Just date = fromGregorianValid 2016 05 20
     let times = map (\hour -> japanTime date hour 00) [6 .. 18]
-    let loc = Location "Japan" "Tokyo" "Tokyo"
-    let coord = latlon 35.683333 139.683333
+    let loc = Location "Japan" "Tokyo" "Tokyo" $ latlon 35.683333 139.683333
     let now = japanTime date 03 04
-    let Just fc = forecast now (zip imgs times) (loc, coord)
-    it "has the specified location" $ fc ^. fcLocation `shouldBe` loc
+    let Just fc = forecast now (zip imgs times) loc
+    it "has the specified location" $ fc ^. fcLocation `shouldBe` withoutCoordinates loc
     it "stores the day" $ fc ^. fcDate `shouldBe` date
     it "calculates the maximum level" $ fc ^. fcMaxLevel `shouldBe` UVLevel 4
     it "calculates the alert times" $ do

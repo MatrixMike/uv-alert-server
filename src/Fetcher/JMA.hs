@@ -4,6 +4,7 @@ module Fetcher.JMA where
 import Codec.Picture
 import Codec.Picture.Types
 
+import Control.Lens
 import Control.Monad
 import Control.Monad.IO.Class
 
@@ -25,7 +26,7 @@ import Types.Location
 import Types.Location.Japan
 
 jmaFetcher :: Fetcher
-jmaFetcher = Fetcher "JMA" fetchJma (map fst cities)
+jmaFetcher = Fetcher "JMA" fetchJma cities
 
 {-
 JMA UV index page: http://www.jma.go.jp/en/uv/
@@ -82,12 +83,12 @@ imageRange :: [Int]
 imageRange = [0 .. 12]
 
 imageNameTime :: UTCTime -> Int -> (String, UTCTime)
-imageNameTime now index = (url, time)
+imageNameTime now index_ = (url, time)
   where
     url =
       urlBase ++
       zeroPad 4 year ++
-      zp2 month ++ zp2 day ++ zp2 fcUpdatedHour ++ "00-" ++ zp2 index ++ ".png"
+      zp2 month ++ zp2 day ++ zp2 fcUpdatedHour ++ "00-" ++ zp2 index_ ++ ".png"
     zeroPad n val = replicate (n - length str) '0' ++ str
       where
         str = show val
@@ -102,7 +103,7 @@ imageNameTime now index = (url, time)
       if hour < 18
         then date
         else addDays 1 date
-    fcEffectiveHour = index + 6
+    fcEffectiveHour = index_ + 6
     time =
       localTimeToUTC' japanTZ $
       LocalTime fcEffectiveDate $ TimeOfDay fcEffectiveHour 0 0
@@ -110,9 +111,9 @@ imageNameTime now index = (url, time)
 
 imageUVLevelExact :: ImageCoord -> DynamicImage -> Maybe UVLevel
 imageUVLevelExact (ImageCoord x y) (ImageRGB8 image) =
-  M.lookup (pixelAt image x y) levels
+  M.lookup (pixelAt image x y) levels_
   where
-    levels = M.fromList $ zip levelColors $ map UVLevel [0 ..]
+    levels_ = M.fromList $ zip levelColors $ map UVLevel [0 ..]
     levelColors =
       [ PixelRGB8 255 255 255
       , PixelRGB8 217 217 255
@@ -153,12 +154,12 @@ averageLevel lvls =
 -- that isn't and return its UV level.
 -- Don't stray too far
 imageUVLevel :: ImageCoord -> DynamicImage -> Maybe UVLevel
-imageUVLevel coo img = firstJust $ map averageLevel levels
+imageUVLevel coo img = firstJust $ map averageLevel levels_
   where
     circles :: [[ImageCoord]]
     circles = map (circleAround coo img) [0 .. maxDist]
-    levels :: [[Maybe UVLevel]]
-    levels = map (map (`imageUVLevelExact` img)) circles
+    levels_ :: [[Maybe UVLevel]]
+    levels_ = map (map (`imageUVLevelExact` img)) circles
 
 -- All points at most dist pixels away from the given point, sorted by distance
 -- to that point
@@ -191,12 +192,11 @@ imageUVLevels coo = traverse (imageUVLevel coo)
 forecast ::
      UTCTime
   -> [(DynamicImage, UTCTime)]
-  -> (Location, LonLat)
+  -> LocationCoordinates
   -> Maybe Forecast
-forecast time imagesTimes (loc, lonlat) =
-  buildForecast loc time =<< measurements
+forecast time imagesTimes loc = buildForecast loc time =<< measurements
   where
     (images, times) = unzip imagesTimes
     measurements :: Maybe [Measurement]
     measurements = zip times <$> imageUVLevels coo images
-    coo = imageCoord lonlat
+    coo = imageCoord (loc ^. locExtra)

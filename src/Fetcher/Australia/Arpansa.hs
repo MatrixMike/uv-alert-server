@@ -2,15 +2,18 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 
 {-| Fetch UV alert data from ARPANSA. -}
-module Fetcher.Arpansa where
+module Fetcher.Australia.Arpansa where
 
 import Control.Applicative
 import Control.Lens
 import Control.Monad.IO.Class
 
 import Data.Aeson
+import qualified Data.ByteString as BS
+import Data.Decimal
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -24,53 +27,13 @@ import Network.HTTP.Client
 import Network.HTTP.Simple
 
 import Fetcher.Base
+import Fetcher.Australia.Common
 import Types
 import Types.Config
 import Types.Location
 
-data ArpansaLocation = ArpansaLocation
-  { _alLocation :: Location
-  , _alLongitude :: T.Text
-  , _alLatitude :: T.Text
-  } deriving (Eq, Ord)
-
-makeLenses ''ArpansaLocation
-
-instance Show ArpansaLocation where
-  show l =
-    "ArpansaLocation (" ++ l ^. alLocation . locCity ++ ", " ++
-    show (l ^. alLatitude) ++
-    ", " ++
-    show (l ^. alLongitude) ++
-    ")"
-
-addresses :: [ArpansaLocation]
-addresses =
-  map
-    makeLocation
-    [ (sa, "Adelaide", "-34.92", "138.62")
-    , (nt, "Alice Springs", "-23.7", "133.8")
-    , (qld, "Brisbane", "-27.45", "153.03")
-    , (act, "Canberra", "-35.31", "149.2")
-    , (nt, "Darwin", "-12.43", "130.89")
-    , (tas, "Kingston", "-42.99", "147.29")
-    , (vic, "Melbourne", "-37.73", "145.1")
-    , (nsw, "Newcastle", "-32.9", "151.72")
-    , (wa, "Perth", "-31.92", "115.96")
-    , (nsw, "Sydney", "-34.04", "151.1")
-    , (qld, "Townsville", "-19.33", "146.76")
-    ]
-  where
-    makeLocation (state, town, lat, lon) =
-      ArpansaLocation (Location "Australia" state town) lon lat
-    act = "Australian Capital Territory"
-    nsw = "New South Wales"
-    nt = "Northern Territory"
-    qld = "Queensland"
-    sa = "South Australia"
-    tas = "Tasmania"
-    vic = "Victoria"
-    wa = "Western Australia"
+roundLocation :: Double -> BS.ByteString
+roundLocation = T.encodeUtf8 . T.pack . show @Decimal . realFracToDecimal 2
 
 data ForecastPointT time = ForecastPointT
   { _fpTime :: time
@@ -111,16 +74,16 @@ instance FromJSON (ArpansaForecastT LocalTime) where
 fetchArpansa :: AppM [Forecast]
 fetchArpansa = do
   baseRequest <- parseRequest "https://uvdata.arpansa.gov.au/api/uvlevel/"
-  fmap catMaybes $ for addresses $ \loc -> do
-    logStr $ "Fetching graph for " ++ loc ^. alLocation . locCity ++ "..."
+  fmap catMaybes $ for auCities $ \loc -> do
+    logStr $ "Fetching graph for " ++ loc ^. locCity ++ "..."
     time <- liftIO getCurrentTime
-    let tz = loc ^. alLocation . to locTZ
+    let tz = loc ^. to locTZ
     logErrors loc $ do
       let request =
             baseRequest &
             setRequestQueryString
-              [ ("longitude", Just $ loc ^. alLongitude . to T.encodeUtf8)
-              , ("latitude", Just $ loc ^. alLatitude . to T.encodeUtf8)
+              [ ("longitude", Just $ loc ^. locExtra . longitude . to roundLocation)
+              , ("latitude", Just $ loc ^. locExtra . latitude . to roundLocation)
               , ( "date"
                 , Just $ T.encodeUtf8 $ T.pack $
                   formatTime defaultTimeLocale "%F" $
@@ -129,9 +92,9 @@ fetchArpansa = do
       graphData <- responseBody <$> httpJSON request
       let graphDataUtc = fmap (localTimeToUTC' tz) graphData
       let graphPoints = graphDataUtc ^. afPoints
-      return $ buildForecast (loc ^. alLocation) time $
+      return $ buildForecast loc time $
         map fpMeasurement graphPoints
 
 arpansaFetcher :: Fetcher
 arpansaFetcher =
-  Fetcher "ARPANSA" fetchArpansa $ map (view alLocation) addresses
+  Fetcher "ARPANSA" fetchArpansa auCities

@@ -8,7 +8,7 @@ import Data.Maybe
 
 import System.Environment
 
-import Fetcher.Arpansa
+import Fetcher.Australia.Arpansa
 import Fetcher.EPA
 import Fetcher.JMA
 import Types.Config

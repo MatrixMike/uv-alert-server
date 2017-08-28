@@ -18,9 +18,10 @@ library
   exposed-modules:     API
                      , App
                      , Fetcher
-                     , Fetcher.Arpansa
+                     , Fetcher.Australia.Arpansa
+                     , Fetcher.Australia.BOM
+                     , Fetcher.Australia.Common
                      , Fetcher.Base
-                     , Fetcher.BOM
                      , Fetcher.EPA
                      , Fetcher.EPA.Cities
                      , Fetcher.JMA
@@ -40,6 +41,7 @@ library
                      , aeson
                      , bytestring
                      , containers
+                     , Decimal
                      , either
                      , ftphs
                      , JuicyPixels

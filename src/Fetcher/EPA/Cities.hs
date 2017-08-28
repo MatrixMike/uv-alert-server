@@ -214,7 +214,7 @@ usCities =
 usLocations :: [Location]
 usLocations = map usLocation usCities
   where
-    usLocation (city, state) = Location "USA" state city
+    usLocation (city, state) = Location "USA" state city ()
 
 usStateAbbreviations :: M.Map String String
 usStateAbbreviations =

@@ -100,7 +100,7 @@ isRecent now fc = fcAge now fc < (60 * 60 * 12)
 type Measurement = (UTCTime, UVLevel)
 
 -- Build a forecast from a number of measurements
-buildForecast :: Location -> UTCTime -> [Measurement] -> Maybe Forecast
+buildForecast :: LocationT extra -> UTCTime -> [Measurement] -> Maybe Forecast
 buildForecast location updated measurements = do
   let tz = locTZ location
   let localDayTime = localTimeOfDay . utcToLocalTime' tz
@@ -109,7 +109,7 @@ buildForecast location updated measurements = do
   maxlevel <- maybeMaximum $ map snd measurements
   return
     Forecast
-    { _fcLocation = location
+    { _fcLocation = withoutCoordinates location
     , _fcDate = (localDay . utcToLocalTime' tz) firstAlert
     , _fcAlerts =
         [ Alert (localDayTime astart) (localDayTime aend)

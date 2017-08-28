@@ -1,4 +1,4 @@
-module Fetcher.BOM where
+module Fetcher.Australia.BOM where
 
 {-|
 Fetch UV forecast from Buerau of Meteorology.
@@ -69,7 +69,7 @@ parseTime str = do
   return $ TimeOfDay hour minute 0
 
 bomLocation :: String -> Location
-bomLocation city = Location "Australia" state city
+bomLocation city = Location "Australia" state city ()
   where
     state = auCityState city
 

@@ -36,7 +36,7 @@ spec = do
       , _fcMaxLevel = UVLevel 10
       , _fcUpdated = updated
       }
-    dummyLocation city = Location "Australia" "Victoria" city
+    dummyLocation city = Location "Australia" "Victoria" city ()
     Just day1 = fromGregorianValid 2016 01 14
     Just day2 = fromGregorianValid 2016 01 15
     morning day = UTCTime day (timeOfDayToTime $ TimeOfDay 7 0 0)

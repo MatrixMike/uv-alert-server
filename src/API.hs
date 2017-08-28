@@ -19,7 +19,7 @@ type RegisterAppAPI
 type ForecastAPI
    = "forecast" :> Capture "location" Location :> Get '[ JSON] [Forecast]
 
-type LocationsAPI = "locations" :> Get '[ JSON] [Location]
+type LocationsAPI = "locations" :> Get '[ JSON] [LocationCoordinates]
 
 type API = RegisterAppAPI :<|> ForecastAPI :<|> LocationsAPI
 

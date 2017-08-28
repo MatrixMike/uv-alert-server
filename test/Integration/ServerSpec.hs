@@ -16,10 +16,11 @@ import Test.Hspec.Wai.JSON
 spec :: Spec
 spec = do
   config <- runIO testConfig
-  let locations =
-        [ Location "Australia" "Victoria" "Melbourne"
-        , Location "Australia" "New South Wales" "Sydney"
-        , Location "Japan" "Hyōgo" "Himeji"
+  let locations :: [LocationCoordinates]
+      locations =
+        [ Location "Australia" "Victoria" "Melbourne" (latlon (-37.73) 145.1)
+        , Location "Australia" "New South Wales" "Sydney" (latlon (-34.04) 151.1)
+        , Location "Japan" "Hyōgo" "Himeji" (latlon 34.8086 134.7384)
         ]
   let testFetcher =
         Fetcher
@@ -34,15 +35,18 @@ spec = do
                  { id: "Australia-New_South_Wales-Sydney"
                  , city: "Sydney"
                  , region: "New South Wales"
-                 , country: "Australia"}
+                 , country: "Australia"
+                 , location: { lat: -34.04,"lon": 151.1}}
                , { id: "Australia-Victoria-Melbourne"
                  , city: "Melbourne"
                  , region: "Victoria"
-                 , country: "Australia"}
+                 , country: "Australia"
+                 , location: { lat: -37.73,"lon": 145.1}}
                , { id: "Japan-Hyogo-Himeji"
                  , city: "Himeji"
                  , region: "Hyōgo"
-                 , country: "Japan"}
+                 , country: "Japan"
+                 , location: { lat: 34.8086,"lon": 134.7384}}
                ]
                |]
           {matchHeaders = ["Content-Type" <:> "application/json;charset=utf-8"]}
