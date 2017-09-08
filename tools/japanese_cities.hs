@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --resolver lts-9.2 runghc --package http-conduit --package here
+-- stack --resolver lts-9.2 runghc --package data-default --package http-conduit --package here --package retry
 -- Tool to find Japanese cities, their prefectures and locations from Wikidata
 -- Only used to dump the list to be used in the actual fetcher, so a lot of
 -- error checking is omitted.
@@ -7,8 +7,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Control.Monad
+import Control.Retry
 
 import Data.Aeson
+import Data.Default
 import qualified Data.Map as M
 import Data.Map ((!))
 import Data.Maybe
@@ -19,6 +21,8 @@ import qualified Data.Text.IO as T
 import Data.Text (Text)
 
 import Network.HTTP.Simple
+
+import System.Environment
 
 import Text.Read (readMaybe)
 
@@ -67,8 +71,11 @@ instance FromJSON CategoryResponse where
     withObject "CategoryResponse" $ \o ->
       (CategoryResponse . map criQID) <$> (o .: "results" >>= (.: "bindings"))
 
+myRetry :: IO a -> IO a
+myRetry act = recoverAll def $ \_ -> act
+
 inCategory :: QID -> IO [QID]
-inCategory catid = do
+inCategory catid = myRetry $ do
   response <-
     httpJSON $
     fromString $
@@ -145,7 +152,7 @@ data City = City
   } deriving (Show)
 
 city :: QID -> IO City
-city qid = do
+city qid = myRetry $ do
   cityEntity <- entity qid
   let [Success location] = map wpParse $ weProperties cityEntity ! "P625"
   let areaIDs =
@@ -194,6 +201,13 @@ cities = Q 494721
 
 main :: IO ()
 main = do
-  cityIDs <- inCategory specialCities
+  [catKind] <- getArgs
+  let category =
+        case catKind of
+          "government" -> governmentOrdnanceCities
+          "core" -> coreCities
+          "special" -> specialCities
+          _ -> error "Invalid category"
+  cityIDs <- inCategory category
   cities_ <- traverse city cityIDs
   forM_ cities_ $ T.putStrLn . cityRepr
