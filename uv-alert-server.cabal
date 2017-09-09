@@ -41,6 +41,7 @@ library
                      , aeson
                      , bytestring
                      , containers
+                     , data-default
                      , Decimal
                      , either
                      , ftphs
@@ -56,6 +57,7 @@ library
                      , mtl
                      , network-uri
                      , parsec
+                     , retry
                      , servant
                      , servant-client
                      , servant-server

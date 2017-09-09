@@ -3,6 +3,9 @@ module Fetcher.Base where
 {- Base functions for all the UV level sources -}
 import Control.Applicative
 import Control.Exception.Lifted
+import Control.Retry
+
+import Data.Default
 
 import Network.HTTP.Client (HttpException)
 import Network.HTTP.Simple (JSONException)
@@ -24,7 +27,17 @@ logJSONError :: (Alternative m, Show c) => c -> JSONException -> AppM (m a)
 logJSONError context err = logErrorStr context (show err)
 
 logErrors :: (Alternative m, Show c) => c -> AppM (m a) -> AppM (m a)
-logErrors context = handle (logIOError context) . handle (logHttpError context) . handle (logJSONError context)
+logErrors context =
+  handle (logIOError context) .
+  handle (logHttpError context) . handle (logJSONError context) . doRetries
+
+doRetries :: AppM a -> AppM a
+doRetries act =
+  recoverAll def $ \status -> do
+    case rsIterNumber status of
+      0 -> pure ()
+      i -> logStr $ "Retrying, attempt " ++ show i ++ "..."
+    act
 
 logEither :: Alternative m => Either String a -> (a -> AppM (m b)) -> AppM (m b)
 logEither (Left err) _ = logStr err >> return empty
