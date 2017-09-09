@@ -25,14 +25,12 @@ import Types.Config
 import Types.Location
 
 epaFetcher :: Fetcher
-epaFetcher = Fetcher "EPA" fetchEpa $ map fakeLoc usLocations
-  where
-    fakeLoc loc = loc & locExtra .~ Coordinates undefined undefined
+epaFetcher = Fetcher "EPA" fetchEpa cities
 
 fetchEpa :: AppM [Forecast]
 fetchEpa =
   fmap concat $
-  forM usLocations $ \location -> do
+  forM cities $ \location -> do
     logStr $ "Fetching forecast for " ++ show location ++ "..."
     let address = forecastAddress location
     logErrors address $ do
@@ -42,7 +40,7 @@ fetchEpa =
             map (fiDateTime location &&& fiLevel) (responseBody response)
       return $ maybeToList $ buildForecast location time measurements
 
-forecastAddress :: Location -> String
+forecastAddress :: LocationT extra -> String
 forecastAddress location =
   "https://iaspub.epa.gov/enviro/efservice/getEnvirofactsUVHOURLY/CITY/" ++ city ++
   "/STATE/" ++
@@ -67,7 +65,7 @@ instance FromJSON ForecastItem where
       parseLocalTime = parseTimeM False defaultTimeLocale "%b/%d/%Y %I %P"
 
 -- Parse a date from the forecast in a format: MAR/17/2016 11 PM
-fiDateTime :: Location -> ForecastItem -> UTCTime
+fiDateTime :: LocationT extra -> ForecastItem -> UTCTime
 fiDateTime location fi = localTimeToUTC' tz (fiLocalTime fi)
   where
     tz = locTZ location
