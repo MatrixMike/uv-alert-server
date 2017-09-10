@@ -46,6 +46,7 @@ library
                      , either
                      , ftphs
                      , JuicyPixels
+                     , here
                      , http-api-data
                      , http-client
                      , http-client-tls

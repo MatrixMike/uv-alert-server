@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
@@ -23,6 +24,7 @@ module Types.Location
 import Control.Lens hiding ((.=))
 
 import Data.Aeson
+import Data.String.Here
 import qualified Data.Text as T
 import Data.Text.Lens
 import Data.Time.LocalTime.TimeZone.Series
@@ -37,9 +39,12 @@ import Utils
 data Coordinates = Coordinates
   { _latitude :: Double
   , _longitude :: Double
-  } deriving (Eq, Ord, Show)
+  } deriving (Eq, Ord)
 
 makeLenses ''Coordinates
+
+instance Show Coordinates where
+  show coo = [i|latlon ${coo ^. latitude} ${coo ^. longitude}|]
 
 latlon :: Double -> Double -> Coordinates
 latlon lat lon = Coordinates { _latitude = lat, _longitude = lon }
@@ -52,9 +57,19 @@ data LocationT extra = Location
   , _locRegion :: String
   , _locCity :: String
   , _locExtra :: extra
-  } deriving (Eq, Ord, Show)
+  } deriving (Eq, Ord)
 
 makeLenses ''LocationT
+
+instance Show extra => Show (LocationT extra) where
+  show loc =
+    [i|${loc ^. locCity}, ${loc ^. locRegion}, ${loc ^. locCountry}${extra}|]
+    where
+      extra :: String
+      extra =
+        case loc ^. locExtra . to show of
+          "()" -> ""
+          extraStr -> [i|; ${extraStr}|]
 
 type Location = LocationT ()
 
