@@ -81,8 +81,6 @@ wikidata sparql =
     let request =
           fromString
             [i|https://query.wikidata.org/sparql?query=${URIEncode.encode sparql}&format=json|]
-    -- r1 <- httpLBS request
-    -- T.putStrLn $ T.decodeUtf8 $ LBS.toStrict $ getResponseBody r1
     response <- httpJSON request
     return $ unSparqlResponse $ getResponseBody response
 
@@ -95,7 +93,9 @@ instance FromJSON (SparqlValue Location) where
   parseJSON =
     withObject "Location" $ \o -> do
       valueStr <- o .: "value"
-      let inBrackets = T.drop 1 . T.dropEnd 1 . T.dropWhile (/= '(') $ T.dropWhileEnd (/= ')') valueStr
+      let inBrackets =
+            T.drop 1 . T.dropEnd 1 . T.dropWhile (/= '(') $
+            T.dropWhileEnd (/= ')') valueStr
       let [lonStr, latStr] = T.splitOn " " inBrackets
       let lLon = fromJust $ readMaybe $ T.unpack lonStr
       let lLat = fromJust $ readMaybe $ T.unpack latStr
@@ -105,14 +105,21 @@ data City = City
   { cName :: Text
   , cRegionName :: Text
   , cLocation :: Location
+  , cTimeZone :: Text
+  , cWikipediaName :: Text
   } deriving (Eq, Ord, Show)
 
 instance FromJSON (SparqlValue City) where
-  parseJSON = withObject "city" $ \o -> do
-    cName <- unSparqlValue <$> o .: "city"
-    cRegionName <- unSparqlValue <$> o .: "region"
-    cLocation <- unSparqlValue <$> o .: "location"
-    pure $ SparqlValue City {..}
+  parseJSON =
+    withObject "city" $ \o -> do
+      cName <- unSparqlValue <$> o .: "city"
+      cRegionName <- unSparqlValue <$> o .: "region"
+      cLocation <- unSparqlValue <$> o .: "location"
+      tz <- fmap unSparqlValue <$> o .:? "timezone"
+      let cTimeZone = fromMaybe "" tz
+      cWikipediaName <-
+        (T.takeWhileEnd (/= '/') . unSparqlValue) <$> o .: "article"
+      pure $ SparqlValue City {..}
 
 instance FromJSON (SparqlValue (M.Map Text Text)) where
   parseJSON =
@@ -125,10 +132,12 @@ instance FromJSON (SparqlValue (M.Map Text Text)) where
         pure (k, v')
 
 usCities :: Int -> IO [City]
-usCities limit =
-  nubOrd . map unSparqlValue <$> wikidata
-    [i|
-      SELECT ?item ?state ?city ?region ?location
+usCities limit = do
+  cities <-
+    nubOrd . map unSparqlValue <$>
+    wikidata
+      [i|
+      SELECT ?item ?state ?city ?region ?location ?timezone ?article
       WHERE {
         ?item wdt:P31 wd:Q515. # is-a city
         ?item wdt:P17 wd:Q30. # country USA
@@ -137,17 +146,77 @@ usCities limit =
         ?item wdt:P1082 ?population. # population
         ?item rdfs:label ?city FILTER (lang(?city) = 'en').
         ?state rdfs:label ?region FILTER (lang(?region) = 'en').
-        ?item wdt:P625 ?location # coordinate location
+        ?item wdt:P625 ?location. # coordinate location
+        OPTIONAL {
+          ?item wdt:P421 ?tz. # located in time zone
+          ?tz wdt:P31 wd:Q12143. # is-a time zone
+          ?tz rdfs:label ?timezone FILTER (lang(?timezone) = 'en').
+        }
+        OPTIONAL {
+          ?article schema:about ?item.
+          ?article schema:isPartOf <https://en.wikipedia.org/> .
+        }
       }
       ORDER BY desc(?population)
       LIMIT ${limit}
-  |]
+    |]
+  traverse backfillTimezone cities
+
+timezoneFromWPArticle :: Text -> Either String Text
+timezoneFromWPArticle text = do
+  let tzLines =
+        filter (T.isPrefixOf "|timezone") $ T.lines $ T.replace "| " "|" text
+  tzLine <-
+    case tzLines of
+      (tzl:_) -> pure tzl
+      _ -> error [i|No timezone line in ${text}|]
+  let tz =
+        T.takeWhile (/= '|') $
+        T.dropWhileEnd (== ']') $
+        T.dropWhile (== '[') $ T.dropWhile (/= '[') tzLine
+  pure tz
+
+backfillTimezone :: City -> IO City
+backfillTimezone city
+  | cTimeZone city /= "" = pure city
+  | otherwise = do
+    let request =
+          fromString
+            [i|https://en.wikipedia.org/w/api.php?action=query&titles=${T.unpack $ cWikipediaName city}&prop=revisions&rvprop=content&format=json|]
+    response <- httpJSON request
+    let text' =
+          flip A.parseEither (getResponseBody response) $
+          withObject "wikipedia response" $ \o -> do
+            query <- o .: "query"
+            pages <- query .: "pages"
+            pageId <-
+              case HM.keys pages of
+                [p] -> pure p
+                _ -> fail "no single page id"
+            page <- pages .: pageId
+            revisions <- page .: "revisions"
+            revision <-
+              case revisions of
+                (r:_) -> pure r
+                _ -> fail "no revision"
+            result <- revision .: "*"
+            pure result
+    text <-
+      case text' of
+        Left err -> error err
+        Right t -> pure t
+    tz <-
+      case timezoneFromWPArticle text of
+        Left err -> error err
+        Right tz' -> pure tz'
+    pure $ city {cTimeZone = tz}
 
 japanCities :: Int -> IO [City]
 japanCities limit =
-  nubOrd . map unSparqlValue <$> wikidata
+  nubOrd . map unSparqlValue <$>
+  wikidata
     [i|
-      SELECT ?item ?state ?city ?region ?location
+      SELECT ?item ?state ?city ?region ?location ?timezone ?article
       WHERE {
         {
           {
@@ -171,25 +240,51 @@ japanCities limit =
         ?item wdt:P1082 ?population. # population
         ?item rdfs:label ?city FILTER (lang(?city) = 'en').
         ?prefecture rdfs:label ?region FILTER (lang(?region) = 'en').
-        ?item wdt:P625 ?location # coordinate location
+        ?item wdt:P625 ?location. # coordinate location
+        VALUES ?tz { wd:Q909085 } # Japan Standard Time
+        ?tz rdfs:label ?timezone FILTER (lang(?timezone) = 'en').
+        OPTIONAL {
+          ?article schema:about ?item.
+          ?article schema:isPartOf <https://en.wikipedia.org/> .
+        }
       }
       ORDER BY desc(?population)
       LIMIT ${limit}
   |]
 
 cityRepr :: City -> Text
-cityRepr city_ =
-  [i|, loc "${region}" "${name}" \$ latlon ${lat} ${lon}|]
+cityRepr city_ = [i|, loc "${region}" "${name}" (latlon ${lat} ${lon}) ${tz}|]
   where
     name = fixName $ cName city_
+    fixName = T.replace " City" ""
     region = fixRegion $ cRegionName city_
+    fixRegion = T.replace " Prefecture" "" . T.replace " Subprefecture" ""
     lat = lLat $ cLocation city_
     lon = lLon $ cLocation city_
-    fixName = T.replace " City" ""
-    fixRegion = T.replace " Prefecture" "" . T.replace " Subprefecture" ""
+    tz :: Text
+    tz = tzVar $ cTimeZone city_
 
--- cities :: QID
--- cities = Q 494721
+tzVar :: Text -> Text
+tzVar =
+  go .
+  remove "North American " .
+  remove " (North America)" .
+  remove " (Americas)" .
+  remove " Standard" . remove " Daylight" . remove " Time" . remove " Zone"
+  where
+    remove s = T.replace s ""
+    go "Japan" = "japanTZ"
+    go "Alaska" = "alaska"
+    go "Eastern" = "eastern"
+    go "Pacific" = "pacific"
+    go "Central" = "central"
+    go "Mountain" = "mountain"
+    go "UTC−04:00" = "central"
+    go "UTC−05:00" = "eastern"
+    go "UTC−06:00" = "central"
+    go "UTC−07:00" = "mountain"
+    go "UTC−08:00" = "pacific"
+    go unknown = [i|Unknown timezone "${unknown}".|]
 
 main :: IO ()
 main = do
@@ -199,5 +294,5 @@ main = do
           ["japan"] -> japanCities 200
           ["us"] -> usCities 400
           _ -> error "Invalid category"
-  cities_ <- cityQuery
-  forM_ cities_ $ T.putStrLn . cityRepr
+  cities <- cityQuery
+  forM_ cities $ T.putStrLn . cityRepr
