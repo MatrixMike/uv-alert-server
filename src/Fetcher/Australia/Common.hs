@@ -3,6 +3,7 @@ module Fetcher.Australia.Common
   ) where
 
 import Types.Location
+import Types.Location.Australia
 
 auCities :: [LocationCoordinates]
 auCities =
@@ -22,7 +23,7 @@ auCities =
     ]
   where
     makeLocation (state, town, lat, lon) =
-      Location "Australia" state town $ latlon lat lon
+      Location "Australia" state town (latlon lat lon) (auStateTZ state)
     act = "Australian Capital Territory"
     nsw = "New South Wales"
     nt = "Northern Territory"

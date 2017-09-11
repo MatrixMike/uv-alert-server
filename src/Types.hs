@@ -52,7 +52,7 @@ instance ToJSON Alert where
 
 -- | A list of all times the UV index is dangerous for the day.
 data Forecast = Forecast
-  { _fcLocation :: Location
+  { _fcLocation :: LocationTZ
   , _fcDate :: Day
   , _fcAlerts :: [Alert]
   , _fcMaxLevel :: UVLevel
@@ -65,7 +65,7 @@ compareUpdated :: Forecast -> Forecast -> Ordering
 compareUpdated = comparing $ view fcUpdated
 
 fcTZ :: Forecast -> TimeZoneSeries
-fcTZ fc = fc ^. fcLocation . to locTZ
+fcTZ fc = fc ^. fcLocation . locTZ
 
 fcTime :: Forecast -> TimeOfDay -> UTCTime
 fcTime fc = localTimeToUTC' (fcTZ fc) . LocalTime (fc ^. fcDate)
@@ -100,9 +100,9 @@ isRecent now fc = fcAge now fc < (60 * 60 * 12)
 type Measurement = (UTCTime, UVLevel)
 
 -- Build a forecast from a number of measurements
-buildForecast :: LocationT extra -> UTCTime -> [Measurement] -> Maybe Forecast
+buildForecast :: LocationT coord TimeZoneSeries -> UTCTime -> [Measurement] -> Maybe Forecast
 buildForecast location updated measurements = do
-  let tz = locTZ location
+  let tz = location ^. locTZ
   let localDayTime = localTimeOfDay . utcToLocalTime' tz
   let alertTimes = alertIntervals measurements
   firstAlert <- fst <$> listToMaybe alertTimes

@@ -77,13 +77,13 @@ fetchArpansa = do
   fmap catMaybes $ for auCities $ \loc -> do
     logStr $ "Fetching graph for " ++ loc ^. locCity ++ "..."
     time <- liftIO getCurrentTime
-    let tz = loc ^. to locTZ
+    let tz = loc ^. locTZ
     logErrors loc $ do
       let request =
             baseRequest &
             setRequestQueryString
-              [ ("longitude", Just $ loc ^. locExtra . longitude . to roundLocation)
-              , ("latitude", Just $ loc ^. locExtra . latitude . to roundLocation)
+              [ ("longitude", Just $ loc ^. locCoordinates . longitude . to roundLocation)
+              , ("latitude", Just $ loc ^. locCoordinates . latitude . to roundLocation)
               , ( "date"
                 , Just $ T.encodeUtf8 $ T.pack $
                   formatTime defaultTimeLocale "%F" $

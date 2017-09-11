@@ -68,10 +68,11 @@ parseTime str = do
   minute <- readEither "minute" $ stringPartT 3 2 str
   return $ TimeOfDay hour minute 0
 
-bomLocation :: String -> Location
-bomLocation city = Location "Australia" state city ()
+bomLocation :: String -> LocationTZ
+bomLocation city = Location "Australia" state city () tz
   where
     state = auCityState city
+    tz = auStateTZ state
 
 -- TODO: Parsec
 parseForecast :: UTCTime -> String -> Either String Forecast

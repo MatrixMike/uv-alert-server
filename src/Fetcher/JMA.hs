@@ -199,4 +199,4 @@ forecast time imagesTimes loc = buildForecast loc time =<< measurements
     (images, times) = unzip imagesTimes
     measurements :: Maybe [Measurement]
     measurements = zip times <$> imageUVLevels coo images
-    coo = imageCoord (loc ^. locExtra)
+    coo = imageCoord (loc ^. locCoordinates)

@@ -40,7 +40,7 @@ fetchEpa =
             map (fiDateTime location &&& fiLevel) (responseBody response)
       return $ maybeToList $ buildForecast location time measurements
 
-forecastAddress :: LocationT extra -> String
+forecastAddress :: LocationT coord tz -> String
 forecastAddress location =
   "https://iaspub.epa.gov/enviro/efservice/getEnvirofactsUVHOURLY/CITY/" ++ city ++
   "/STATE/" ++
@@ -65,7 +65,7 @@ instance FromJSON ForecastItem where
       parseLocalTime = parseTimeM False defaultTimeLocale "%b/%d/%Y %I %P"
 
 -- Parse a date from the forecast in a format: MAR/17/2016 11 PM
-fiDateTime :: LocationT extra -> ForecastItem -> UTCTime
+fiDateTime :: LocationT coord TimeZoneSeries -> ForecastItem -> UTCTime
 fiDateTime location fi = localTimeToUTC' tz (fiLocalTime fi)
   where
-    tz = locTZ location
+    tz = location ^. locTZ

@@ -1,29 +1,65 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Types.Location.Australia
-  ( auCityState
+  ( actTZ
+  , nswTZ
+  , ntTZ
+  , qldTZ
+  , saTZ
+  , tasTZ
+  , vicTZ
+  , waTZ
+  , auCityState
   , auStateTZ
   ) where
 
 import Data.Time.LocalTime.TimeZone.Olson.TH
 import Data.Time.LocalTime.TimeZone.Series
 
--- Time zone in an Australian state
+actTZ :: TimeZoneSeries
+actTZ = $(loadTZFile "/usr/share/zoneinfo/Australia/Canberra")
+
+nswTZ :: TimeZoneSeries
+nswTZ = $(loadTZFile "/usr/share/zoneinfo/Australia/NSW")
+
+ntTZ :: TimeZoneSeries
+ntTZ = $(loadTZFile "/usr/share/zoneinfo/Australia/North")
+
+qldTZ :: TimeZoneSeries
+qldTZ = $(loadTZFile "/usr/share/zoneinfo/Australia/Queensland")
+
+saTZ :: TimeZoneSeries
+saTZ = $(loadTZFile "/usr/share/zoneinfo/Australia/South")
+
+tasTZ :: TimeZoneSeries
+tasTZ = $(loadTZFile "/usr/share/zoneinfo/Australia/Tasmania")
+
+vicTZ :: TimeZoneSeries
+vicTZ = $(loadTZFile "/usr/share/zoneinfo/Australia/Victoria")
+
+waTZ :: TimeZoneSeries
+waTZ = $(loadTZFile "/usr/share/zoneinfo/Australia/West")
+
 auStateTZ :: String -> TimeZoneSeries
-auStateTZ "New South Wales" = $(loadTZFile "/usr/share/zoneinfo/Australia/NSW")
-auStateTZ "Northern Territory" =
-  $(loadTZFile "/usr/share/zoneinfo/Australia/North")
-auStateTZ "South Australia" =
-  $(loadTZFile "/usr/share/zoneinfo/Australia/South")
-auStateTZ "Queensland" =
-  $(loadTZFile "/usr/share/zoneinfo/Australia/Queensland")
-auStateTZ "Western Australia" =
-  $(loadTZFile "/usr/share/zoneinfo/Australia/West")
-auStateTZ "Victoria" = $(loadTZFile "/usr/share/zoneinfo/Australia/Victoria")
-auStateTZ "Tasmania" = $(loadTZFile "/usr/share/zoneinfo/Australia/Tasmania")
-auStateTZ "Australian Capital Territory" =
-  $(loadTZFile "/usr/share/zoneinfo/Australia/Canberra")
-auStateTZ _ = error "Invalid state"
+auStateTZ state
+  | state == act = actTZ
+  | state == nsw = nswTZ
+  | state == nt = ntTZ
+  | state == qld = qldTZ
+  | state == sa = saTZ
+  | state == tas = tasTZ
+  | state == vic = vicTZ
+  | state == wa = waTZ
+  | otherwise = error "invalid state"
+  where
+    act = "Australian Capital Territory"
+    nsw = "New South Wales"
+    nt = "Northern Territory"
+    qld = "Queensland"
+    sa = "South Australia"
+    tas = "Tasmania"
+    vic = "Victoria"
+    wa = "Western Australia"
 
 -- State which an Australian city is in
 auCityState :: String -> String

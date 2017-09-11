@@ -1,4 +1,6 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Types.LocationSpec where
@@ -11,8 +13,11 @@ import Test.QuickCheck
 
 import Types.Location
 
-instance Arbitrary extra => Arbitrary (LocationT extra) where
-  arbitrary = Location <$> arbitraryAlpha <*> arbitraryAlpha <*> arbitraryAlpha <*> arbitrary
+instance Arbitrary Location where
+  arbitrary =
+    Location <$> arbitraryAlpha <*> arbitraryAlpha <*> arbitraryAlpha <*>
+    pure () <*>
+    pure ()
     where
       arbitraryAlpha = listOf1 $ choose ('a', 'z')
 
@@ -20,7 +25,7 @@ spec :: Spec
 spec = do
   describe "Location" $ do
     it "can be converted to an HTTP URL part" $ do
-      let loc = Location "Australia" "Victoria" "Melbourne" ()
+      let loc = Location "Australia" "Victoria" "Melbourne" () ()
       toQueryParam loc `shouldBe` "Melbourne, Victoria, Australia"
     it "can be converted to/from an HTTP URL part" $
       property $ \loc ->

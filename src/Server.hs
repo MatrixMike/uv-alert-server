@@ -40,15 +40,18 @@ registerApp key = stateM $ stAppKeys %= (++ [key])
 allLocations :: AppSM [LocationCoordinates]
 allLocations = asks $ concatMap fLocations . coFetchers
 
-getForecast :: Location -> AppSM [Forecast]
+getForecast :: LocationT coord tz -> AppSM [Forecast]
 getForecast loc = do
+  let loc' = toBaseLocation loc
   locations <- allLocations
-  when (loc `notElem` (withoutCoordinates <$> locations)) $
+  when (loc' `notElem` ((withoutTZ . withoutCoordinates) <$> locations)) $
     lift $ throwError $ err404 {errBody = "Location not found"}
   forecasts <- stateM $ use stForecasts
+  let baseLocationEq :: LocationT coord tz -> LocationT coord' tz' -> Bool
+      baseLocationEq l1 l2 = toBaseLocation l1 == toBaseLocation l2
   return $
     sortBy compareUpdated $
-    S.toList $ S.filter ((== loc) . view fcLocation) forecasts
+    S.toList $ S.filter (baseLocationEq loc . view fcLocation) forecasts
 
 getLocations :: AppSM [LocationCoordinates]
 getLocations = sort <$> allLocations

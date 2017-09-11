@@ -11,14 +11,17 @@ module Types.Location
   , latlon
   , LocationT(..)
   , Location
+  , LocationTZ
   , LocationCoordinates
   , locCountry
   , locRegion
   , locCity
-  , locExtra
+  , locCoordinates
   , locId
   , locTZ
   , withoutCoordinates
+  , withoutTZ
+  , toBaseLocation
   ) where
 
 import Control.Lens hiding ((.=))
@@ -27,13 +30,11 @@ import Data.Aeson
 import Data.String.Here
 import qualified Data.Text as T
 import Data.Text.Lens
+import Data.Time.LocalTime
 import Data.Time.LocalTime.TimeZone.Series
 
 import Servant
 
-import Types.Location.Australia
-import Types.Location.Japan
-import Types.Location.USA
 import Utils
 
 data Coordinates = Coordinates
@@ -52,31 +53,40 @@ latlon lat lon = Coordinates { _latitude = lat, _longitude = lon }
 instance ToJSON Coordinates where
   toJSON coo = object ["lat" .= (coo ^. latitude), "lon" .= (coo ^. longitude)]
 
-data LocationT extra = Location
+data LocationT coord tz = Location
   { _locCountry :: String
   , _locRegion :: String
   , _locCity :: String
-  , _locExtra :: extra
+  , _locCoordinates :: coord
+  , _locTZ :: tz
   } deriving (Eq, Ord)
 
 makeLenses ''LocationT
 
-instance Show extra => Show (LocationT extra) where
+instance (Show coord, Show tz) => Show (LocationT coord tz) where
   show loc =
-    [i|${loc ^. locCity}, ${loc ^. locRegion}, ${loc ^. locCountry}${extra}|]
+    [i|${loc ^. locCity}, ${loc ^. locRegion}, ${loc ^. locCountry}${coord}|]
     where
-      extra :: String
-      extra =
-        case loc ^. locExtra . to show of
+      coord :: String
+      coord =
+        case loc ^. locCoordinates . to show of
           "()" -> ""
           extraStr -> [i|; ${extraStr}|]
 
-type Location = LocationT ()
+type Location = LocationT () ()
 
-type LocationCoordinates = LocationT Coordinates
+type LocationTZ = LocationT () TimeZoneSeries
 
-withoutCoordinates :: LocationT extra -> Location
-withoutCoordinates loc = loc & locExtra .~ ()
+type LocationCoordinates = LocationT Coordinates TimeZoneSeries
+
+withoutCoordinates :: LocationT coord tz -> LocationT () tz
+withoutCoordinates loc = loc & locCoordinates .~ ()
+
+withoutTZ :: LocationT coord tz -> LocationT coord ()
+withoutTZ loc = loc & locTZ .~ ()
+
+toBaseLocation :: LocationT coord tz -> Location
+toBaseLocation = withoutTZ . withoutCoordinates
 
 instance FromHttpApiData Location where
   parseQueryParam txt
@@ -87,7 +97,7 @@ instance FromHttpApiData Location where
       case T.splitOn ", " txt of
         lst@[_, _, _] -> return lst
         _ -> Left ""
-    return $ Location country region city ()
+    return $ Location country region city () ()
 
 instance ToHttpApiData Location where
   toQueryParam loc =
@@ -98,7 +108,7 @@ instance ToHttpApiData Location where
       , loc ^. locCountry . packed
       ]
 
-_locId :: LocationT extra -> T.Text
+_locId :: LocationT coord tz -> T.Text
 _locId loc =
   normalizeValue $
   T.intercalate
@@ -109,10 +119,10 @@ _locId loc =
     ]
 
 -- | String to identify locations in pin IDs and topic names
-locId :: Getter (LocationT extra) T.Text
+locId :: Getter (LocationT coord tz) T.Text
 locId = to _locId
 
-locToJSON :: KeyValue t => LocationT extra -> [t]
+locToJSON :: KeyValue t => LocationT coord tz -> [t]
 locToJSON loc =
   [ "country" .= (loc ^. locCountry)
   , "region" .= (loc ^. locRegion)
@@ -124,13 +134,8 @@ instance ToJSON Location where
   toJSON loc = object $ locToJSON loc
 
 instance ToJSON LocationCoordinates where
-  toJSON loc = object $ locToJSON loc ++ ["location" .= (loc ^. locExtra)]
-
--- FIXME: disallow creating locations if the time zone is unknown
-locTZ :: LocationT extra -> TimeZoneSeries
-locTZ loc =
-  case loc ^. locCountry of
-    "Australia" -> loc ^. locRegion . to auStateTZ
-    "Japan" -> japanTZ
-    "USA" -> usTZ (loc ^. locCity) (loc ^. locRegion)
-    _ -> error $ "Unknown time zone for location " ++ show (withoutCoordinates loc)
+  toJSON loc =
+    object $ locToJSON loc ++
+    [ "location" .= (loc ^. locCoordinates)
+    , "timezone" .= (loc ^. locTZ . to tzsTimeZone . to timeZoneName)
+    ]
