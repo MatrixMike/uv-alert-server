@@ -6,6 +6,8 @@ module Integration.ServerSpec where
 import Server
 import Types.Config
 import Types.Location
+import Types.Location.Australia
+import Types.Location.Japan
 
 import Integration.Base
 
@@ -18,9 +20,9 @@ spec = do
   config <- runIO testConfig
   let locations :: [LocationCoordinates]
       locations =
-        [ Location "Australia" "Victoria" "Melbourne" (latlon (-37.73) 145.1)
-        , Location "Australia" "New South Wales" "Sydney" (latlon (-34.04) 151.1)
-        , Location "Japan" "Hyōgo" "Himeji" (latlon 34.8086 134.7384)
+        [ Location "Australia" "Victoria" "Melbourne" (latlon (-37.73) 145.1) vicTZ
+        , Location "Australia" "New South Wales" "Sydney" (latlon (-34.04) 151.1) nswTZ
+        , Location "Japan" "Hyōgo" "Himeji" (latlon 34.8086 134.7384) japanTZ
         ]
   let testFetcher =
         Fetcher
@@ -36,17 +38,20 @@ spec = do
                  , city: "Sydney"
                  , region: "New South Wales"
                  , country: "Australia"
-                 , location: { lat: -34.04,"lon": 151.1}}
+                 , location: { lat: -34.04,"lon": 151.1}
+                 , timezone: "AEST"}
                , { id: "Australia-Victoria-Melbourne"
                  , city: "Melbourne"
                  , region: "Victoria"
                  , country: "Australia"
-                 , location: { lat: -37.73,"lon": 145.1}}
+                 , location: { lat: -37.73,"lon": 145.1}
+                 , timezone: "AEST"}
                , { id: "Japan-Hyogo-Himeji"
                  , city: "Himeji"
                  , region: "Hyōgo"
                  , country: "Japan"
-                 , location: { lat: 34.8086,"lon": 134.7384}}
+                 , location: { lat: 34.8086,"lon": 134.7384}
+                 , timezone: "JST"}
                ]
                |]
           {matchHeaders = ["Content-Type" <:> "application/json;charset=utf-8"]}

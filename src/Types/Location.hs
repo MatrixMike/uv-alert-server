@@ -30,7 +30,6 @@ import Data.Aeson
 import Data.String.Here
 import qualified Data.Text as T
 import Data.Text.Lens
-import Data.Time.LocalTime
 import Data.Time.LocalTime.TimeZone.Series
 
 import Servant
@@ -137,5 +136,5 @@ instance ToJSON LocationCoordinates where
   toJSON loc =
     object $ locToJSON loc ++
     [ "location" .= (loc ^. locCoordinates)
-    , "timezone" .= (loc ^. locTZ . to tzsTimeZone . to timeZoneName)
+    , "timezone" .= (loc ^. locTZ . to show)
     ]
