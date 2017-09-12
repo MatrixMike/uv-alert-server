@@ -3,7 +3,7 @@ module Fetcher.Australia.Common
   ) where
 
 import Types.Location
-import Types.Location.Australia
+import Types.Location.TimeZones
 
 auCities :: [LocationCoordinates]
 auCities =

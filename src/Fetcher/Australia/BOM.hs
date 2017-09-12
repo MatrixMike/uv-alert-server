@@ -19,7 +19,7 @@ import Fetcher.Base
 import Types
 import Types.Config
 import Types.Location
-import Types.Location.Australia
+import Types.Location.TimeZones
 import Utils
 
 -- Data for today
@@ -71,8 +71,24 @@ parseTime str = do
 bomLocation :: String -> LocationTZ
 bomLocation city = Location "Australia" state city () tz
   where
-    state = auCityState city
     tz = auStateTZ state
+    state =
+      case city of
+        "Darwin" -> "Northern Territory"
+        "Melbourne" -> "Victoria"
+        "Sydney" -> "New South Wales"
+        "Hobart" -> "Tasmania"
+        "Perth" -> "Western Australia"
+        "Adelaide" -> "South Australia"
+        "Alice Springs" -> "Northern Territory"
+        "Brisbane" -> "Queensland"
+        "Canberra" -> "Australian Capital Territory"
+        "Mildura" -> "Victoria"
+        "Townsville" -> "Queensland"
+        "Gosford" -> "New South Wales"
+        "Newcastle" -> "New South Wales"
+        "Kingston" -> "Tasmania"
+        _ -> error "Unknown city"
 
 -- TODO: Parsec
 parseForecast :: UTCTime -> String -> Either String Forecast

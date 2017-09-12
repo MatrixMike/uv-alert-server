@@ -273,17 +273,17 @@ tzVar =
   remove " Standard" . remove " Daylight" . remove " Time" . remove " Zone"
   where
     remove s = T.replace s ""
-    go "Japan" = "japanTZ"
-    go "Alaska" = "alaska"
-    go "Eastern" = "eastern"
-    go "Pacific" = "pacific"
-    go "Central" = "central"
-    go "Mountain" = "mountain"
-    go "UTC−04:00" = "central"
-    go "UTC−05:00" = "eastern"
-    go "UTC−06:00" = "central"
-    go "UTC−07:00" = "mountain"
-    go "UTC−08:00" = "pacific"
+    go "Japan" = "japan"
+    go "Alaska" = "usAlaska"
+    go "Eastern" = "usEastern"
+    go "Pacific" = "usPacific"
+    go "Central" = "usCentral"
+    go "Mountain" = "usMountain"
+    go "UTC−04:00" = "usCentral"
+    go "UTC−05:00" = "usEastern"
+    go "UTC−06:00" = "usCentral"
+    go "UTC−07:00" = "usMountain"
+    go "UTC−08:00" = "usPacific"
     go unknown = [i|Unknown timezone "${unknown}".|]
 
 main :: IO ()

@@ -11,7 +11,7 @@ import Fetcher.JMA
 import Fetcher.JMA.Cities
 import Types
 import Types.Location
-import Types.Location.Japan
+import Types.Location.TimeZones
 
 import Test.Hspec
 import Test.Hspec.Core.Spec (SpecM)

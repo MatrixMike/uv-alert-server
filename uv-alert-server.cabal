@@ -33,9 +33,7 @@ library
                      , Types
                      , Types.Config
                      , Types.Location
-                     , Types.Location.Australia
-                     , Types.Location.Japan
-                     , Types.Location.USA
+                     , Types.Location.TimeZones
                      , Utils
   build-depends:       base >= 4.7 && < 5
                      , aeson

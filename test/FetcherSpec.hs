@@ -8,7 +8,7 @@ import Data.Time.LocalTime
 import Fetcher
 import Types
 import Types.Location
-import Types.Location.Australia
+import Types.Location.TimeZones
 
 import Test.Hspec
 

@@ -8,7 +8,7 @@ module Fetcher.JMA.Cities
 import Control.Lens
 
 import Types.Location
-import Types.Location.Japan
+import Types.Location.TimeZones
 import Utils
 
 data ImageCoord = ImageCoord

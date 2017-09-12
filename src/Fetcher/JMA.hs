@@ -23,7 +23,7 @@ import Fetcher.JMA.Cities
 import Types
 import Types.Config
 import Types.Location
-import Types.Location.Japan
+import Types.Location.TimeZones
 
 jmaFetcher :: Fetcher
 jmaFetcher = Fetcher "JMA" fetchJma cities

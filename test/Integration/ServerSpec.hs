@@ -6,8 +6,7 @@ module Integration.ServerSpec where
 import Server
 import Types.Config
 import Types.Location
-import Types.Location.Australia
-import Types.Location.Japan
+import Types.Location.TimeZones
 
 import Integration.Base
 

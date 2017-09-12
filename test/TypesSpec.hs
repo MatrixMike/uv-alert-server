@@ -11,7 +11,7 @@ import Data.Time.LocalTime.TimeZone.Series
 
 import Types
 import Types.Location
-import Types.Location.Japan
+import Types.Location.TimeZones
 
 import Test.Hspec
 
