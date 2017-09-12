@@ -11,7 +11,7 @@ import Data.Time.LocalTime.TimeZone.Series
 
 import Types
 import Types.Location
-import Types.Location.Japan
+import Types.Location.TimeZones
 
 import Test.Hspec
 
@@ -25,7 +25,7 @@ spec = do
     context "builds the forecast for the right time zone" $ do
       let Just date = fromGregorianValid 2016 09 01
       let atHour h = japanTime date h 0
-      let tokyo = Location "Japan" "Tokyo" "Tokyo"
+      let tokyo = Location "Japan" "Tokyo" "Tokyo" () japanTZ
       it "is Nothing when there is no alert" $
         buildForecast tokyo (atHour 19) [] `shouldBe` Nothing
       it "has correct date and times when there is an alert" $ do

@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -17,8 +16,6 @@ import Data.Time.Clock
 import Data.Time.LocalTime
 import Data.Time.LocalTime.TimeZone.Series
 
-import GHC.Generics (Generic)
-
 import Web.FormUrlEncoded
 
 import Types.Location
@@ -27,7 +24,7 @@ import Utils
 -- Supplementary types
 newtype UVLevel = UVLevel
   { _uvValue :: Int
-  } deriving (Eq, Ord, Show, Generic)
+  } deriving (Eq, Ord, Show)
 
 makeLenses ''UVLevel
 
@@ -44,7 +41,7 @@ instance ToJSON UVLevel where
 data Alert = Alert
   { _alertStart :: TimeOfDay
   , _alertEnd :: TimeOfDay
-  } deriving (Eq, Ord, Show, Generic)
+  } deriving (Eq, Ord, Show)
 
 makeLenses ''Alert
 
@@ -55,12 +52,12 @@ instance ToJSON Alert where
 
 -- | A list of all times the UV index is dangerous for the day.
 data Forecast = Forecast
-  { _fcLocation :: Location
+  { _fcLocation :: LocationTZ
   , _fcDate :: Day
   , _fcAlerts :: [Alert]
   , _fcMaxLevel :: UVLevel
   , _fcUpdated :: UTCTime
-  } deriving (Eq, Ord, Show, Generic)
+  } deriving (Eq, Ord, Show)
 
 makeLenses ''Forecast
 
@@ -68,7 +65,7 @@ compareUpdated :: Forecast -> Forecast -> Ordering
 compareUpdated = comparing $ view fcUpdated
 
 fcTZ :: Forecast -> TimeZoneSeries
-fcTZ fc = fc ^. fcLocation . to locTZ
+fcTZ fc = fc ^. fcLocation . locTZ
 
 fcTime :: Forecast -> TimeOfDay -> UTCTime
 fcTime fc = localTimeToUTC' (fcTZ fc) . LocalTime (fc ^. fcDate)
@@ -103,16 +100,16 @@ isRecent now fc = fcAge now fc < (60 * 60 * 12)
 type Measurement = (UTCTime, UVLevel)
 
 -- Build a forecast from a number of measurements
-buildForecast :: Location -> UTCTime -> [Measurement] -> Maybe Forecast
+buildForecast :: LocationT coord TimeZoneSeries -> UTCTime -> [Measurement] -> Maybe Forecast
 buildForecast location updated measurements = do
-  let tz = locTZ location
+  let tz = location ^. locTZ
   let localDayTime = localTimeOfDay . utcToLocalTime' tz
   let alertTimes = alertIntervals measurements
   firstAlert <- fst <$> listToMaybe alertTimes
   maxlevel <- maybeMaximum $ map snd measurements
   return
     Forecast
-    { _fcLocation = location
+    { _fcLocation = withoutCoordinates location
     , _fcDate = (localDay . utcToLocalTime' tz) firstAlert
     , _fcAlerts =
         [ Alert (localDayTime astart) (localDayTime aend)
