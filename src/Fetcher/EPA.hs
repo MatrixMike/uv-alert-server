@@ -9,6 +9,7 @@ import Control.Monad
 import Control.Monad.IO.Class
 
 import Data.Aeson
+import qualified Data.List.Utils as L
 import Data.Maybe
 import Data.Time.Clock
 import Data.Time.Format
@@ -47,7 +48,7 @@ forecastAddress location =
   abbr ++
   "/JSON"
   where
-    city = location ^. locCity
+    city = L.replace "'" "''" $ location ^. locCity
     abbr = location ^. locRegion . to usStateAbbreviation
 
 data ForecastItem = ForecastItem
