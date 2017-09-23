@@ -68,7 +68,11 @@ removeAccents = T.filter (not . isMark) . normalize NFD
 
 -- Replace characters not allowed in Pebble pin IDs and topic names
 normalizeValue :: T.Text -> T.Text
-normalizeValue = T.replace " " "_" . removeAccents
+normalizeValue = T.map removeInvalidChars . removeAccents
+  where
+    removeInvalidChars ' ' = '_'
+    removeInvalidChars '\'' = '_'
+    removeInvalidChars c = c
 
 maybeMaximum :: Ord a => [a] -> Maybe a
 maybeMaximum [] = Nothing
