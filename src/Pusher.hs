@@ -25,17 +25,17 @@ push :: AppM ()
 push = do
   forecasts <- stateM $ use stForecasts
   let fcount = length forecasts
-  manager <- liftIO $ newManager tlsManagerSettings
+  mgr <- liftIO $ newManager tlsManagerSettings
   logStr $ "Pushing " ++ show fcount ++ " forecasts..."
-  mapM_ (putForecastPin manager) forecasts
+  mapM_ (putForecastPin mgr) forecasts
   logStr "All pushed."
 
 putForecastPin :: Manager -> Forecast -> AppM ()
-putForecastPin manager forecast = do
+putForecastPin mgr forecast = do
   apiKey <- asks coApiKey
   let topics = forecastTopics forecast
   let pins = forecastPin forecast
-  let env = ClientEnv manager pebbleUrl
+  let env = ClientEnv mgr pebbleUrl Nothing
   forM_ pins $ \pin -> do
     result <-
       liftIO $ flip runClientM env $

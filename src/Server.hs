@@ -25,11 +25,11 @@ type AppSM = AppT Handler
 server :: ServerT API AppSM
 server = registerApp :<|> getForecast :<|> getLocations
 
-readerToExcept :: Config -> AppSM :~> Handler
-readerToExcept cfg = NT $ \x -> runReaderT x cfg
+readerToExcept :: Config -> AppSM a -> Handler a
+readerToExcept cfg x = runReaderT x cfg
 
 readerServer :: Config -> Server API
-readerServer cfg = enter (readerToExcept cfg) server
+readerServer cfg = hoistServer api (readerToExcept cfg) server
 
 app :: Config -> Application
 app cfg = serve api (readerServer cfg)
