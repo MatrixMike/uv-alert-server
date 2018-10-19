@@ -9,7 +9,6 @@ import Types.Config
 
 testConfig :: IO Config
 testConfig = do
-  setEnv "PEBBLE_API_KEY" "test"
   setEnv "LISTEN_PORT" "8100"
   initConfig
 

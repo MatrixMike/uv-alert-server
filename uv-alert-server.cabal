@@ -26,9 +26,6 @@ library
                      , Fetcher.EPA.Cities
                      , Fetcher.JMA
                      , Fetcher.JMA.Cities
-                     , Pebble.Client
-                     , Pebble.Types
-                     , Pusher
                      , Server
                      , Types
                      , Types.Config
@@ -58,7 +55,6 @@ library
                      , parsec
                      , retry
                      , servant
-                     , servant-client
                      , servant-server
                      , split
                      , text

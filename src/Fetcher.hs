@@ -14,7 +14,6 @@ import Data.Time.Clock
 
 import GHC.Exts (groupWith)
 
-import Pusher
 import Types
 import Types.Config
 
@@ -30,7 +29,6 @@ fetcher =
     fetchers <- asks coFetchers
     fetchAll fetchers
     removeOldM
-    push
     liftIO $ threadDelay updateInterval
 
 fetchAll :: [Fetcher] -> AppM ()

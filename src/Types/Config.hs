@@ -15,8 +15,6 @@ import qualified Data.Set as S
 import Types
 import Types.Location
 
-import Pebble.Types
-
 data Fetcher = Fetcher
   { fName :: String
   , fFetch :: AppM [Forecast]
@@ -25,7 +23,6 @@ data Fetcher = Fetcher
 
 data Config = Config
   { coStore :: MVar Store
-  , coApiKey :: APIKey
   , coListenPort :: Int
   , coFetchers :: [Fetcher]
   }
