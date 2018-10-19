@@ -44,7 +44,7 @@ getForecast :: LocationT coord tz -> AppSM [Forecast]
 getForecast loc = do
   let loc' = toBaseLocation loc
   locations <- allLocations
-  when (loc' `notElem` ((withoutTZ . withoutCoordinates) <$> locations)) $
+  when (loc' `notElem` (withoutTZ . withoutCoordinates <$> locations)) $
     lift $ throwError $ err404 {errBody = "Location not found"}
   forecasts <- stateM $ use stForecasts
   let baseLocationEq :: LocationT coord tz -> LocationT coord' tz' -> Bool

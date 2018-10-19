@@ -17,7 +17,7 @@ defaultFetchers = [arpansaFetcher, epaFetcher, jmaFetcher]
 initConfig :: IO Config
 initConfig = do
   store <- newMVar emptyStore
-  listenPort <- (read . fromMaybe "8000") <$> lookupEnv "LISTEN_PORT"
+  listenPort <- read . fromMaybe "8000" <$> lookupEnv "LISTEN_PORT"
   return
     Config
     { coStore = store
